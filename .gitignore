@@ -12,6 +12,7 @@ lerna-debug.log*
 # Dependencies
 node_modules
 .venv
+.conda
 
 # Build outputs
 dist
@@ -20,6 +21,7 @@ dist-ssr
 # Python caches
 __pycache__/
 *.pyc
+*.egg-info/
 
 # Local environment files
 *.local
