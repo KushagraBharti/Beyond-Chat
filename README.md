@@ -85,15 +85,13 @@ bun run dev
 
 ## Frontend ↔ Backend Communication
 
-The connection path is intentionally simple at this stage. The frontend requests `GET /api/health`, and Vite proxies `/api/*` traffic from port `5173` to backend port `8000`.
-
-This means frontend code can call relative API paths (`/api/...`) during development without hardcoding backend origins.
+The connection path is intentionally simple. The frontend requests `GET /api/health`, and Vite proxies `/api/*` traffic from port `5173` to backend port `8000`.
 
 Local URLs (to ensure everything works):
 
-- Frontend: `http://127.0.0.1:5173`
-- Backend: `http://127.0.0.1:8000`
-- Backend health: `http://127.0.0.1:8000/api/health`
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8000`
+- Backend health: `http://localhost:8000/api/health`
 
 ## Available Commands
 
@@ -106,18 +104,8 @@ Local URLs (to ensure everything works):
 
 ### Backend (`backend/`)
 
-- `uv sync` → sync dependencies from lock/config
+- `uv sync --active` → sync dependencies from lock/config for the open virtual environment
 - `uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000` → run API locally
-
-## Development Workflow Expectations
-
-When contributing, follow this order for consistency:
-
-1. Pull latest changes.
-2. Run `uv sync` in `backend/`.
-3. Run `bun install` in `frontend/` when dependencies change.
-4. Start both services and verify `/api/health` through frontend.
-5. Build frontend (`bun run build`) before pushing major changes.
 
 ## Summary
 
