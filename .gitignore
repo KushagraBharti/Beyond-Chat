@@ -11,10 +11,15 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
+.venv
 
 # Build outputs
 dist
 dist-ssr
+
+# Python caches
+__pycache__/
+*.pyc
 
 # Local environment files
 *.local

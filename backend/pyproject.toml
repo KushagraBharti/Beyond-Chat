@@ -1,0 +1,10 @@
+[project]
+name = "beyond-chat-backend"
+version = "0.1.0"
+description = "Barebones backend for Beyond Chat"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+]

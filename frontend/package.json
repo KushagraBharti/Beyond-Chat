@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "packageManager": "bun@1.2.23",
   "scripts": {
+    "preinstall": "node -e \"const ua = process.env.npm_config_user_agent || ''; if (!ua.includes('bun')) { console.error('Use Bun only for frontend. Run: bun install'); process.exit(1); }\"",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
