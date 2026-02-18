@@ -59,7 +59,7 @@ After cloning, set up backend first, then frontend.
 ### 1) Clone the repository
 
 ```powershell
-git clone <your-repo-url>
+git clone https://github.com/KushagraBharti/Beyond-Chat
 cd Beyond-Chat
 ```
 
