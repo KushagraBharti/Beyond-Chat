@@ -988,6 +988,403 @@ export default function VariantPicker() {
             ))}
           </div>
         </Link>
+
+        {/* Aura */}
+        <Link
+          to="/aura"
+          style={{
+            textDecoration: "none",
+            background: "linear-gradient(135deg, #0a0a0c, #16161f)",
+            borderRadius: "30px",
+            padding: "2.5rem 2rem",
+            border: "1px solid rgba(255,255,255,0.05)",
+            boxShadow: "inset 0 0 20px rgba(162,155,254,0.05)",
+            transition: "all 0.4s ease",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)";
+            e.currentTarget.style.boxShadow = "inset 0 0 30px rgba(162,155,254,0.1), 0 10px 30px rgba(0,0,0,0.5)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "inset 0 0 20px rgba(162,155,254,0.05)";
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Sora', sans-serif",
+              fontSize: "0.65rem",
+              fontWeight: 300,
+              letterSpacing: "0.2em",
+              color: "#a0a0ab",
+              marginBottom: "1rem",
+            }}
+          >
+            No. 10
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: "2rem",
+              fontWeight: 400,
+              color: "#fff",
+              lineHeight: 1.1,
+              marginBottom: "0.75rem",
+              background: "linear-gradient(90deg, #fff, #a0a0ab)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            Aura
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Sora', sans-serif",
+              fontSize: "0.9rem",
+              color: "#888",
+              lineHeight: 1.6,
+            }}
+          >
+            Ethereal glassmorphism. Shimmering pastel gradients, extreme blurs, crystalline refinement.
+          </p>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/aura${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Sora', sans-serif",
+                  fontSize: "0.72rem",
+                  fontWeight: 300,
+                  color: "#a0a0ab",
+                  textDecoration: "none",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  padding: "0.3rem 0.8rem",
+                  borderRadius: "20px",
+                }}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </Link>
+
+        {/* Cyber */}
+        <Link
+          to="/cyber"
+          style={{
+            textDecoration: "none",
+            background: "#050505",
+            borderRadius: "0",
+            padding: "2.5rem 2rem",
+            border: "1px solid rgba(0, 240, 255, 0.3)",
+            transition: "all 0.2s linear",
+            position: "relative",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.borderColor = "#FCEE0A";
+            e.currentTarget.style.boxShadow = "0 0 10px rgba(252,238,10,0.2)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.borderColor = "rgba(0, 240, 255, 0.3)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "4px",
+              height: "100%",
+              background: "#00F0FF",
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "'Share Tech Mono', monospace",
+              fontSize: "0.65rem",
+              color: "#00F0FF",
+              marginBottom: "1rem",
+            }}
+          >
+            // VARIANT_11
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Rajdhani', sans-serif",
+              fontSize: "2rem",
+              fontWeight: 700,
+              color: "#FCEE0A",
+              lineHeight: 1.1,
+              marginBottom: "0.75rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Cyber
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Share Tech Mono', monospace",
+              fontSize: "0.85rem",
+              color: "#aaa",
+              lineHeight: 1.6,
+            }}
+          >
+            Neonpunk terminal. Glitchy contrasts, cyberpunk yellow/cyan, harsh grids.
+          </p>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/cyber${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Share Tech Mono', monospace",
+                  fontSize: "0.72rem",
+                  color: "#000",
+                  background: "#00F0FF",
+                  textDecoration: "none",
+                  padding: "0.3rem 0.8rem",
+                  textTransform: "uppercase",
+                  fontWeight: "bold",
+                }}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </Link>
+
+        {/* Sketchbook */}
+        <Link
+          to="/sketchbook"
+          style={{
+            textDecoration: "none",
+            background: "#F4F1EA",
+            borderRadius: "255px 15px 225px 15px/15px 225px 15px 255px",
+            padding: "2.5rem 2rem",
+            border: "2px solid #1A1A24",
+            transition: "transform 0.2s",
+            position: "relative",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "rotate(-2deg) scale(1.02)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "rotate(0) scale(1)";
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Patrick Hand', cursive",
+              fontSize: "1rem",
+              color: "#D13B3B",
+              marginBottom: "1rem",
+              transform: "rotate(-5deg)",
+            }}
+          >
+            Page 12
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Caveat', cursive",
+              fontSize: "2.5rem",
+              fontWeight: 700,
+              color: "#1A1A24",
+              lineHeight: 1.1,
+              marginBottom: "0.75rem",
+            }}
+          >
+            Sketchbook
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Patrick Hand', cursive",
+              fontSize: "1.1rem",
+              color: "#555",
+              lineHeight: 1.4,
+            }}
+          >
+            Hand-drawn organic. Pencil outlines, doodles, messy and authentic.
+          </p>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/sketchbook${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Patrick Hand', cursive",
+                  fontSize: "1rem",
+                  color: "#1A1A24",
+                  textDecoration: "none",
+                  borderBottom: "2px dashed #D13B3B",
+                }}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </Link>
+
+        {/* Monolith */}
+        <div
+          onClick={() => window.location.href = '/monolith'}
+          style={{
+            textDecoration: "none",
+            background: "#D3D3D3",
+            borderRadius: "0",
+            padding: "2.5rem 2rem",
+            borderLeft: "10px solid #111",
+            transition: "all 0.3s",
+            filter: "grayscale(100%)",
+            cursor: "pointer"
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#111";
+            e.currentTarget.querySelector('h2')!.style.color = "#D3D3D3";
+            e.currentTarget.querySelector('p')!.style.color = "#888";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#D3D3D3";
+            e.currentTarget.querySelector('h2')!.style.color = "#111";
+            e.currentTarget.querySelector('p')!.style.color = "#333";
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Oswald', sans-serif",
+              fontSize: "1.5rem",
+              fontWeight: 700,
+              color: "#888",
+              marginBottom: "1rem",
+            }}
+          >
+            013
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Anton', sans-serif",
+              fontSize: "2.5rem",
+              color: "#111",
+              lineHeight: 1,
+              marginBottom: "0.75rem",
+              textTransform: "uppercase",
+              transition: "color 0.3s"
+            }}
+          >
+            Monolith
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Oswald', sans-serif",
+              fontSize: "1rem",
+              color: "#333",
+              lineHeight: 1.4,
+              transition: "color 0.3s"
+            }}
+          >
+            Brutalist industrial concrete. Heavy typography, raw greyscale, unwavering structure.
+          </p>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/monolith${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Anton', sans-serif",
+                  fontSize: "1rem",
+                  color: "#D3D3D3",
+                  background: "#111",
+                  textDecoration: "none",
+                  padding: "0.4rem 1rem",
+                  textTransform: "uppercase",
+                }}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Synthwave */}
+        <Link
+          to="/synthwave"
+          style={{
+            textDecoration: "none",
+            background: "linear-gradient(to right, #120458, #2A0845)",
+            borderRadius: "10px",
+            padding: "2.5rem 2rem",
+            border: "2px solid #00d2ff",
+            transition: "all 0.3s",
+            boxShadow: "0 0 10px rgba(0,212,255,0.3)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)";
+            e.currentTarget.style.boxShadow = "0 0 20px rgba(255,0,127,0.6)";
+            e.currentTarget.style.borderColor = "#FF007F";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 0 10px rgba(0,212,255,0.3)";
+            e.currentTarget.style.borderColor = "#00d2ff";
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Exo 2', sans-serif",
+              fontSize: "0.8rem",
+              color: "#FF007F",
+              marginBottom: "1rem",
+              textShadow: "0 0 5px #FF007F",
+            }}
+          >
+            LVL 14
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Righteous', display",
+              fontSize: "2rem",
+              color: "#00d2ff",
+              lineHeight: 1,
+              marginBottom: "0.75rem",
+              textShadow: "0 0 10px #00d2ff",
+            }}
+          >
+            Synthwave
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Exo 2', sans-serif",
+              fontSize: "1rem",
+              color: "#ccc",
+              lineHeight: 1.4,
+            }}
+          >
+            80s Retro Arcade. Outrun sunsets, neon pink/cyan gradients, deep virtual grids.
+          </p>
+          <div style={{ marginTop: "1.5rem", display: "flex", gap: "1rem" }}>
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/synthwave${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Righteous', display",
+                  fontSize: "1rem",
+                  color: "#fff",
+                  background: "#FF007F",
+                  textDecoration: "none",
+                  padding: "0.4rem 1rem",
+                  borderRadius: "20px",
+                  boxShadow: "0 0 10px #FF007F",
+                }}
+              >
+                {page.toUpperCase()}
+              </Link>
+            ))}
+          </div>
+        </Link>
       </div>
     </div>
   );

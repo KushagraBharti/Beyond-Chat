@@ -37,6 +37,27 @@ import ZenithLanding from "./ui-variants/zenith/LandingPage";
 import ZenithPricing from "./ui-variants/zenith/PricingPage";
 import ZenithLogin from "./ui-variants/zenith/LoginPage";
 
+import AuraLanding from "./ui-variants/aura/LandingPage";
+import AuraPricing from "./ui-variants/aura/PricingPage";
+import AuraLogin from "./ui-variants/aura/LoginPage";
+
+import CyberLanding from "./ui-variants/cyber/LandingPage";
+import CyberPricing from "./ui-variants/cyber/PricingPage";
+import CyberLogin from "./ui-variants/cyber/LoginPage";
+
+import SketchbookLanding from "./ui-variants/sketchbook/LandingPage";
+import SketchbookPricing from "./ui-variants/sketchbook/PricingPage";
+import SketchbookLogin from "./ui-variants/sketchbook/LoginPage";
+
+import MonolithLanding from "./ui-variants/monolith/LandingPage";
+import MonolithPricing from "./ui-variants/monolith/PricingPage";
+import MonolithLogin from "./ui-variants/monolith/LoginPage";
+
+import SynthwaveLanding from "./ui-variants/synthwave/LandingPage";
+import SynthwavePricing from "./ui-variants/synthwave/PricingPage";
+import SynthwaveLogin from "./ui-variants/synthwave/LoginPage";
+
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -78,6 +99,28 @@ export default function App() {
         <Route path="/zenith" element={<ZenithLanding />} />
         <Route path="/zenith/pricing" element={<ZenithPricing />} />
         <Route path="/zenith/login" element={<ZenithLogin />} />
+
+        {/* New Routes */}
+        <Route path="/aura" element={<AuraLanding />} />
+        <Route path="/aura/pricing" element={<AuraPricing />} />
+        <Route path="/aura/login" element={<AuraLogin />} />
+
+        <Route path="/cyber" element={<CyberLanding />} />
+        <Route path="/cyber/pricing" element={<CyberPricing />} />
+        <Route path="/cyber/login" element={<CyberLogin />} />
+
+        <Route path="/sketchbook" element={<SketchbookLanding />} />
+        <Route path="/sketchbook/pricing" element={<SketchbookPricing />} />
+        <Route path="/sketchbook/login" element={<SketchbookLogin />} />
+
+        <Route path="/monolith" element={<MonolithLanding />} />
+        <Route path="/monolith/pricing" element={<MonolithPricing />} />
+        <Route path="/monolith/login" element={<MonolithLogin />} />
+
+        <Route path="/synthwave" element={<SynthwaveLanding />} />
+        <Route path="/synthwave/pricing" element={<SynthwavePricing />} />
+        <Route path="/synthwave/login" element={<SynthwaveLogin />} />
+
       </Routes>
     </BrowserRouter>
   );
