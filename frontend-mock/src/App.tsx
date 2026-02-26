@@ -17,6 +17,10 @@ import AtelierLanding from "./ui-variants/atelier/LandingPage";
 import AtelierPricing from "./ui-variants/atelier/PricingPage";
 import AtelierLogin from "./ui-variants/atelier/LoginPage";
 
+import AtelierPlusLanding from "./ui-variants/atelier-plus/LandingPage";
+import AtelierPlusPricing from "./ui-variants/atelier-plus/PricingPage";
+import AtelierPlusLogin from "./ui-variants/atelier-plus/LoginPage";
+
 import ManifestoLanding from "./ui-variants/manifesto/LandingPage";
 import ManifestoPricing from "./ui-variants/manifesto/PricingPage";
 import ManifestoLogin from "./ui-variants/manifesto/LoginPage";
@@ -79,6 +83,10 @@ export default function App() {
         <Route path="/atelier" element={<AtelierLanding />} />
         <Route path="/atelier/pricing" element={<AtelierPricing />} />
         <Route path="/atelier/login" element={<AtelierLogin />} />
+
+        <Route path="/atelier-plus" element={<AtelierPlusLanding />} />
+        <Route path="/atelier-plus/pricing" element={<AtelierPlusPricing />} />
+        <Route path="/atelier-plus/login" element={<AtelierPlusLogin />} />
 
         <Route path="/manifesto" element={<ManifestoLanding />} />
         <Route path="/manifesto/pricing" element={<ManifestoPricing />} />

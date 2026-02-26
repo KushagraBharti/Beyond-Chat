@@ -467,6 +467,132 @@ export default function VariantPicker() {
           </div>
         </Link>
 
+        {/* Atelier Plus */}
+        <Link
+          to="/atelier-plus"
+          style={{
+            textDecoration: "none",
+            background: "#F7F7F5",
+            borderRadius: "16px",
+            padding: "2.5rem 2rem",
+            border: "1px solid #E8E8E6",
+            transition: "transform 0.3s ease, box-shadow 0.3s ease",
+            position: "relative",
+            overflow: "hidden",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-4px)";
+            e.currentTarget.style.boxShadow = "0 12px 40px rgba(91,79,233,0.2)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        >
+          {/* Dot grid background */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              opacity: 0.4,
+              backgroundImage:
+                "radial-gradient(circle, #5B4FE9 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+              pointerEvents: "none",
+            }}
+          />
+          {/* Animated Glow */}
+          <div
+            style={{
+              position: "absolute",
+              top: "-50px",
+              left: "-50px",
+              width: "150px",
+              height: "150px",
+              background: "radial-gradient(circle, rgba(91,79,233,0.15) 0%, transparent 70%)",
+              borderRadius: "50%",
+              pointerEvents: "none",
+            }}
+          />
+          {/* Colored accent bar */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "3px",
+              background: "linear-gradient(90deg, #5B4FE9, #F06225, #30A46C, #E5484D)",
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: "0.7rem",
+              textTransform: "uppercase",
+              letterSpacing: "0.18em",
+              color: "#5B4FE9",
+              fontWeight: 800,
+              marginBottom: "1rem",
+              position: "relative",
+            }}
+          >
+            No. 04+ (Evolved)
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Bricolage Grotesque', sans-serif",
+              fontSize: "2rem",
+              fontWeight: 800,
+              color: "#111",
+              lineHeight: 1.1,
+              marginBottom: "0.75rem",
+              position: "relative",
+            }}
+          >
+            Atelier Plus
+          </h2>
+          <p
+            style={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: "0.9rem",
+              color: "#444",
+              lineHeight: 1.6,
+              position: "relative",
+            }}
+          >
+            Elevated professional aesthetic. Framer Motion reveals, 3D accents, ultra-refined interactions, dynamic layouts, luxury SaaS feel.
+          </p>
+          <div
+            style={{
+              marginTop: "1.5rem",
+              display: "flex",
+              gap: "0.5rem",
+              position: "relative",
+            }}
+          >
+            {["Landing", "Pricing", "Login"].map((page) => (
+              <Link
+                key={page}
+                to={`/atelier-plus${page === "Landing" ? "" : `/${page.toLowerCase()}`}`}
+                style={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontSize: "0.7rem",
+                  fontWeight: 700,
+                  color: "#fff",
+                  textDecoration: "none",
+                  background: "#5B4FE9",
+                  padding: "0.3rem 0.75rem",
+                  borderRadius: "6px",
+                  boxShadow: "0 2px 10px rgba(91,79,233,0.3)"
+                }}
+              >
+                {page}
+              </Link>
+            ))}
+          </div>
+        </Link>
+
         {/* Manifesto */}
         <Link
           to="/manifesto"
