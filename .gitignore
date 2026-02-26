@@ -37,3 +37,9 @@ __pycache__/
 *.njsproj
 *.sln
 *.sw?
+
+# env files
+.env
+.env.*
+backend/.env
+frontend/.env.local
