@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 
 const heading = "'Bricolage Grotesque', sans-serif";
 const body = "'Plus Jakarta Sans', sans-serif";
@@ -17,6 +18,7 @@ const c = {
 };
 
 export default function AtelierPlusLogin() {
+  const { session, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -27,10 +29,15 @@ export default function AtelierPlusLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  if (authLoading) return null;
+  if (session) {
+    navigate("/home", { replace: true });
+    return null;
+  }
 
   async function handleSubmit() {
     setLoading(true);
@@ -47,20 +54,18 @@ export default function AtelierPlusLogin() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
 
-        // If email confirmations are ON, session may be null until confirmed.
         if (data.session) {
           setMessage("Account created and signed in.");
-          navigate("/", { replace: true });
+          navigate("/home", { replace: true });
         } else {
           setMessage("Account created. Check your email to confirm (if confirmations are enabled).");
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
         setMessage("Signed in successfully.");
-        // Redirect somewhere reasonable — landing for now
-        navigate("/", { replace: true });
+        navigate("/home", { replace: true });
       }
     } catch (e: any) {
       setError(e?.message ?? "Something went wrong.");
@@ -147,7 +152,7 @@ export default function AtelierPlusLogin() {
           </span>
         </Link>
 
-        {/* (rest of left panel unchanged) */}
+        {/* Floating Abstract Element */}
         <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }} style={{ width: "300px", height: "400px", position: "relative" }}>
             <motion.div
@@ -178,7 +183,7 @@ export default function AtelierPlusLogin() {
 
         <div style={{ position: "relative", zIndex: 10 }}>
           <p style={{ fontFamily: heading, fontSize: "1.25rem", color: "#fff", lineHeight: 1.5, marginBottom: "1rem" }}>
-            "The workspace finally matches the power of the models. It’s fundamentally changed how our team ships."
+            "The workspace finally matches the power of the models. It's fundamentally changed how our team ships."
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: c.border, overflow: "hidden" }}>
@@ -226,6 +231,7 @@ export default function AtelierPlusLogin() {
                 placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
                 style={{
                   width: "100%",
                   padding: "0.85rem 1rem",
@@ -259,6 +265,7 @@ export default function AtelierPlusLogin() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
                 style={{
                   width: "100%",
                   padding: "0.85rem 1rem",
@@ -282,8 +289,16 @@ export default function AtelierPlusLogin() {
               />
             </div>
 
-            {error ? <div style={{ color: c.accent, fontSize: "0.85rem" }}>{error}</div> : null}
-            {message ? <div style={{ color: c.muted, fontSize: "0.85rem" }}>{message}</div> : null}
+            {error && (
+              <p style={{ color: "#DC2626", fontSize: "0.85rem", margin: 0, padding: "0.5rem 0.75rem", background: "#FEF2F2", borderRadius: "8px", border: "1px solid #FECACA" }}>
+                {error}
+              </p>
+            )}
+            {message && (
+              <p style={{ color: c.muted, fontSize: "0.85rem", margin: 0, padding: "0.5rem 0.75rem", background: c.canvas, borderRadius: "8px", border: `1px solid ${c.border}` }}>
+                {message}
+              </p>
+            )}
 
             <button
               type="submit"
@@ -292,7 +307,7 @@ export default function AtelierPlusLogin() {
                 width: "100%",
                 padding: "0.9rem",
                 borderRadius: "10px",
-                background: c.ink,
+                background: loading ? c.muted : c.ink,
                 color: "#fff",
                 fontFamily: body,
                 fontSize: "0.95rem",
@@ -304,6 +319,8 @@ export default function AtelierPlusLogin() {
                 boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
                 opacity: loading ? 0.7 : 1,
               }}
+              onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)"; } }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.1)"; }}
             >
               {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Sign In"}
             </button>
