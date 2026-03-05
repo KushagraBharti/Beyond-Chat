@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import WritingStudioPage from "./WritingStudioPage";
 
 const heading = "'Bricolage Grotesque', sans-serif";
 const body = "'Plus Jakarta Sans', sans-serif";
@@ -27,11 +28,15 @@ export default function StudioPage() {
   const navigate = useNavigate();
   const studio = studioId ? studioMeta[studioId] : null;
 
+  if (studioId === "writing") {
+    return <WritingStudioPage />;
+  }
+
   if (!studio) {
     return (
       <div style={{ padding: "3rem", fontFamily: body }}>
         <p style={{ color: c.muted }}>Studio not found.</p>
-        <button onClick={() => navigate("/home")} style={{ color: c.primary, background: "none", border: "none", cursor: "pointer", fontFamily: body, fontSize: "0.9rem", padding: 0 }}>
+        <button onClick={() => navigate("/dashboard")} style={{ color: c.primary, background: "none", border: "none", cursor: "pointer", fontFamily: body, fontSize: "0.9rem", padding: 0 }}>
           ← Back to Home
         </button>
       </div>
@@ -127,7 +132,7 @@ export default function StudioPage() {
             This workspace is being built. You'll be able to {studio.desc.toLowerCase().replace(/\.$/, "")} right here.
           </p>
           <button
-            onClick={() => navigate("/home")}
+            onClick={() => navigate("/dashboard")}
             style={{
               padding: "0.6rem 1.25rem",
               borderRadius: 8,

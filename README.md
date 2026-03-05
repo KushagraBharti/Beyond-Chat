@@ -56,6 +56,11 @@ uv --version
 
 After cloning, set up backend first, then frontend.
 
+Create local env files first:
+
+- `backend/.env` (copy from `backend/env.example`)
+- `frontend/.env` (copy from `frontend/env.example`)
+
 ### 1) Clone the repository
 
 ```powershell

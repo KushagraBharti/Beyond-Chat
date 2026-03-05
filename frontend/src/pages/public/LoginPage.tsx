@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useMemo, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { useEffect, useMemo, useState } from "react";
+import { activateMvpBypassSession } from "../../lib/mvpBypass";
+import { isMvpBypassEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 
 const heading = "'Bricolage Grotesque', sans-serif";
@@ -18,7 +19,7 @@ const c = {
 };
 
 export default function AtelierPlusLogin() {
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, mvpBypassActive } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -33,11 +34,34 @@ export default function AtelierPlusLogin() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const handleMvpBypass = () => {
+    activateMvpBypassSession();
+    navigate("/dashboard", { replace: true });
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const isShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "k";
+      if (!isShortcut) return;
+      if (!isMvpBypassEnabled) return;
+
+      event.preventDefault();
+      activateMvpBypassSession();
+      navigate("/dashboard", { replace: true });
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!session && !mvpBypassActive) return;
+    navigate("/dashboard", { replace: true });
+  }, [authLoading, mvpBypassActive, navigate, session]);
+
   if (authLoading) return null;
-  if (session) {
-    navigate("/home", { replace: true });
-    return null;
-  }
+  if (session || mvpBypassActive) return null;
 
   async function handleSubmit() {
     setLoading(true);
@@ -50,13 +74,23 @@ export default function AtelierPlusLogin() {
         return;
       }
 
+      if (!supabase) {
+        if (isMvpBypassEnabled) {
+          setMessage("MVP bypass is active. Opening dashboard.");
+          handleMvpBypass();
+        } else {
+          setError("Supabase is not configured for this environment.");
+        }
+        return;
+      }
+
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
 
         if (data.session) {
           setMessage("Account created and signed in.");
-          navigate("/home", { replace: true });
+          navigate("/dashboard", { replace: true });
         } else {
           setMessage("Account created. Check your email to confirm (if confirmations are enabled).");
         }
@@ -65,10 +99,11 @@ export default function AtelierPlusLogin() {
         if (error) throw error;
 
         setMessage("Signed in successfully.");
-        navigate("/home", { replace: true });
+        navigate("/dashboard", { replace: true });
       }
-    } catch (e: any) {
-      setError(e?.message ?? "Something went wrong.");
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Something went wrong.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -215,6 +250,11 @@ export default function AtelierPlusLogin() {
             <p style={{ color: c.muted, fontSize: "0.95rem" }}>
               {mode === "signup" ? "Create an account to access your workspace." : "Enter your details to access your workspace."}
             </p>
+            {isMvpBypassEnabled && (
+              <p style={{ color: c.primary, fontSize: "0.8rem", marginTop: "0.45rem", fontWeight: 600 }}>
+                MVP bypass: press Ctrl+Shift+K (Cmd+Shift+K on Mac)
+              </p>
+            )}
           </div>
 
           <form
@@ -324,6 +364,27 @@ export default function AtelierPlusLogin() {
             >
               {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Sign In"}
             </button>
+
+            {isMvpBypassEnabled && (
+              <button
+                type="button"
+                onClick={handleMvpBypass}
+                style={{
+                  width: "100%",
+                  padding: "0.8rem",
+                  borderRadius: "10px",
+                  background: c.canvas,
+                  color: c.ink,
+                  fontFamily: body,
+                  fontSize: "0.9rem",
+                  fontWeight: 700,
+                  border: `1px solid ${c.border}`,
+                  cursor: "pointer",
+                }}
+              >
+                Enter MVP Dashboard (Bypass)
+              </button>
+            )}
 
             <p style={{ textAlign: "center", fontSize: "0.85rem", color: c.muted, marginTop: "1rem" }}>
               {mode === "signup" ? (

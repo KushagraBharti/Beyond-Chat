@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState, type FormEvent } from "react";
 import { useAuth } from "../../context/AuthContext";
 
 const heading = "'Bricolage Grotesque', sans-serif";
@@ -68,8 +69,43 @@ const studios = [
 export default function HomePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [prompt, setPrompt] = useState("Draft a 5-point MVP shipping plan for this week.");
+  const [model, setModel] = useState("openai/gpt-4o-mini");
+  const [loadingModel, setLoadingModel] = useState(false);
+  const [modelOutput, setModelOutput] = useState("");
+  const [modelError, setModelError] = useState("");
 
   const firstName = user?.email?.split("@")[0] ?? "there";
+
+  const runOpenRouterPrompt = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoadingModel(true);
+    setModelError("");
+
+    try {
+      const response = await fetch("/api/openrouter/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+
+      const payload = (await response.json()) as { detail?: string; content?: string };
+      if (!response.ok) {
+        throw new Error(payload.detail ?? "OpenRouter request failed.");
+      }
+
+      setModelOutput(payload.content ?? "");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unexpected OpenRouter error.";
+      setModelError(message);
+      setModelOutput("");
+    } finally {
+      setLoadingModel(false);
+    }
+  };
 
   return (
     <div style={{ padding: "2.5rem 3rem", maxWidth: 960, fontFamily: body }}>
@@ -96,6 +132,74 @@ export default function HomePage() {
           Pick a studio to start working, or continue where you left off.
         </p>
       </motion.div>
+
+      <motion.form
+        onSubmit={runOpenRouterPrompt}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.1 }}
+        style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: "1rem", marginBottom: "1.5rem" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.6rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
+          <h2 style={{ fontFamily: heading, fontSize: "1rem", fontWeight: 700, letterSpacing: "-0.01em", margin: 0 }}>
+            OpenRouter Quick Prompt (MVP)
+          </h2>
+          <select
+            value={model}
+            onChange={(event) => setModel(event.target.value)}
+            style={{ border: `1px solid ${c.border}`, borderRadius: 8, background: c.canvas, padding: "0.45rem 0.55rem", fontSize: "0.82rem" }}
+          >
+            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+            <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
+            <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
+          </select>
+        </div>
+
+        <textarea
+          value={prompt}
+          onChange={(event) => setPrompt(event.target.value)}
+          rows={3}
+          style={{
+            width: "100%",
+            border: `1px solid ${c.border}`,
+            borderRadius: 10,
+            background: c.canvas,
+            padding: "0.6rem 0.7rem",
+            fontSize: "0.88rem",
+            resize: "vertical",
+          }}
+        />
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.6rem", gap: "0.8rem", flexWrap: "wrap" }}>
+          <p style={{ margin: 0, fontSize: "0.78rem", color: c.muted }}>Requires `OPENROUTER_API_KEY` in `backend/.env`.</p>
+          <button
+            type="submit"
+            disabled={loadingModel || prompt.trim().length === 0}
+            style={{
+              background: c.ink,
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              padding: "0.5rem 0.9rem",
+              fontSize: "0.82rem",
+              fontWeight: 600,
+              cursor: loadingModel ? "not-allowed" : "pointer",
+              opacity: loadingModel ? 0.65 : 1,
+            }}
+          >
+            {loadingModel ? "Running..." : "Run Prompt"}
+          </button>
+        </div>
+
+        {modelError && (
+          <p style={{ marginTop: "0.6rem", color: "#B42318", fontSize: "0.82rem" }}>{modelError}</p>
+        )}
+        {modelOutput && (
+          <div style={{ marginTop: "0.6rem", padding: "0.7rem", borderRadius: 10, border: `1px solid ${c.border}`, background: c.canvas }}>
+            <p style={{ whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.45, fontSize: "0.88rem" }}>{modelOutput}</p>
+          </div>
+        )}
+      </motion.form>
 
       {/* Studio Grid */}
       <div

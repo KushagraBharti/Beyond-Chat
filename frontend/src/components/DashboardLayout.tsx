@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabaseClient";
+import { clearMvpBypassSession } from "../lib/mvpBypass";
 import { useAuth } from "../context/AuthContext";
 import type { ReactNode } from "react";
 
@@ -28,7 +29,7 @@ const studioColors: Record<string, string> = {
 };
 
 const navItems = [
-  { label: "Home", path: "/home", icon: "⌂" },
+  { label: "Home", path: "/dashboard", icon: "⌂" },
   { label: "Writing", path: "/studio/writing", icon: "✎", color: studioColors.writing },
   { label: "Research", path: "/studio/research", icon: "◉", color: studioColors.research },
   { label: "Image", path: "/studio/image", icon: "◧", color: studioColors.image },
@@ -42,7 +43,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    clearMvpBypassSession();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     navigate("/");
   };
 
@@ -69,7 +73,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       >
         {/* Logo */}
         <div style={{ padding: "0 1.25rem", marginBottom: "1.5rem" }}>
-          <NavLink to="/home" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <NavLink to="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
             <div style={{ position: "relative", width: 24, height: 24 }}>
               <div style={{ position: "absolute", inset: 0, borderRadius: 5, background: `linear-gradient(135deg, ${c.primary}, ${c.accent})` }} />
               <div style={{ position: "absolute", inset: 2, borderRadius: 3, background: c.surface }} />
