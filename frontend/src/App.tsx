@@ -4,7 +4,9 @@ import LandingPage from "./pages/public/LandingPage";
 import PricingPage from "./pages/public/PricingPage";
 import LoginPage from "./pages/public/LoginPage";
 import HomePage from "./pages/protected/HomePage";
+import StudioPage from "./pages/protected/StudioPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardLayout from "./components/DashboardLayout";
 
 function App() {
   return (
@@ -18,7 +20,19 @@ function App() {
             path="/home"
             element={
               <ProtectedRoute>
-                <HomePage />
+                <DashboardLayout>
+                  <HomePage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/studio/:studioId"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <StudioPage />
+                </DashboardLayout>
               </ProtectedRoute>
             }
           />

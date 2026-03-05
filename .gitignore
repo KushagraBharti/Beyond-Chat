@@ -42,4 +42,4 @@ __pycache__/
 .env
 .env.*
 backend/.env
-frontend/.env.local
+frontend/.env.localapi-credentials.txt
