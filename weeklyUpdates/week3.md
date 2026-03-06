@@ -76,10 +76,6 @@ Fix pre-existing TypeScript build issue (lib.es2023.d.ts missing)
 Build out first functional studio (Writing Studio recommended)
 Add backend API endpoints for studio interactions (LLM integration)
 Set up Supabase database schema for artifacts and workspace data
-Commit and configure the supabase/ directory
-built the first real studio MVP (writing module):
-started with rich text, hit weird editor bugs, then switched to a stable plain-text markdown editor for now
-added @assistant flow so you can prompt directly from doc context and get full rewritten output back into the editor
-patched a bunch of teammate-breakage side effects (null refs, route gaps, missing deps, build blockers)
+
 ran builds and health checks to make sure frontend/backend/proxy path all still work
 tldr: i focused on getting us to a shippable MVP baseline fast, even if some stuff is intentionally “simple first, fancy later.”
