@@ -28,3 +28,40 @@
 
 ## Hours Worked
 - Total estimated time: 6 hours
+
+
+
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 0 focused on shaping the technical and product direction of the project before committing to implementation.
+- I spent most of the week helping evaluate different project ideas, discussing feasibility, and thinking through how an AI-based system could realistically be built within a semester timeline.
+- During discussions around the Beyond Chat concept, I focused on how the system would actually work from a technical standpoint, including how artifacts would be stored, how model requests would be executed, and how different studios could share context.
+- By the end of the week, the concept had evolved from a general AI tool idea into a more structured architecture built around workspaces, studios, and reusable artifacts.
+
+## Work Completed
+- Participated in multiple project ideation and planning discussions with the team.
+- Helped evaluate potential technical approaches and eliminate ideas that would be unrealistic to implement in a semester.
+- Contributed to defining the system architecture at a high level, including the separation between frontend studios and backend AI workflows.
+- Helped think through how artifacts (notes, reports, prompts, images, tables) could be stored and reused across sessions.
+- Discussed possible technology stack options for the project and evaluated tradeoffs between different frameworks and backend approaches.
+- Helped outline the general interaction flow between the UI, backend API, and external AI models.
+
+## Research / Technical Findings
+- Most existing AI chat interfaces break down when users try to manage long-term projects because outputs disappear inside long chat threads.
+- Structuring the application around artifacts and dedicated workspaces makes it easier to organize outputs and iterate on them over time.
+- A modular “studio” approach allows different workflows (writing, research, image generation, data analysis) to share infrastructure while still having specialized interfaces.
+
+## Blockers / Risks
+- At this stage the architecture was still conceptual, so there was uncertainty around the exact backend implementation.
+- There was a risk of the idea becoming too large if the number of studios or features grew too quickly.
+- The technical stack and deployment strategy had not yet been finalized, which meant some early assumptions might change.
+
+## Startup / Execution Notes
+- Even though there was little visible implementation this week, the planning discussions helped ensure the project had a clear direction before development started.
+- Establishing the architecture and product structure early should make implementation more organized during later phases.
+
+## Hours Worked
+- Total estimated time: 5 hours
