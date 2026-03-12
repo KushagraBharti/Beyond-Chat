@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { activateMvpBypassSession } from "../../lib/mvpBypass";
+import { bootstrapAuth } from "../../lib/api";
 import { isMvpBypassEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 
@@ -89,16 +90,18 @@ export default function AtelierPlusLogin() {
         if (error) throw error;
 
         if (data.session) {
-          setMessage("Account created and signed in.");
+          await bootstrapAuth();
+          setMessage("Account created and workspace provisioned.");
           navigate("/dashboard", { replace: true });
         } else {
-          setMessage("Account created. Check your email to confirm (if confirmations are enabled).");
+          setMessage("Account created. Confirm the email if required, then sign in to provision the default workspace.");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
 
-        setMessage("Signed in successfully.");
+        await bootstrapAuth();
+        setMessage("Signed in successfully. Workspace restored.");
         navigate("/dashboard", { replace: true });
       }
     } catch (e: unknown) {

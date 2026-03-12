@@ -13,12 +13,42 @@ alter table if exists public.chat_threads enable row level security;
 alter table if exists public.chat_messages enable row level security;
 alter table if exists public.integration_connections enable row level security;
 alter table if exists public.integration_sync_logs enable row level security;
+alter table if exists public.user_profiles enable row level security;
+alter table if exists public.workspaces enable row level security;
+alter table if exists public.workspace_members enable row level security;
 alter table if exists public.artifacts enable row level security;
 alter table if exists public.runs enable row level security;
 alter table if exists public.run_steps enable row level security;
 
 do $$
 begin
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'user_profiles' and policyname = 'user_profiles_self_access'
+    ) then
+        create policy user_profiles_self_access on public.user_profiles
+        using (id = auth.uid())
+        with check (id = auth.uid());
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'workspaces' and policyname = 'workspaces_workspace_access'
+    ) then
+        create policy workspaces_workspace_access on public.workspaces
+        using (id in (select public.current_workspace_ids()))
+        with check (id in (select public.current_workspace_ids()) or owner_id = auth.uid());
+    end if;
+
+    if not exists (
+        select 1 from pg_policies
+        where schemaname = 'public' and tablename = 'workspace_members' and policyname = 'workspace_members_workspace_access'
+    ) then
+        create policy workspace_members_workspace_access on public.workspace_members
+        using (workspace_id in (select public.current_workspace_ids()))
+        with check (workspace_id in (select public.current_workspace_ids()) or user_id = auth.uid());
+    end if;
+
     if not exists (
         select 1 from pg_policies
         where schemaname = 'public' and tablename = 'chat_collections' and policyname = 'chat_collections_workspace_access'

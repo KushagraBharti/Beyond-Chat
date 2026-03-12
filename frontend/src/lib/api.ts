@@ -1,4 +1,10 @@
+import { isMvpBypassSessionActive } from "./mvpBypass";
+import { isMvpBypassEnabled, supabase } from "./supabaseClient";
+
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
+
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const workspaceStorageKey = "bc.workspace_id";
 
 export interface Workspace {
   id: string;
@@ -109,10 +115,30 @@ export interface ArtifactRecord {
   updated_at: string;
 }
 
+export function getStoredWorkspaceId() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(workspaceStorageKey);
+}
+
+export function setStoredWorkspaceId(workspaceId: string | null) {
+  if (typeof window === "undefined") return;
+  if (!workspaceId) {
+    window.localStorage.removeItem(workspaceStorageKey);
+    return;
+  }
+  window.localStorage.setItem(workspaceStorageKey, workspaceId);
+}
+
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const session = supabase ? await supabase.auth.getSession() : null;
+  const accessToken = session?.data.session?.access_token;
+  const workspaceId = getStoredWorkspaceId();
+  const response = await fetch(`${apiBaseUrl}${path}`, {
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
+      ...(!accessToken && isMvpBypassEnabled && isMvpBypassSessionActive() ? { "X-MVP-Bypass": "true" } : {}),
       ...(init?.headers ?? {}),
     },
     ...init,
@@ -126,13 +152,32 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
   const contentType = response.headers.get("Content-Type") ?? "";
   if (contentType.includes("application/json")) {
-    return (await response.json()) as T;
+    const payload = (await response.json()) as { data?: T; error?: unknown } | T;
+    if (payload && typeof payload === "object" && "data" in payload && "error" in payload) {
+      return payload.data as T;
+    }
+    return payload as T;
   }
   return (await response.text()) as T;
 }
 
+export async function bootstrapAuth() {
+  const payload = await api<{
+    workspace: Workspace;
+    role: string;
+    created: boolean;
+    source?: string;
+  }>("/api/auth/bootstrap", {
+    method: "POST",
+  });
+  setStoredWorkspaceId(payload.workspace.id);
+  return payload;
+}
+
 export async function getWorkspace() {
-  return api<{ workspace: Workspace; mvpBypassEnabled: boolean }>("/api/workspace");
+  const payload = await api<{ workspace: Workspace; mvpBypassEnabled: boolean; authSource?: string }>("/api/workspace");
+  setStoredWorkspaceId(payload.workspace.id);
+  return payload;
 }
 
 export async function getReminders() {
@@ -224,35 +269,52 @@ export async function createArtifact(payload: {
   tags?: string[];
   preview_image?: string | null;
 }) {
-  return api<{ artifact: ArtifactRecord }>("/api/artifacts", {
+  const artifact = await api<ArtifactRecord>("/api/artifact", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+  return { artifact };
 }
 
 export async function listArtifacts(params?: {
   q?: string;
   studio?: string;
   type?: string;
+  tags?: string[];
+  date_from?: string;
+  date_to?: string;
   limit?: number;
 }) {
   const search = new URLSearchParams();
   if (params?.q) search.set("q", params.q);
   if (params?.studio) search.set("studio", params.studio);
   if (params?.type) search.set("type", params.type);
+  if (params?.tags?.length) search.set("tags", params.tags.join(","));
+  if (params?.date_from) search.set("date_from", params.date_from);
+  if (params?.date_to) search.set("date_to", params.date_to);
   if (params?.limit) search.set("limit", String(params.limit));
   const suffix = search.toString() ? `?${search}` : "";
-  return api<{ items: ArtifactRecord[] }>(`/api/artifacts${suffix}`);
+  const items = await api<ArtifactRecord[]>(`/api/artifact/search${suffix}`);
+  return { items };
 }
 
 export async function getArtifact(artifactId: string) {
-  return api<{ artifact: ArtifactRecord }>(`/api/artifacts/${artifactId}`);
+  const artifact = await api<ArtifactRecord>(`/api/artifact/${artifactId}`);
+  return { artifact };
 }
 
 export async function exportArtifact(artifactId: string, format: "markdown" | "pdf") {
-  const response = await fetch(`/api/artifacts/${artifactId}/export`, {
+  const session = supabase ? await supabase.auth.getSession() : null;
+  const accessToken = session?.data.session?.access_token;
+  const workspaceId = getStoredWorkspaceId();
+  const response = await fetch(`${apiBaseUrl}/api/artifact/${artifactId}/export`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
+      ...(!accessToken && isMvpBypassEnabled && isMvpBypassSessionActive() ? { "X-MVP-Bypass": "true" } : {}),
+    },
     body: JSON.stringify({ format }),
   });
 

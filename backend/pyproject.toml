@@ -11,4 +11,16 @@ dependencies = [
     "supabase>=2.0.0",
     "httpx>=0.28.1",
     "reportlab>=4.4.10",
+    "pyjwt>=2.11.0",
+    "python-multipart>=0.0.20",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]

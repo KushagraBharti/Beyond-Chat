@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { setStoredWorkspaceId } from "../lib/api";
 import { clearMvpBypassSession } from "../lib/mvpBypass";
 import { supabase } from "../lib/supabaseClient";
 import { AmbientBackground, AppBrand } from "./protectedUi";
@@ -29,10 +30,11 @@ export default function DashboardLayout() {
 
   const handleSignOut = async () => {
     clearMvpBypassSession();
+    setStoredWorkspaceId(null);
     if (supabase) {
       await supabase.auth.signOut();
     }
-    navigate("/");
+    navigate("/login");
   };
 
   return (

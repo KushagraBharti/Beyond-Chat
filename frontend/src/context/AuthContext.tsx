@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
+import { bootstrapAuth } from "../lib/api";
 import { isMvpBypassSessionActive } from "../lib/mvpBypass";
 import { isMvpBypassEnabled, supabase } from "../lib/supabaseClient";
 
@@ -33,6 +34,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      if (session) {
+        void bootstrapAuth().catch(() => undefined);
+      }
       setLoading(false);
     });
 
@@ -40,10 +44,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        void bootstrapAuth().catch(() => undefined);
+      }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session || !supabase) {
+      return;
+    }
+    void bootstrapAuth().catch(() => {
+      // Session bootstrap failures are surfaced by the protected pages that depend on workspace data.
+    });
+  }, [session]);
 
   return (
     <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, mvpBypassActive }}>

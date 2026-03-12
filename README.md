@@ -32,6 +32,14 @@ The workspace is organized by role:
 - `backend/` is the product backend API.
 - `backend/sql-related-files/` is reserved for schema and SQL artifacts.
 
+Key documentation added during implementation:
+
+- `spec.md` → full product specification
+- `manual.md` → human-run setup tasks (Supabase, storage, OAuth, env)
+- `completed.md` → implementation summary
+- `blocker.md` → remaining external blockers
+- `docs/` → architecture diagram, API contracts, API spec, and sprint plan
+
 If you are building product features, work in `frontend/` and `backend/`. Keep visual prototyping in `frontend-mock/`.
 
 ## Prerequisites
@@ -106,11 +114,13 @@ Local URLs (to ensure everything works):
 - `bun run dev` → start local dev server
 - `bun run build` → production build check
 - `bun run lint` → lint source files
+- `bun run test` → run Vitest frontend tests
 
 ### Backend (`backend/`)
 
 - `uv sync --active` → sync dependencies from lock/config for the open virtual environment
 - `uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000` → run API locally
+- `uv run pytest` → run backend tests
 
 ## Summary
 

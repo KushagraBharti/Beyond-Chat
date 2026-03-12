@@ -1,20 +1,23 @@
 from __future__ import annotations
 
-import json
 from io import BytesIO
+from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from .auth import RequestContext, require_request_context, resolve_request_context
 from .config import settings
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
+    TAVILY_NOT_CONFIGURED,
     build_google_connect_url,
     call_openrouter,
     compare_models,
@@ -23,21 +26,40 @@ from .providers import (
     tavily_search,
 )
 from .store import store
+from .supabase_service import supabase_service
 
 load_dotenv()
 
-app = FastAPI(title="Beyond Chat API", version="0.2.0")
+app = FastAPI(title="Beyond Chat API", version="0.3.0")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        settings.app_url,
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def attach_request_context(request: Request, call_next):
+    if request.url.path.startswith("/api") and request.url.path != "/api/health":
+        try:
+            request.state.request_context = resolve_request_context(
+                request.headers.get("authorization"),
+                request.headers.get("x-workspace-id"),
+                request.headers.get("x-mvp-bypass"),
+            )
+        except HTTPException as exc:
+            request.state.request_context_error = exc
+    return await call_next(request)
+
+SUPPORTED_STUDIOS = {"chat", "writing", "research", "image", "data", "finance"}
+FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 
 class ChatMessage(BaseModel):
@@ -102,10 +124,21 @@ class ExportRequest(BaseModel):
     format: str = Field(pattern="^(markdown|pdf)$")
 
 
-def jsonable(value: Any) -> str:
-    if isinstance(value, str):
-        return value
-    return json.dumps(value or {}, ensure_ascii=True, default=str)
+class LegacyExportRequest(ExportRequest):
+    artifact_id: str
+
+
+class DirectExportRequest(ExportRequest):
+    artifact_id: str
+
+
+class SignedUrlRequest(BaseModel):
+    path: str
+    expires_in: int = Field(default=3600, ge=60, le=86400)
+
+
+def api_success(data: Any) -> dict[str, Any]:
+    return {"data": data, "error": None}
 
 
 def build_pdf(title: str, content: str) -> bytes:
@@ -125,6 +158,38 @@ def build_pdf(title: str, content: str) -> bytes:
         y -= 16
     pdf.save()
     return buffer.getvalue()
+
+
+def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
+    if context.source == "supabase_jwt" and bootstrap:
+        bootstrapped = supabase_service.ensure_workspace_for_user(context.user_id, context.email)
+        if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
+            workspace = bootstrapped["workspace"]
+            workspace_id = workspace.get("id") or context.workspace_id
+            workspace_name = workspace.get("name") or settings.local_workspace_name
+            store.ensure_workspace(workspace_id, workspace_name)
+            bootstrapped["workspace"] = store.get_workspace(workspace_id)
+            bootstrapped["source"] = context.source
+            return bootstrapped
+
+    local_workspace = store.ensure_workspace(context.workspace_id, settings.local_workspace_name)
+    return {
+        "workspace": local_workspace,
+        "role": "admin",
+        "created": False,
+        "source": context.source,
+    }
+
+
+def parse_tags(raw_tags: str | None) -> list[str]:
+    if not raw_tags:
+        return []
+    return [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
+
+
+def sanitize_storage_filename(filename: str) -> str:
+    candidate = Path(filename).name.strip().replace(" ", "-")
+    return candidate or "upload.bin"
 
 
 async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
@@ -238,21 +303,31 @@ def provider_status() -> dict[str, Any]:
     return {"providers": provider_statuses()}
 
 
+@app.post("/api/auth/bootstrap")
+def bootstrap_auth(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    return api_success(get_workspace_payload(context, bootstrap=True))
+
+
 @app.get("/api/workspace")
-def workspace() -> dict[str, Any]:
+def workspace(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    workspace_payload = get_workspace_payload(context, bootstrap=False)
     return {
-        "workspace": store.get_workspace(),
-        "mvpBypassEnabled": True,
+        "workspace": workspace_payload["workspace"],
+        "mvpBypassEnabled": settings.allow_local_auth_bypass,
+        "authSource": context.source,
     }
 
 
 @app.get("/api/reminders")
-def reminders() -> dict[str, Any]:
-    return {"items": store.list_reminders()}
+def reminders(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    return {"items": store.list_reminders(context.workspace_id)}
 
 
 @app.post("/api/openrouter/chat", response_model=OpenRouterChatResponse)
-async def openrouter_chat(payload: OpenRouterChatRequest) -> OpenRouterChatResponse:
+async def openrouter_chat(
+    payload: OpenRouterChatRequest,
+    _context: RequestContext = Depends(require_request_context),
+) -> OpenRouterChatResponse:
     try:
         content = await call_openrouter(
             model=payload.model,
@@ -272,16 +347,20 @@ async def openrouter_chat(payload: OpenRouterChatRequest) -> OpenRouterChatRespo
 
 
 @app.get("/api/chat/threads")
-def list_threads() -> dict[str, Any]:
+def list_threads(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
     return {
-        "collections": store.list_collections(),
-        "threads": store.list_threads(),
+        "collections": store.list_collections(context.workspace_id),
+        "threads": store.list_threads(context.workspace_id),
     }
 
 
 @app.post("/api/chat/threads")
-def create_thread(payload: CreateThreadRequest) -> dict[str, Any]:
+def create_thread(
+    payload: CreateThreadRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     thread = store.create_thread(
+        context.workspace_id,
         title=payload.title,
         collection_id=payload.collection_id,
         collection_type=payload.collection_type,
@@ -293,16 +372,20 @@ def create_thread(payload: CreateThreadRequest) -> dict[str, Any]:
 
 
 @app.get("/api/chat/threads/{thread_id}")
-def get_thread(thread_id: str) -> dict[str, Any]:
-    thread = store.get_thread(thread_id)
+def get_thread(thread_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    thread = store.get_thread(context.workspace_id, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     return {"thread": thread}
 
 
 @app.post("/api/chat/threads/{thread_id}/messages")
-async def add_message(thread_id: str, payload: CreateMessageRequest) -> dict[str, Any]:
-    thread = store.get_thread(thread_id)
+async def add_message(
+    thread_id: str,
+    payload: CreateMessageRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    thread = store.get_thread(context.workspace_id, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
 
@@ -331,7 +414,10 @@ async def add_message(thread_id: str, payload: CreateMessageRequest) -> dict[str
 
 
 @app.post("/api/chat/compare")
-async def compare(payload: CompareRequest) -> dict[str, Any]:
+async def compare(
+    payload: CompareRequest,
+    _context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     try:
         results = await compare_models(payload.prompt, payload.models)
     except RuntimeError as exc:
@@ -340,15 +426,29 @@ async def compare(payload: CompareRequest) -> dict[str, Any]:
 
 
 @app.post("/api/runs")
-async def create_run(payload: RunRequest) -> dict[str, Any]:
-    run = store.create_run(payload.studio, payload.title, payload.prompt, payload.model, payload.options)
+async def create_run(
+    payload: RunRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    if payload.studio not in SUPPORTED_STUDIOS:
+        raise HTTPException(status_code=400, detail=f"Unsupported studio '{payload.studio}'.")
+
+    run = store.create_run(
+        context.workspace_id,
+        payload.studio,
+        payload.title,
+        payload.prompt,
+        payload.model,
+        payload.options,
+    )
 
     try:
         output = await execute_run(payload, run["id"])
-        completed = store.complete_run(run["id"], "completed", output=output)
+        completed = store.complete_run(context.workspace_id, run["id"], "completed", output=output)
     except RuntimeError as exc:
         store.add_run_step(run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)})
         completed = store.complete_run(
+            context.workspace_id,
             run["id"],
             "failed",
             error=str(exc),
@@ -358,24 +458,29 @@ async def create_run(payload: RunRequest) -> dict[str, Any]:
 
 
 @app.get("/api/runs/{run_id}")
-def get_run(run_id: str) -> dict[str, Any]:
-    run = store.get_run(run_id)
+def get_run(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    run = store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"run": run}
 
 
 @app.get("/api/runs/{run_id}/steps")
-def get_run_steps(run_id: str) -> dict[str, Any]:
-    run = store.get_run(run_id)
+def get_run_steps(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    run = store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"steps": run["steps"]}
 
 
+@app.post("/api/artifact")
 @app.post("/api/artifacts")
-def create_artifact(payload: ArtifactRequest) -> dict[str, Any]:
+def create_artifact(
+    payload: ArtifactRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     artifact = store.upsert_artifact(
+        context.workspace_id,
         title=payload.title,
         artifact_type=payload.artifact_type,
         studio=payload.studio,
@@ -386,7 +491,31 @@ def create_artifact(payload: ArtifactRequest) -> dict[str, Any]:
         tags=payload.tags,
         preview_image=payload.preview_image,
     )
-    return {"artifact": artifact}
+    return api_success(artifact)
+
+
+@app.get("/api/artifact/search")
+def search_artifacts(
+    q: str | None = Query(default=None),
+    studio: str | None = Query(default=None),
+    artifact_type: str | None = Query(default=None, alias="type"),
+    tags: str | None = Query(default=None),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
+    limit: int = Query(default=24, ge=1, le=100),
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    items = store.list_artifacts(
+        context.workspace_id,
+        query=q,
+        studio=studio,
+        artifact_type=artifact_type,
+        tags=parse_tags(tags),
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit,
+    )
+    return api_success(items)
 
 
 @app.get("/api/artifacts")
@@ -394,22 +523,42 @@ def list_artifacts(
     q: str | None = Query(default=None),
     studio: str | None = Query(default=None),
     artifact_type: str | None = Query(default=None, alias="type"),
+    tags: str | None = Query(default=None),
+    date_from: str | None = Query(default=None),
+    date_to: str | None = Query(default=None),
     limit: int = Query(default=24, ge=1, le=100),
+    context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    return {"items": store.list_artifacts(query=q, studio=studio, artifact_type=artifact_type, limit=limit)}
+    items = store.list_artifacts(
+        context.workspace_id,
+        query=q,
+        studio=studio,
+        artifact_type=artifact_type,
+        tags=parse_tags(tags),
+        date_from=date_from,
+        date_to=date_to,
+        limit=limit,
+    )
+    return {"items": items}
 
 
+@app.get("/api/artifact/{artifact_id}")
 @app.get("/api/artifacts/{artifact_id}")
-def get_artifact(artifact_id: str) -> dict[str, Any]:
-    artifact = store.get_artifact(artifact_id)
+def get_artifact(artifact_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    artifact = store.get_artifact(context.workspace_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
-    return {"artifact": artifact}
+    return api_success(artifact)
 
 
+@app.post("/api/artifact/{artifact_id}/export")
 @app.post("/api/artifacts/{artifact_id}/export")
-def export_artifact(artifact_id: str, payload: ExportRequest) -> Response:
-    artifact = store.get_artifact(artifact_id)
+def export_artifact(
+    artifact_id: str,
+    payload: ExportRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> Response:
+    artifact = store.get_artifact(context.workspace_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
 
@@ -428,8 +577,87 @@ def export_artifact(artifact_id: str, payload: ExportRequest) -> Response:
     )
 
 
+@app.post("/api/export")
+def export_artifact_legacy(
+    payload: LegacyExportRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> Response:
+    return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
+
+
+@app.post("/api/export")
+def direct_export(
+    payload: DirectExportRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> Response:
+    return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
+
+
+@app.post("/api/storage/artifacts/upload")
+async def upload_artifact_file(
+    file: UploadFile = File(...),
+    artifact_id: str | None = Query(default=None),
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    if not supabase_service.is_configured:
+        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+
+    if artifact_id:
+        artifact = store.get_artifact(context.workspace_id, artifact_id)
+        if artifact is None:
+            raise HTTPException(status_code=404, detail="Artifact not found")
+        target_artifact_id = artifact_id
+    else:
+        target_artifact_id = str(uuid4())
+
+    payload = await file.read()
+    upload = supabase_service.upload_artifact_file(
+        workspace_id=context.workspace_id,
+        artifact_id=target_artifact_id,
+        filename=sanitize_storage_filename(file.filename or "upload.bin"),
+        content_type=file.content_type or "application/octet-stream",
+        file_bytes=payload,
+    )
+    if upload is None:
+        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+
+    return api_success(
+        {
+            "artifactId": target_artifact_id,
+            "bucket": upload["bucket"],
+            "path": upload["path"],
+            "signedUrl": upload["signed_url"],
+        }
+    )
+
+
+@app.post("/api/storage/artifacts/signed-url")
+def create_storage_signed_url(
+    payload: SignedUrlRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    workspace_prefix = f"{context.workspace_id}/"
+    if not payload.path.startswith(workspace_prefix):
+        raise HTTPException(status_code=403, detail="Requested storage path is outside the active workspace.")
+
+    signed = supabase_service.create_signed_artifact_url(payload.path, payload.expires_in)
+    if signed is None:
+        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+
+    return api_success(
+        {
+            "bucket": signed["bucket"],
+            "path": signed["path"],
+            "signedUrl": signed["signed_url"],
+            "expiresIn": signed["expires_in"],
+        }
+    )
+
+
 @app.post("/api/integrations/google-calendar/connect-start")
-def google_calendar_connect_start() -> dict[str, Any]:
+def google_calendar_connect_start(
+    _context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     providers = provider_statuses()
     calendar = providers["googleCalendar"]
     if calendar["status"] != "disconnected":
@@ -438,10 +666,30 @@ def google_calendar_connect_start() -> dict[str, Any]:
 
 
 @app.get("/api/integrations/google-calendar/status")
-def google_calendar_status() -> dict[str, Any]:
+def google_calendar_status(
+    _context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     return {"provider": provider_statuses()["googleCalendar"]}
 
 
 @app.get("/api/integrations/google-calendar/events")
-def google_calendar_agenda() -> dict[str, Any]:
+def google_calendar_agenda(
+    _context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     return {"items": google_calendar_events()}
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_frontend_app(full_path: str):
+    if full_path.startswith("api"):
+        raise HTTPException(status_code=404, detail="Not found")
+
+    candidate = (FRONTEND_DIST_DIR / full_path).resolve()
+    if FRONTEND_DIST_DIR.exists() and candidate.is_file() and FRONTEND_DIST_DIR in candidate.parents:
+        return FileResponse(candidate)
+
+    index_path = FRONTEND_DIST_DIR / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+
+    raise HTTPException(status_code=404, detail="Frontend build output is not available.")

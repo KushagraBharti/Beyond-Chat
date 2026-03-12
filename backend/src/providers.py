@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -20,24 +21,37 @@ async def call_openrouter(
     if not settings.openrouter_api_key:
         raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
 
+    payload: dict[str, Any] | None = None
+    last_error: Exception | None = None
     async with httpx.AsyncClient(timeout=settings.openrouter_timeout_seconds) as client:
-        response = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {settings.openrouter_api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": settings.openrouter_http_referer,
-                "X-Title": settings.app_title,
-            },
-            json={
-                "model": model,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            },
-        )
-        response.raise_for_status()
-        payload = response.json()
+        for attempt in range(3):
+            try:
+                response = await client.post(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {settings.openrouter_api_key}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": settings.openrouter_http_referer,
+                        "X-Title": settings.app_title,
+                    },
+                    json={
+                        "model": model,
+                        "messages": messages,
+                        "temperature": temperature,
+                        "max_tokens": max_tokens,
+                    },
+                )
+                response.raise_for_status()
+                payload = response.json()
+                break
+            except httpx.HTTPError as exc:
+                last_error = exc
+                if attempt == 2:
+                    raise
+                await asyncio.sleep(0.35 * (attempt + 1))
+
+    if payload is None:
+        raise RuntimeError(str(last_error) if last_error else "OpenRouter request failed.")
 
     choices = payload.get("choices") or []
     if not choices:
@@ -53,8 +67,7 @@ async def call_openrouter(
 
 
 async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]:
-    results: list[dict[str, Any]] = []
-    for model in models:
+    async def run_single_model(model: str) -> dict[str, Any]:
         started = datetime.now(timezone.utc)
         try:
             content = await call_openrouter(
@@ -70,40 +83,34 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                 max_tokens=1000,
             )
             latency_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
-            results.append(
-                {
-                    "model": model,
-                    "status": "completed",
-                    "content": content,
-                    "latencyMs": latency_ms,
-                    "error": None,
-                }
-            )
+            return {
+                "model": model,
+                "status": "completed",
+                "content": content,
+                "latencyMs": latency_ms,
+                "error": None,
+            }
         except RuntimeError as exc:
             if str(exc) == OPENROUTER_NOT_CONFIGURED:
-                results.append(
-                    {
-                        "model": model,
-                        "status": "not_configured",
-                        "content": "",
-                        "latencyMs": 0,
-                        "error": "OpenRouter is not configured.",
-                    }
-                )
-                continue
+                return {
+                    "model": model,
+                    "status": "not_configured",
+                    "content": "",
+                    "latencyMs": 0,
+                    "error": "OpenRouter is not configured.",
+                }
             raise
         except Exception as exc:
             latency_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
-            results.append(
-                {
-                    "model": model,
-                    "status": "failed",
-                    "content": "",
-                    "latencyMs": latency_ms,
-                    "error": str(exc),
-                }
-            )
-    return results
+            return {
+                "model": model,
+                "status": "failed",
+                "content": "",
+                "latencyMs": latency_ms,
+                "error": str(exc),
+            }
+
+    return list(await asyncio.gather(*(run_single_model(model) for model in models)))
 
 
 async def tavily_search(query: str) -> dict[str, Any]:
@@ -169,6 +176,11 @@ def provider_statuses() -> dict[str, Any]:
             "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
             "label": "Supabase",
             "details": "Workspace auth, storage, and persistence",
+        },
+        "supabaseStorage": {
+            "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
+            "label": "Supabase Storage",
+            "details": f"Bucket target: {settings.supabase_storage_bucket}",
         },
     }
 

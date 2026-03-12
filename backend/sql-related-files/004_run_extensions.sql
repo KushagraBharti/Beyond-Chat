@@ -15,18 +15,31 @@ create index if not exists runs_workspace_studio_idx
 create index if not exists runs_workspace_status_idx
     on public.runs (workspace_id, status, created_at desc);
 
-create table if not exists public.run_steps (
-    id uuid primary key default gen_random_uuid(),
-    run_id uuid not null references public.runs(id) on delete cascade,
-    workspace_id uuid not null references public.workspaces(id) on delete cascade,
-    step_name text not null,
-    tool_used text not null,
-    status text not null check (status in ('queued', 'running', 'completed', 'failed')),
-    input jsonb not null default '{}'::jsonb,
-    output jsonb not null default '{}'::jsonb,
-    metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now())
-);
+alter table if exists public.run_steps
+    add column if not exists status text not null default 'queued',
+    add column if not exists input jsonb not null default '{}'::jsonb,
+    add column if not exists output jsonb not null default '{}'::jsonb,
+    add column if not exists metadata jsonb not null default '{}'::jsonb,
+    add column if not exists created_at timestamptz not null default timezone('utc', now());
+
+do $$
+begin
+    if exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'run_steps'
+          and column_name = 'timestamp'
+    ) and not exists (
+        select 1
+        from information_schema.columns
+        where table_schema = 'public'
+          and table_name = 'run_steps'
+          and column_name = 'created_at'
+    ) then
+        alter table public.run_steps rename column timestamp to created_at;
+    end if;
+end $$;
 
 create index if not exists run_steps_run_idx
     on public.run_steps (run_id, created_at asc);

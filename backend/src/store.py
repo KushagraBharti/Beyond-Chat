@@ -302,29 +302,55 @@ class LocalStore:
                 ),
             )
 
-    def get_workspace(self) -> dict[str, Any]:
+    def ensure_workspace(self, workspace_id: str, workspace_name: str) -> dict[str, Any]:
         with self.connect() as connection:
-            row = connection.execute("SELECT * FROM workspace LIMIT 1").fetchone()
+            row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
+            if row is None:
+                created_at = utc_now()
+                connection.execute(
+                    "INSERT INTO workspace (id, name, created_at) VALUES (?, ?, ?)",
+                    (workspace_id, workspace_name, created_at),
+                )
+                row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
         assert row is not None
         return dict(row)
 
-    def list_reminders(self) -> list[dict[str, Any]]:
+    def get_workspace(self, workspace_id: str | None = None) -> dict[str, Any]:
         with self.connect() as connection:
-            rows = connection.execute("SELECT * FROM reminders ORDER BY due_at ASC").fetchall()
+            if workspace_id:
+                row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
+            else:
+                row = connection.execute("SELECT * FROM workspace LIMIT 1").fetchone()
+        assert row is not None
+        return dict(row)
+
+    def list_reminders(self, workspace_id: str) -> list[dict[str, Any]]:
+        with self.connect() as connection:
+            rows = connection.execute(
+                "SELECT * FROM reminders WHERE workspace_id = ? ORDER BY due_at ASC",
+                (workspace_id,),
+            ).fetchall()
         return [dict(row) for row in rows]
 
-    def list_collections(self) -> list[dict[str, Any]]:
+    def list_collections(self, workspace_id: str) -> list[dict[str, Any]]:
         with self.connect() as connection:
-            rows = connection.execute("SELECT * FROM chat_collections ORDER BY updated_at DESC").fetchall()
+            rows = connection.execute(
+                "SELECT * FROM chat_collections WHERE workspace_id = ? ORDER BY updated_at DESC",
+                (workspace_id,),
+            ).fetchall()
         return [dict(row) for row in rows]
 
-    def list_threads(self) -> list[dict[str, Any]]:
+    def list_threads(self, workspace_id: str) -> list[dict[str, Any]]:
         with self.connect() as connection:
-            rows = connection.execute("SELECT * FROM chat_threads ORDER BY updated_at DESC").fetchall()
+            rows = connection.execute(
+                "SELECT * FROM chat_threads WHERE workspace_id = ? ORDER BY updated_at DESC",
+                (workspace_id,),
+            ).fetchall()
         return [self._thread_from_row(dict(row)) for row in rows]
 
     def create_thread(
         self,
+        workspace_id: str,
         title: str,
         collection_id: str | None,
         collection_type: str,
@@ -343,7 +369,7 @@ class LocalStore:
                 """,
                 (
                     thread_id,
-                    self.get_workspace()["id"],
+                    workspace_id,
                     collection_id,
                     collection_type,
                     studio,
@@ -355,11 +381,14 @@ class LocalStore:
                     dump_json({}),
                 ),
             )
-        return self.get_thread(thread_id) or {}
+        return self.get_thread(workspace_id, thread_id) or {}
 
-    def get_thread(self, thread_id: str) -> dict[str, Any] | None:
+    def get_thread(self, workspace_id: str, thread_id: str) -> dict[str, Any] | None:
         with self.connect() as connection:
-            thread_row = connection.execute("SELECT * FROM chat_threads WHERE id = ?", (thread_id,)).fetchone()
+            thread_row = connection.execute(
+                "SELECT * FROM chat_threads WHERE id = ? AND workspace_id = ?",
+                (thread_id, workspace_id),
+            ).fetchone()
             if thread_row is None:
                 return None
             message_rows = connection.execute(
@@ -394,13 +423,17 @@ class LocalStore:
 
     def list_artifacts(
         self,
+        workspace_id: str,
         query: str | None = None,
         studio: str | None = None,
         artifact_type: str | None = None,
+        tags: list[str] | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
         limit: int = 24,
     ) -> list[dict[str, Any]]:
-        sql = "SELECT * FROM artifacts WHERE 1 = 1"
-        params: list[Any] = []
+        sql = "SELECT * FROM artifacts WHERE workspace_id = ?"
+        params: list[Any] = [workspace_id]
         if query:
             sql += " AND (title LIKE ? OR summary LIKE ? OR content_text LIKE ?)"
             needle = f"%{query}%"
@@ -411,21 +444,37 @@ class LocalStore:
         if artifact_type:
             sql += " AND type = ?"
             params.append(artifact_type)
+        if date_from:
+            sql += " AND created_at >= ?"
+            params.append(date_from)
+        if date_to:
+            sql += " AND created_at <= ?"
+            params.append(date_to)
         sql += " ORDER BY updated_at DESC LIMIT ?"
         params.append(limit)
         with self.connect() as connection:
             rows = connection.execute(sql, params).fetchall()
-        return [self._artifact_from_row(dict(row)) for row in rows]
+        artifacts = [self._artifact_from_row(dict(row)) for row in rows]
+        if tags:
+            normalized = {tag.lower() for tag in tags}
+            artifacts = [
+                artifact for artifact in artifacts if normalized.issubset({tag.lower() for tag in artifact["tags"]})
+            ]
+        return artifacts
 
-    def get_artifact(self, artifact_id: str) -> dict[str, Any] | None:
+    def get_artifact(self, workspace_id: str, artifact_id: str) -> dict[str, Any] | None:
         with self.connect() as connection:
-            row = connection.execute("SELECT * FROM artifacts WHERE id = ?", (artifact_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM artifacts WHERE id = ? AND workspace_id = ?",
+                (artifact_id, workspace_id),
+            ).fetchone()
         if row is None:
             return None
         return self._artifact_from_row(dict(row))
 
     def upsert_artifact(
         self,
+        workspace_id: str,
         title: str,
         artifact_type: str,
         studio: str,
@@ -475,7 +524,7 @@ class LocalStore:
                     """,
                     (
                         record_id,
-                        self.get_workspace()["id"],
+                        workspace_id,
                         artifact_type,
                         title,
                         content,
@@ -490,9 +539,17 @@ class LocalStore:
                         now,
                     ),
                 )
-        return self.get_artifact(record_id) or {}
+        return self.get_artifact(workspace_id, record_id) or {}
 
-    def create_run(self, studio: str, title: str, prompt: str, model: str, options: dict[str, Any]) -> dict[str, Any]:
+    def create_run(
+        self,
+        workspace_id: str,
+        studio: str,
+        title: str,
+        prompt: str,
+        model: str,
+        options: dict[str, Any],
+    ) -> dict[str, Any]:
         run_id = str(uuid.uuid4())
         now = utc_now()
         with self.connect() as connection:
@@ -504,7 +561,7 @@ class LocalStore:
                 """,
                 (
                     run_id,
-                    self.get_workspace()["id"],
+                    workspace_id,
                     studio,
                     title,
                     prompt,
@@ -518,7 +575,7 @@ class LocalStore:
                     dump_json({}),
                 ),
             )
-        return self.get_run(run_id) or {}
+        return self.get_run(workspace_id, run_id) or {}
 
     def add_run_step(
         self,
@@ -549,6 +606,7 @@ class LocalStore:
 
     def complete_run(
         self,
+        workspace_id: str,
         run_id: str,
         status: str,
         output: dict[str, Any] | None = None,
@@ -564,11 +622,14 @@ class LocalStore:
                 """,
                 (status, dump_json(output or {}), error, now, run_id),
             )
-        return self.get_run(run_id) or {}
+        return self.get_run(workspace_id, run_id) or {}
 
-    def get_run(self, run_id: str) -> dict[str, Any] | None:
+    def get_run(self, workspace_id: str, run_id: str) -> dict[str, Any] | None:
         with self.connect() as connection:
-            run_row = connection.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
+            run_row = connection.execute(
+                "SELECT * FROM runs WHERE id = ? AND workspace_id = ?",
+                (run_id, workspace_id),
+            ).fetchone()
             if run_row is None:
                 return None
             step_rows = connection.execute(

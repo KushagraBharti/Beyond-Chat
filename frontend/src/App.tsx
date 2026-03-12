@@ -37,6 +37,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
 
             <Route
               element={

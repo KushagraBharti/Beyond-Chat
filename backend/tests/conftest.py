@@ -1,0 +1,16 @@
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+
+from src.main import app
+
+
+def pytest_configure() -> None:
+    # Keep local bypass enabled for repo-local API smoke tests.
+    app.dependency_overrides = {}
+
+
+@pytest.fixture
+def client() -> TestClient:
+    return TestClient(app)
