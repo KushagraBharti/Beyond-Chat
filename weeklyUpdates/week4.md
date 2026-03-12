@@ -77,3 +77,32 @@
 
 ## Hours Worked
 - Total estimated time: 17 hours
+
+# NISHANT
+
+## Weekly Summary
+- This week focused on setting up Supabase Storage and connecting backend infrastructure to support artifact management and workspace file access.
+- Work was centered around configuring the storage bucket, establishing proper access control policies, and ensuring the backend environment variable matched the bucket configuration.
+- The goal was to ensure files and artifacts could be reliably stored and retrieved by the correct workspace members.
+
+## Work Completed
+- Created the `artifacts` bucket in Supabase Storage Dashboard with private access configuration.
+- Configured upload path convention to follow `workspace_id/artifact_id/file-name.ext` for consistent file organization.
+- Added Row Level Security (RLS) policies so only workspace members can access their own files.
+- Executed `008_storage_setup.sql` to complete the storage backend setup.
+- Confirmed the `SUPABASE_STORAGE_BUCKET` environment variable matches the bucket name exactly.
+
+## Research / Technical Findings
+- Learned how Supabase Storage works, including bucket creation, access controls, and path conventions for organizing files by workspace and artifact.
+- RLS policies in Supabase are the critical layer for ensuring users can only access files scoped to their own workspace folder.
+- Structuring storage paths by `workspace_id/artifact_id` makes it easier to scope access control and retrieve artifacts cleanly across the backend.
+
+## Blockers / Risks
+- RLS policy queries may need adjustment depending on the exact schema table and column names once tested end-to-end.
+- Storage and file upload flows require additional testing once more workspaces begin generating artifacts at scale.
+
+## Startup / Execution Notes
+- With the storage bucket and RLS policies in place, the next phase will focus on testing real upload flows and validating that workspace-scoped access control holds up under different user scenarios.
+
+## Hours Worked
+- Total estimated time: 8 hours
