@@ -102,3 +102,41 @@ Set up Supabase database schema for artifacts and workspace data
 
 ran builds and health checks to make sure frontend/backend/proxy path all still work
 tldr: i focused on getting us to a shippable MVP baseline fast, even if some stuff is intentionally “simple first, fancy later.”
+
+
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 3 was the first week where I focused primarily on moving from planning into real backend and integration work.
+- The goal was to make sure the backend pieces that power the studios and artifact system could start functioning with the frontend work that was being built.
+- I spent most of the time working on API structure, model integration planning, and connecting the system components so that studio actions could eventually trigger real AI runs instead of just UI placeholders.
+
+## Work Completed
+- Continued setting up and refining the backend service structure using FastAPI so the system could support multiple studio workflows.
+- Worked on defining the core API endpoints for executing runs, saving artifacts, and retrieving stored results.
+- Started integrating OpenRouter into the backend so model calls could be triggered through a consistent execution layer.
+- Implemented initial logic for sending prompts to OpenRouter and returning responses to the frontend.
+- Began testing multi-model request handling so the system could support the model comparison feature planned in the product.
+- Worked on connecting backend run execution with artifact creation so generated outputs could be saved and reused.
+- Ran local builds and health checks across the frontend, backend, and proxy paths to ensure the development environment remained stable.
+- Helped review teammate changes and checked that routing and API contracts stayed consistent between the frontend and backend layers.
+
+## Research / Technical Findings
+- Using a centralized execution layer for model requests makes it easier to support multiple LLM providers without changing the studio logic.
+- Separating run execution from artifact storage helps maintain a clear history of workflows while still allowing outputs to be reused later.
+- Keeping the backend endpoints simple early on allows the team to iterate quickly while the product features are still evolving.
+
+## Blockers / Risks
+- Some backend endpoints depend on final database schema decisions, which are still being refined.
+- Model execution logic still needs more testing to ensure consistent behavior across different model responses.
+- The integration between frontend studio actions and backend runs still needs further wiring as more studios become functional.
+
+## Startup / Execution Notes
+- This week focused on making sure the system could begin supporting real AI execution instead of just static UI flows.
+- The goal was to create a stable backend foundation so that additional studio features could be implemented more quickly in the coming weeks.
+
+## Hours Worked
+- Total estimated time: 16 hours
+
