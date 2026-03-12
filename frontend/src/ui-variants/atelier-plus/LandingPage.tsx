@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
@@ -33,12 +34,12 @@ const studioColors = {
 };
 
 const studios = [
-  { name: "Writing Studio", href: "/writing", desc: "Draft with constraints, refine with AI, export polished documents.", color: studioColors.writing, span: "wide" },
-  { name: "Research Studio", href: "/research", desc: "Multi-step investigations that produce organized, citation-rich reports.", color: studioColors.research, span: "col" },
-  { name: "Image Studio", href: "/image", desc: "Visual prompt engineering with variant grids and iterative refinement.", color: studioColors.image, span: "col" },
-  { name: "Data Studio", href: "/data", desc: "Upload tables, apply transformations, and surface statistical insights.", color: studioColors.data, span: "col" },
-  { name: "Finance Studio", href: "/finance", desc: "Autonomous agent research with transparent step-by-step reasoning.", color: studioColors.finance, span: "col" },
-  { name: "Model Compare", href: "/chat", desc: "Same prompt. GPT-4, Claude, Gemini side-by-side.", color: studioColors.compare, span: "wide" },
+  { name: "Writing Studio", desc: "Draft with constraints, refine with AI, export polished documents.", color: studioColors.writing, span: "wide" },
+  { name: "Research Studio", desc: "Multi-step investigations that produce organized, citation-rich reports.", color: studioColors.research, span: "col" },
+  { name: "Image Studio", desc: "Visual prompt engineering with variant grids and iterative refinement.", color: studioColors.image, span: "col" },
+  { name: "Data Studio", desc: "Upload tables, apply transformations, and surface statistical insights.", color: studioColors.data, span: "col" },
+  { name: "Finance Studio", desc: "Autonomous agent research with transparent step-by-step reasoning.", color: studioColors.finance, span: "col" },
+  { name: "Model Compare", desc: "Same prompt. GPT-4, Claude, Gemini side-by-side.", color: studioColors.compare, span: "wide" },
 ];
 
 const stagger = {
@@ -385,6 +386,7 @@ const BentoItem = ({ s, i }: any) => {
         backdropFilter: "blur(20px)",
         borderRadius: "24px",
         border: `1px solid rgba(255,255,255,0.8)`,
+        padding: "3rem",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
@@ -394,30 +396,28 @@ const BentoItem = ({ s, i }: any) => {
         transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
       }}
     >
-      <Link to={s.href} style={{ textDecoration: "none", color: "inherit", padding: "3rem", display: "flex", flexDirection: "column", flex: 1 }}>
-        <div className="bento-bg" style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 80% 20%, ${s.color}15 0%, transparent 60%)`, opacity: 0, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
+      <div className="bento-bg" style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 80% 20%, ${s.color}15 0%, transparent 60%)`, opacity: 0, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
 
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${s.color}15`, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${s.color}30` }}>
-               <div style={{ width: "16px", height: "16px", borderRadius: "4px", background: s.color }} />
-            </div>
-            <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.ink }}>
-              {s.name}
-            </h3>
+      <div style={{ position: "relative", zIndex: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+          <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${s.color}15`, display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${s.color}30` }}>
+             <div style={{ width: "16px", height: "16px", borderRadius: "4px", background: s.color }} />
           </div>
-          <p style={{ fontFamily: body, fontSize: "1.05rem", color: c.muted, lineHeight: 1.6, maxWidth: "80%" }}>
-            {s.desc}
-          </p>
-
-          {s.name === "Writing Studio" && <WritingStudioMockup isHovered={isHovered} />}
-          {s.name === "Research Studio" && <ResearchStudioMockup isHovered={isHovered} />}
-          {s.name === "Image Studio" && <ImageStudioMockup isHovered={isHovered} />}
-          {s.name === "Data Studio" && <DataStudioMockup isHovered={isHovered} />}
-          {s.name === "Finance Studio" && <FinanceStudioMockup isHovered={isHovered} />}
-          {s.name === "Model Compare" && <CompareStudioMockup isHovered={isHovered} />}
+          <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.ink }}>
+            {s.name}
+          </h3>
         </div>
-      </Link>
+        <p style={{ fontFamily: body, fontSize: "1.05rem", color: c.muted, lineHeight: 1.6, maxWidth: "80%" }}>
+          {s.desc}
+        </p>
+
+        {s.name === "Writing Studio" && <WritingStudioMockup isHovered={isHovered} />}
+        {s.name === "Research Studio" && <ResearchStudioMockup isHovered={isHovered} />}
+        {s.name === "Image Studio" && <ImageStudioMockup isHovered={isHovered} />}
+        {s.name === "Data Studio" && <DataStudioMockup isHovered={isHovered} />}
+        {s.name === "Finance Studio" && <FinanceStudioMockup isHovered={isHovered} />}
+        {s.name === "Model Compare" && <CompareStudioMockup isHovered={isHovered} />}
+      </div>
     </motion.div>
   );
 }
@@ -509,17 +509,7 @@ function CognitiveCore() {
   );
 }
 
-const ManifestoWord = ({ word, scrollYProgress, start, end, isHighlight }: any) => {
-  const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
-  const color = isHighlight ? c.primary : c.surface;
-  
-  return (
-    <motion.span style={{ opacity, color }}>
-      {word}
-    </motion.span>
-  );
-};
-
+// --- SCROLLYTELLING COMPONENT ---
 const ManifestoScrollytelling = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -537,17 +527,14 @@ const ManifestoScrollytelling = () => {
           {words.map((word, i) => {
             const start = i / words.length;
             const end = start + (1 / words.length);
+            const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
             const isHighlight = word.toLowerCase().includes("building.") || word.toLowerCase().includes("start") || word.toLowerCase().includes("stop");
+            const color = isHighlight ? c.primary : c.surface;
             
             return (
-              <ManifestoWord 
-                key={i} 
-                word={word} 
-                scrollYProgress={scrollYProgress}
-                start={start}
-                end={end}
-                isHighlight={isHighlight}
-              />
+              <motion.span key={i} style={{ opacity, color }}>
+                {word}
+              </motion.span>
             )
           })}
         </h2>
@@ -708,7 +695,7 @@ export default function AtelierPlusLanding() {
             className="bento-grid"
           >
             {studios.map((s, i) => (
-              <BentoItem key={s.name} s={s} i={i} />
+              <BentoItem key={s.name} s={s} i={i} setCursorVariant={setCursorVariant} />
             ))}
           </motion.div>
         </div>

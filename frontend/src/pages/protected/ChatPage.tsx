@@ -46,6 +46,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     void refreshThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function refreshThreads(selectedId?: string) {
