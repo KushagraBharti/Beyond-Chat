@@ -17,7 +17,6 @@ from .auth import RequestContext, require_request_context, resolve_request_conte
 from .config import settings
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
-    TAVILY_NOT_CONFIGURED,
     build_google_connect_url,
     call_openrouter,
     compare_models,
@@ -57,6 +56,7 @@ async def attach_request_context(request: Request, call_next):
         except HTTPException as exc:
             request.state.request_context_error = exc
     return await call_next(request)
+
 
 SUPPORTED_STUDIOS = {"chat", "writing", "research", "image", "data", "finance"}
 FRONTEND_DIST_DIR = Path(__file__).resolve().parents[2] / "frontend" / "dist"
@@ -160,9 +160,13 @@ def build_pdf(title: str, content: str) -> bytes:
     return buffer.getvalue()
 
 
-def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
+def get_workspace_payload(
+    context: RequestContext, bootstrap: bool = False
+) -> dict[str, Any]:
     if context.source == "supabase_jwt" and bootstrap:
-        bootstrapped = supabase_service.ensure_workspace_for_user(context.user_id, context.email)
+        bootstrapped = supabase_service.ensure_workspace_for_user(
+            context.user_id, context.email
+        )
         if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
             workspace = bootstrapped["workspace"]
             workspace_id = workspace.get("id") or context.workspace_id
@@ -172,7 +176,9 @@ def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> d
             bootstrapped["source"] = context.source
             return bootstrapped
 
-    local_workspace = store.ensure_workspace(context.workspace_id, settings.local_workspace_name)
+    local_workspace = store.ensure_workspace(
+        context.workspace_id, settings.local_workspace_name
+    )
     return {
         "workspace": local_workspace,
         "role": "admin",
@@ -193,10 +199,15 @@ def sanitize_storage_filename(filename: str) -> str:
 
 
 async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
-    store.add_run_step(run_id, "prepare", "system", "completed", payload.prompt, "Run accepted")
+    store.add_run_step(
+        run_id, "prepare", "system", "completed", payload.prompt, "Run accepted"
+    )
 
     if payload.studio == "data":
-        summary = payload.options.get("data_summary") or "Sample CSV detected with 120 rows and 6 columns."
+        summary = (
+            payload.options.get("data_summary")
+            or "Sample CSV detected with 120 rows and 6 columns."
+        )
         insights = [
             "Detected a moderate concentration in the top revenue segment.",
             "Two columns contain sparse values and should be normalized before export.",
@@ -212,16 +223,24 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
                 "Generated starter insights",
             ],
         }
-        store.add_run_step(run_id, "analyze-data", "local-profiler", "completed", summary, output)
+        store.add_run_step(
+            run_id, "analyze-data", "local-profiler", "completed", summary, output
+        )
         return output
 
     if payload.studio == "image":
-        raise RuntimeError("Image generation is not configured yet. Add provider keys to enable live runs.")
+        raise RuntimeError(
+            "Image generation is not configured yet. Add provider keys to enable live runs."
+        )
 
     if payload.studio in {"research", "finance"}:
-        store.add_run_step(run_id, "search", "tavily", "running", payload.prompt, "Searching sources")
+        store.add_run_step(
+            run_id, "search", "tavily", "running", payload.prompt, "Searching sources"
+        )
         search_results = await tavily_search(payload.prompt)
-        store.add_run_step(run_id, "search", "tavily", "completed", payload.prompt, search_results)
+        store.add_run_step(
+            run_id, "search", "tavily", "completed", payload.prompt, search_results
+        )
 
         evidence_lines = [
             f"- {item['title']}: {item['snippet']} ({item['url']})"
@@ -235,9 +254,20 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
             f"Studio: {payload.studio}\n"
             f"User request: {payload.prompt}\n\n"
             "Evidence:\n"
-            + ("\n".join(evidence_lines) if evidence_lines else "- No external evidence was available.")
+            + (
+                "\n".join(evidence_lines)
+                if evidence_lines
+                else "- No external evidence was available."
+            )
         )
-        store.add_run_step(run_id, "synthesize", "openrouter", "running", synthesis_prompt, "Generating report")
+        store.add_run_step(
+            run_id,
+            "synthesize",
+            "openrouter",
+            "running",
+            synthesis_prompt,
+            "Generating report",
+        )
         content = await call_openrouter(
             model=payload.model,
             messages=[
@@ -252,11 +282,20 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
             "content": content,
             "sources": search_results.get("results", []),
         }
-        store.add_run_step(run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output)
+        store.add_run_step(
+            run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output
+        )
         return output
 
     if payload.studio == "writing":
-        store.add_run_step(run_id, "rewrite", "openrouter", "running", payload.prompt, "Drafting content")
+        store.add_run_step(
+            run_id,
+            "rewrite",
+            "openrouter",
+            "running",
+            payload.prompt,
+            "Drafting content",
+        )
         content = await call_openrouter(
             model=payload.model,
             messages=[
@@ -273,10 +312,19 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
             max_tokens=1200,
         )
         output = {"format": "markdown", "content": content}
-        store.add_run_step(run_id, "rewrite", "openrouter", "completed", payload.prompt, output)
+        store.add_run_step(
+            run_id, "rewrite", "openrouter", "completed", payload.prompt, output
+        )
         return output
 
-    store.add_run_step(run_id, "complete", "openrouter", "running", payload.prompt, "Generating response")
+    store.add_run_step(
+        run_id,
+        "complete",
+        "openrouter",
+        "running",
+        payload.prompt,
+        "Generating response",
+    )
     content = await call_openrouter(
         model=payload.model,
         messages=[{"role": "user", "content": payload.prompt}],
@@ -284,7 +332,9 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
         max_tokens=800,
     )
     output = {"format": "markdown", "content": content}
-    store.add_run_step(run_id, "complete", "openrouter", "completed", payload.prompt, output)
+    store.add_run_step(
+        run_id, "complete", "openrouter", "completed", payload.prompt, output
+    )
     return output
 
 
@@ -304,12 +354,16 @@ def provider_status() -> dict[str, Any]:
 
 
 @app.post("/api/auth/bootstrap")
-def bootstrap_auth(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def bootstrap_auth(
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     return api_success(get_workspace_payload(context, bootstrap=True))
 
 
 @app.get("/api/workspace")
-def workspace(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def workspace(
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     workspace_payload = get_workspace_payload(context, bootstrap=False)
     return {
         "workspace": workspace_payload["workspace"],
@@ -319,7 +373,9 @@ def workspace(context: RequestContext = Depends(require_request_context)) -> dic
 
 
 @app.get("/api/reminders")
-def reminders(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def reminders(
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     return {"items": store.list_reminders(context.workspace_id)}
 
 
@@ -347,7 +403,9 @@ async def openrouter_chat(
 
 
 @app.get("/api/chat/threads")
-def list_threads(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def list_threads(
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
     return {
         "collections": store.list_collections(context.workspace_id),
         "threads": store.list_threads(context.workspace_id),
@@ -372,7 +430,9 @@ def create_thread(
 
 
 @app.get("/api/chat/threads/{thread_id}")
-def get_thread(thread_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def get_thread(
+    thread_id: str, context: RequestContext = Depends(require_request_context)
+) -> dict[str, Any]:
     thread = store.get_thread(context.workspace_id, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
@@ -390,9 +450,7 @@ async def add_message(
         raise HTTPException(status_code=404, detail="Thread not found")
 
     user_message = store.add_message(thread_id, "user", payload.content)
-    assistant_content = (
-        "OpenRouter is not configured yet. Add `OPENROUTER_API_KEY` to enable live chat responses."
-    )
+    assistant_content = "OpenRouter is not configured yet. Add `OPENROUTER_API_KEY` to enable live chat responses."
 
     if settings.openrouter_api_key:
         messages = [
@@ -431,7 +489,9 @@ async def create_run(
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
     if payload.studio not in SUPPORTED_STUDIOS:
-        raise HTTPException(status_code=400, detail=f"Unsupported studio '{payload.studio}'.")
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported studio '{payload.studio}'."
+        )
 
     run = store.create_run(
         context.workspace_id,
@@ -444,9 +504,13 @@ async def create_run(
 
     try:
         output = await execute_run(payload, run["id"])
-        completed = store.complete_run(context.workspace_id, run["id"], "completed", output=output)
+        completed = store.complete_run(
+            context.workspace_id, run["id"], "completed", output=output
+        )
     except RuntimeError as exc:
-        store.add_run_step(run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)})
+        store.add_run_step(
+            run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)}
+        )
         completed = store.complete_run(
             context.workspace_id,
             run["id"],
@@ -458,7 +522,9 @@ async def create_run(
 
 
 @app.get("/api/runs/{run_id}")
-def get_run(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def get_run(
+    run_id: str, context: RequestContext = Depends(require_request_context)
+) -> dict[str, Any]:
     run = store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
@@ -466,7 +532,9 @@ def get_run(run_id: str, context: RequestContext = Depends(require_request_conte
 
 
 @app.get("/api/runs/{run_id}/steps")
-def get_run_steps(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def get_run_steps(
+    run_id: str, context: RequestContext = Depends(require_request_context)
+) -> dict[str, Any]:
     run = store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
@@ -544,7 +612,9 @@ def list_artifacts(
 
 @app.get("/api/artifact/{artifact_id}")
 @app.get("/api/artifacts/{artifact_id}")
-def get_artifact(artifact_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+def get_artifact(
+    artifact_id: str, context: RequestContext = Depends(require_request_context)
+) -> dict[str, Any]:
     artifact = store.get_artifact(context.workspace_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
@@ -566,7 +636,9 @@ def export_artifact(
         return Response(
             content=artifact["content"],
             media_type="text/markdown",
-            headers={"Content-Disposition": f'inline; filename="{artifact["title"]}.md"'},
+            headers={
+                "Content-Disposition": f'inline; filename="{artifact["title"]}.md"'
+            },
         )
 
     pdf_bytes = build_pdf(artifact["title"], artifact["content"])
@@ -582,7 +654,9 @@ def export_artifact_legacy(
     payload: LegacyExportRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> Response:
-    return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
+    return export_artifact(
+        payload.artifact_id, ExportRequest(format=payload.format), context
+    )
 
 
 @app.post("/api/export")
@@ -590,7 +664,9 @@ def direct_export(
     payload: DirectExportRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> Response:
-    return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
+    return export_artifact(
+        payload.artifact_id, ExportRequest(format=payload.format), context
+    )
 
 
 @app.post("/api/storage/artifacts/upload")
@@ -600,7 +676,9 @@ async def upload_artifact_file(
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
     if not supabase_service.is_configured:
-        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+        raise HTTPException(
+            status_code=503, detail="Supabase storage is not configured."
+        )
 
     if artifact_id:
         artifact = store.get_artifact(context.workspace_id, artifact_id)
@@ -619,7 +697,9 @@ async def upload_artifact_file(
         file_bytes=payload,
     )
     if upload is None:
-        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+        raise HTTPException(
+            status_code=503, detail="Supabase storage is not configured."
+        )
 
     return api_success(
         {
@@ -638,11 +718,18 @@ def create_storage_signed_url(
 ) -> dict[str, Any]:
     workspace_prefix = f"{context.workspace_id}/"
     if not payload.path.startswith(workspace_prefix):
-        raise HTTPException(status_code=403, detail="Requested storage path is outside the active workspace.")
+        raise HTTPException(
+            status_code=403,
+            detail="Requested storage path is outside the active workspace.",
+        )
 
-    signed = supabase_service.create_signed_artifact_url(payload.path, payload.expires_in)
+    signed = supabase_service.create_signed_artifact_url(
+        payload.path, payload.expires_in
+    )
     if signed is None:
-        raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
+        raise HTTPException(
+            status_code=503, detail="Supabase storage is not configured."
+        )
 
     return api_success(
         {
@@ -685,11 +772,17 @@ def serve_frontend_app(full_path: str):
         raise HTTPException(status_code=404, detail="Not found")
 
     candidate = (FRONTEND_DIST_DIR / full_path).resolve()
-    if FRONTEND_DIST_DIR.exists() and candidate.is_file() and FRONTEND_DIST_DIR in candidate.parents:
+    if (
+        FRONTEND_DIST_DIR.exists()
+        and candidate.is_file()
+        and FRONTEND_DIST_DIR in candidate.parents
+    ):
         return FileResponse(candidate)
 
     index_path = FRONTEND_DIST_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
 
-    raise HTTPException(status_code=404, detail="Frontend build output is not available.")
+    raise HTTPException(
+        status_code=404, detail="Frontend build output is not available."
+    )

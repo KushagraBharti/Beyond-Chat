@@ -51,7 +51,9 @@ async def call_openrouter(
                 await asyncio.sleep(0.35 * (attempt + 1))
 
     if payload is None:
-        raise RuntimeError(str(last_error) if last_error else "OpenRouter request failed.")
+        raise RuntimeError(
+            str(last_error) if last_error else "OpenRouter request failed."
+        )
 
     choices = payload.get("choices") or []
     if not choices:
@@ -82,7 +84,9 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                 temperature=0.3,
                 max_tokens=1000,
             )
-            latency_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
+            latency_ms = int(
+                (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            )
             return {
                 "model": model,
                 "status": "completed",
@@ -101,7 +105,9 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                 }
             raise
         except Exception as exc:
-            latency_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
+            latency_ms = int(
+                (datetime.now(timezone.utc) - started).total_seconds() * 1000
+            )
             return {
                 "model": model,
                 "status": "failed",
@@ -168,17 +174,23 @@ def provider_statuses() -> dict[str, Any]:
             "details": "Read-only agenda and upcoming events",
         },
         "openrouterImages": {
-            "status": "disconnected" if settings.openrouter_api_key else "not_configured",
+            "status": "disconnected"
+            if settings.openrouter_api_key
+            else "not_configured",
             "label": "OpenRouter Images",
             "details": "Image generation provider",
         },
         "supabase": {
-            "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
+            "status": "connected"
+            if settings.supabase_url and settings.supabase_service_role_key
+            else "not_configured",
             "label": "Supabase",
             "details": "Workspace auth, storage, and persistence",
         },
         "supabaseStorage": {
-            "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
+            "status": "connected"
+            if settings.supabase_url and settings.supabase_service_role_key
+            else "not_configured",
             "label": "Supabase Storage",
             "details": f"Bucket target: {settings.supabase_storage_bucket}",
         },

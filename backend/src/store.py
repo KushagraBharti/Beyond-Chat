@@ -165,9 +165,24 @@ class LocalStore:
         )
 
         reminders = [
-            ("Morning review", "Skim research notes and prioritize the next artifact.", 2, "internal"),
-            ("Calendar sync", "Reconnect Google Calendar after OAuth credentials are ready.", 6, "google_calendar"),
-            ("Artifact cleanup", "Tag and organize recent documents before export.", 26, "internal"),
+            (
+                "Morning review",
+                "Skim research notes and prioritize the next artifact.",
+                2,
+                "internal",
+            ),
+            (
+                "Calendar sync",
+                "Reconnect Google Calendar after OAuth credentials are ready.",
+                6,
+                "google_calendar",
+            ),
+            (
+                "Artifact cleanup",
+                "Tag and organize recent documents before export.",
+                26,
+                "internal",
+            ),
         ]
         for title, note, hours, source in reminders:
             connection.execute(
@@ -201,8 +216,20 @@ class LocalStore:
             )
 
         seeded_threads = [
-            ("Shipping checklist", collections[0][0], "project", "chat", "openai/gpt-4o-mini"),
-            ("Q2 launch prep", collections[1][0], "group", "chat", "openai/gpt-4o-mini"),
+            (
+                "Shipping checklist",
+                collections[0][0],
+                "project",
+                "chat",
+                "openai/gpt-4o-mini",
+            ),
+            (
+                "Q2 launch prep",
+                collections[1][0],
+                "group",
+                "chat",
+                "openai/gpt-4o-mini",
+            ),
             ("Daily workspace note", None, "chat", "chat", "openai/gpt-4o-mini"),
         ]
         for title, collection_id, collection_type, studio, model in seeded_threads:
@@ -302,23 +329,31 @@ class LocalStore:
                 ),
             )
 
-    def ensure_workspace(self, workspace_id: str, workspace_name: str) -> dict[str, Any]:
+    def ensure_workspace(
+        self, workspace_id: str, workspace_name: str
+    ) -> dict[str, Any]:
         with self.connect() as connection:
-            row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
+            row = connection.execute(
+                "SELECT * FROM workspace WHERE id = ?", (workspace_id,)
+            ).fetchone()
             if row is None:
                 created_at = utc_now()
                 connection.execute(
                     "INSERT INTO workspace (id, name, created_at) VALUES (?, ?, ?)",
                     (workspace_id, workspace_name, created_at),
                 )
-                row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT * FROM workspace WHERE id = ?", (workspace_id,)
+                ).fetchone()
         assert row is not None
         return dict(row)
 
     def get_workspace(self, workspace_id: str | None = None) -> dict[str, Any]:
         with self.connect() as connection:
             if workspace_id:
-                row = connection.execute("SELECT * FROM workspace WHERE id = ?", (workspace_id,)).fetchone()
+                row = connection.execute(
+                    "SELECT * FROM workspace WHERE id = ?", (workspace_id,)
+                ).fetchone()
             else:
                 row = connection.execute("SELECT * FROM workspace LIMIT 1").fetchone()
         assert row is not None
@@ -416,8 +451,12 @@ class LocalStore:
                 """,
                 (message_id, thread_id, role, content, now, dump_json(metadata or {})),
             )
-            connection.execute("UPDATE chat_threads SET updated_at = ? WHERE id = ?", (now, thread_id))
-            row = connection.execute("SELECT * FROM chat_messages WHERE id = ?", (message_id,)).fetchone()
+            connection.execute(
+                "UPDATE chat_threads SET updated_at = ? WHERE id = ?", (now, thread_id)
+            )
+            row = connection.execute(
+                "SELECT * FROM chat_messages WHERE id = ?", (message_id,)
+            ).fetchone()
         assert row is not None
         return self._message_from_row(dict(row))
 
@@ -458,11 +497,15 @@ class LocalStore:
         if tags:
             normalized = {tag.lower() for tag in tags}
             artifacts = [
-                artifact for artifact in artifacts if normalized.issubset({tag.lower() for tag in artifact["tags"]})
+                artifact
+                for artifact in artifacts
+                if normalized.issubset({tag.lower() for tag in artifact["tags"]})
             ]
         return artifacts
 
-    def get_artifact(self, workspace_id: str, artifact_id: str) -> dict[str, Any] | None:
+    def get_artifact(
+        self, workspace_id: str, artifact_id: str
+    ) -> dict[str, Any] | None:
         with self.connect() as connection:
             row = connection.execute(
                 "SELECT * FROM artifacts WHERE id = ? AND workspace_id = ?",
@@ -489,10 +532,14 @@ class LocalStore:
     ) -> dict[str, Any]:
         record_id = artifact_id or str(uuid.uuid4())
         now = utc_now()
-        serialized_content_json = json.dumps(content_json) if content_json is not None else None
+        serialized_content_json = (
+            json.dumps(content_json) if content_json is not None else None
+        )
 
         with self.connect() as connection:
-            exists = connection.execute("SELECT 1 FROM artifacts WHERE id = ?", (record_id,)).fetchone()
+            exists = connection.execute(
+                "SELECT 1 FROM artifacts WHERE id = ?", (record_id,)
+            ).fetchone()
             if exists:
                 connection.execute(
                     """

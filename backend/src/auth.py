@@ -64,7 +64,9 @@ def _decode_supabase_claims(token: str) -> dict[str, Any]:
         )
 
     try:
-        signing_key = PyJWKClient(settings.supabase_jwks_url).get_signing_key_from_jwt(token)
+        signing_key = PyJWKClient(settings.supabase_jwks_url).get_signing_key_from_jwt(
+            token
+        )
         return jwt.decode(
             token,
             signing_key.key,
@@ -78,7 +80,9 @@ def _decode_supabase_claims(token: str) -> dict[str, Any]:
         ) from exc
 
 
-def _workspace_from_claims(claims: dict[str, Any], requested_workspace_id: str | None) -> str:
+def _workspace_from_claims(
+    claims: dict[str, Any], requested_workspace_id: str | None
+) -> str:
     app_metadata = claims.get("app_metadata")
     if isinstance(app_metadata, dict):
         workspace_id = app_metadata.get("workspace_id")
@@ -138,7 +142,9 @@ def resolve_request_context(
         )
 
     bypass_requested = (x_mvp_bypass or "").lower() in {"1", "true", "yes"}
-    if settings.allow_local_auth_bypass and (bypass_requested or settings.environment == "development"):
+    if settings.allow_local_auth_bypass and (
+        bypass_requested or settings.environment == "development"
+    ):
         return RequestContext(
             user_id="local-preview-user",
             workspace_id=settings.local_workspace_id,

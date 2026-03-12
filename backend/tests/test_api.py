@@ -51,8 +51,12 @@ def test_artifact_search_returns_seeded_items(client: TestClient):
     assert "title" in items[0]
 
 
-def test_protected_endpoint_rejects_missing_auth_when_bypass_disabled(client: TestClient):
-    with override_auth_settings(environment="production", allow_local_auth_bypass=False):
+def test_protected_endpoint_rejects_missing_auth_when_bypass_disabled(
+    client: TestClient,
+):
+    with override_auth_settings(
+        environment="production", allow_local_auth_bypass=False
+    ):
         response = client.get("/api/artifact/search")
     assert response.status_code == 401
 
