@@ -41,3 +41,39 @@
 
 ## Hours Worked
 - Total estimated time: 21 hours
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 4 focused on strengthening the backend infrastructure and connecting more of the system pieces so the product could move closer to a fully functional MVP.
+- My work this week was centered around setting up the Supabase project environment, preparing the database structure, and improving the backend services that support runs, artifacts, and model execution.
+- The goal was to ensure the system could reliably support studio workflows and persist outputs across sessions while keeping the development environment stable for the team.
+
+## Work Completed
+- Created and configured the Supabase development project for the team and recorded the required project credentials.
+- Enabled Supabase Auth and began testing email/password authentication flows with the frontend.
+- Set up the initial storage bucket for user file uploads and artifact-related assets.
+- Worked on connecting the backend services to Supabase so artifact data and run results could be persisted.
+- Continued refining the FastAPI endpoints responsible for executing runs, retrieving artifacts, and exporting outputs.
+- Improved the OpenRouter integration so model responses could be captured more consistently and returned through the API layer.
+- Helped test multi-model execution paths to support the model comparison functionality.
+- Ran backend tests and local development checks to confirm the API service and database connections were working correctly.
+- Reviewed teammate changes and ensured the backend contracts remained compatible with the evolving frontend routes and studio flows.
+
+## Research / Technical Findings
+- Supabase simplified several infrastructure concerns by combining authentication, database management, and file storage into one platform.
+- Separating artifact storage from run execution makes it easier to support reusable outputs across multiple studios.
+- Using a single execution layer for model calls makes the system easier to extend to additional providers without rewriting studio logic.
+
+## Blockers / Risks
+- Some database policies and workspace membership rules still need refinement to ensure proper access control.
+- Storage and file upload flows require additional testing once more studios begin generating artifacts.
+- Model execution paths need more testing across different prompt types to ensure consistent responses.
+
+## Startup / Execution Notes
+- This week focused on strengthening the backend foundation so that the product features being developed on the frontend could interact with stable APIs and persistent storage.
+- With the Supabase environment and backend services becoming more stable, the next phase will focus more on feature completion and workflow refinement.
+
+## Hours Worked
+- Total estimated time: 17 hours
