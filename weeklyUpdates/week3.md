@@ -24,42 +24,38 @@ Status: Currently in progress; changes are local and have not been pushed to mai
 # KUSHAGRA
 
 ## Weekly Summary
-- This was the first real MVP rescue sprint where I focused on making the app actually usable instead of letting it stay half-broken or blocked by incomplete setup.
+- Week 3 was the first real MVP rescue sprint where I focused on making the app actually usable instead of letting it stay half-broken or blocked by incomplete setup.
 - The main theme was speed and stability: get the product rendering, reduce auth friction, wire the first real model integration, and ship the first usable studio flow.
 - A lot of this week was less about perfect architecture and more about forcing the project into a demoable baseline.
 
 ## Work Completed
 - Fixed the app so it actually renders again even when env/auth is not fully set up.
-- Added a login bypass for MVP testing (`Ctrl+Shift+K` / `Cmd+Shift+K`) so we could jump into the dashboard without constantly getting blocked by incomplete auth.
-- Cleaned up dashboard routing so `/dashboard` works properly with the existing protected layout.
-- Wired OpenRouter into the stack:
-  - backend endpoint for chat completions
-  - quick test panel in the dashboard for fast model checks
-  - env templates and local config cleanup so setup was less chaotic
-- Built the first real studio MVP around the writing module.
-- Started with a richer text-editor direction, hit editor bugs and instability, then intentionally switched to a simpler plain-text / markdown flow to keep delivery moving.
-- Added an `@assistant` flow so prompts could run directly against document context and return rewritten output back into the editor.
-- Patched a bunch of teammate-side breakage, including null refs, route gaps, missing dependencies, and build blockers.
-- Re-ran builds and health checks to make sure the frontend/backend/proxy path still worked.
+- Added a login bypass for MVP testing so the team could enter the dashboard without constantly getting blocked by incomplete auth.
+- Cleaned up dashboard routing so the protected app structure worked more reliably.
+- Wired OpenRouter into the stack for basic model interaction and testing.
+- Built the first usable Writing Studio MVP.
+- Started with a richer editor direction, hit instability, and intentionally simplified the editor path so the feature could keep moving.
+- Added an `@assistant`-style flow so prompts could operate against document context.
+- Patched teammate-side breakage, including route gaps, null refs, dependency issues, and build blockers.
+- Re-ran builds and health checks to keep the frontend/backend/proxy path working.
 
-## Research Findings
-- The editor problem was more annoying than expected because LLMs naturally return markdown, while richer editors want structured rich-text state.
-- “Simple first, fancy later” was the right move for writing at this stage because a limited stable editor was better than a broken ambitious one.
-- Rapid MVP testing required a bypass path. Without it, too much time was getting wasted babysitting auth during development.
-- OpenRouter integration was valuable both as a feature and as a forcing function for building a more realistic frontend/backend contract.
+## Research / Product Findings
+- Rich text was more difficult than expected because LLM outputs naturally fit markdown better than structured editor state.
+- “Simple first, fancy later” was the right call for the writing flow at this stage.
+- A fast MVP bypass path was necessary because otherwise too much time was lost babysitting auth during development.
+- OpenRouter integration helped force a more realistic product contract between frontend and backend.
 
 ## Blockers / Risks
 - Auth was still incomplete, so defensive fallbacks were necessary.
-- Rich text remained a genuine blocker for a more Google Docs-like experience.
-- Overlapping teammate changes created recurring breakage and cleanup overhead.
+- Rich text remained a real blocker for a more polished Google Docs-like experience.
+- Overlapping teammate changes created cleanup overhead.
 
 ## Startup / Execution Notes
-- Treated this week like an MVP rescue sprint: stabilize the product, make it testable, and accept some “simple first” tradeoffs so the project actually moves.
-- This was the point where the app started feeling like a real product instead of just a partially connected scaffold.
+- This week felt like an MVP rescue sprint: stabilize the app, make it testable, and choose practical tradeoffs so the project actually moves.
+- It was the point where the app started feeling closer to a real product instead of a partially connected scaffold.
 
 ## Hours Worked
 - Total estimated time: 15 hours
-
 
 HARSH 
 Completed

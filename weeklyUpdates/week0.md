@@ -1,30 +1,30 @@
 # KUSHAGRA
 
 ## Weekly Summary
-- This was mostly a low-output exploration week where I spent time thinking through what the project should actually be instead of forcing code too early.
-- I did not build much concrete product this week. Most of my time went into light research, product framing, and figuring out what would be realistic to ship within the semester.
-- The main goal was to avoid wasting time on the wrong version of the idea.
+- Week 0 was the ideation week. The main focus was figuring out what the project should actually be before locking into a bad idea too early.
+- I spent most of the time discussing different possible directions, evaluating which ones felt strongest, and helping shape the final concept that became Beyond Chat.
+- By the end of the week, the vague idea of “an AI app” turned into a much clearer studio-based AI workspace with artifacts, workflows, and reusable outputs as the core identity.
 
 ## Work Completed
-- Looked at how existing AI chat products handle longer workflows and why they fall apart when users are writing, researching, or saving multiple outputs.
-- Thought through the general studio-based direction for Beyond Chat instead of treating it like a normal chatbot.
-- Helped separate “cool future platform ideas” from features that could actually matter for an MVP demo.
-- Spent time clarifying that saved artifacts should probably be a core part of the product rather than an afterthought.
-- Did a rough pass on what kinds of studios would make sense for a first version: writing, research, image, data, and finance.
+- Explored multiple possible project directions before settling on the final one.
+- Helped define the core problem: normal AI chat apps become messy when users try to do real work over time.
+- Pushed the idea toward a studio-based structure instead of a single endless chat interface.
+- Helped identify artifacts, saved outputs, and structured workflows as the parts that would make the project feel meaningfully different.
+- Contributed to the first complete proposal-level framing of the app, including the initial studio list and the general product scope.
 
-## Research Findings
-- A plain chat interface is fine for short prompting, but it gets messy fast once users want structure, persistence, or repeatable workflows.
-- The product sounds stronger when framed as a workspace with studios instead of “another AI assistant.”
-- Artifact saving and reusability seemed like one of the few genuinely differentiating ideas worth keeping early.
+## Research / Product Findings
+- Generic chat is good for quick prompts, but it breaks down for writing, research, image generation, data work, and multi-step projects.
+- The strongest version of the idea was not “another chatbot,” but a modular workspace with dedicated surfaces for different kinds of work.
+- Saved artifacts felt like a real differentiator because they create continuity between sessions and make outputs reusable.
 
 ## Blockers / Risks
-- Product scope was still vague.
-- There was a real risk of overbuilding before the core UX idea was clear.
-- We did not yet have a locked architecture or a concrete implementation plan.
+- Scope was still very open at this stage.
+- There was a risk of picking something too broad or too unrealistic for the semester timeline.
+- The technical approach was not locked yet, so everything still depended on choosing the right direction early.
 
 ## Startup / Execution Notes
-- This week was mostly “do a bunch of thinking so we do less stupid work later.”
-- Not much visible shipped, but it helped reduce some early confusion around what the product should actually be.
+- This week was mostly about finding the right idea rather than shipping visible implementation.
+- It was still important work because it gave the team a much clearer product to build around instead of a loose concept.
 
 ## Hours Worked
-- Total estimated time: 5 hours
+- Total estimated time: 6 hours
