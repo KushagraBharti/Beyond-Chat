@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
@@ -47,7 +48,7 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
 };
 
 // --- GLOBAL COMPONENTS ---
@@ -507,7 +508,17 @@ function CognitiveCore() {
   );
 }
 
-// --- SCROLLYTELLING COMPONENT ---
+const ManifestoWord = ({ word, scrollYProgress, start, end, isHighlight }: any) => {
+  const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
+  const color = isHighlight ? c.primary : c.surface;
+  
+  return (
+    <motion.span style={{ opacity, color }}>
+      {word}
+    </motion.span>
+  );
+};
+
 const ManifestoScrollytelling = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -525,14 +536,17 @@ const ManifestoScrollytelling = () => {
           {words.map((word, i) => {
             const start = i / words.length;
             const end = start + (1 / words.length);
-            const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
             const isHighlight = word.toLowerCase().includes("building.") || word.toLowerCase().includes("start") || word.toLowerCase().includes("stop");
-            const color = isHighlight ? c.primary : c.surface;
             
             return (
-              <motion.span key={i} style={{ opacity, color }}>
-                {word}
-              </motion.span>
+              <ManifestoWord 
+                key={i} 
+                word={word} 
+                scrollYProgress={scrollYProgress}
+                start={start}
+                end={end}
+                isHighlight={isHighlight}
+              />
             )
           })}
         </h2>
@@ -635,7 +649,7 @@ export default function AtelierPlusLanding() {
         {/* Content Container */}
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 2rem", width: "100%", position: "relative", zIndex: 40 }}>
           
-          <motion.div style={{ y, opacity, maxWidth: "680px", position: "relative" }} initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div style={{ y, opacity, maxWidth: "680px", position: "relative" }} initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, ease: "easeOut" }}>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(10px)", border: `1px solid rgba(0,0,0,0.05)`, borderRadius: "99px", marginBottom: "2rem", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
               <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: c.primary, boxShadow: `0 0 10px ${c.primary}` }} />
               <span style={{ fontFamily: body, fontSize: "0.8rem", fontWeight: 700, color: c.primary, letterSpacing: "0.05em", textTransform: "uppercase" }}>Next-Gen Workspace</span>

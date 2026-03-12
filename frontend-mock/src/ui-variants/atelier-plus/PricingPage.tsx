@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, AnimatePresence } from "framer-motion";
 
 const heading = "'Bricolage Grotesque', sans-serif";
 const body = "'Plus Jakarta Sans', sans-serif";
@@ -22,7 +23,7 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
 };
 
 // --- GLOBAL COMPONENTS ---
