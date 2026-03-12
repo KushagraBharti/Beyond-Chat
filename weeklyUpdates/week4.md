@@ -106,3 +106,58 @@
 
 ## Hours Worked
 - Total estimated time: 8 hours
+
+ Weekly Summary
+
+## Overview
+This week focused on improving the frontend routing experience, resolving several React code quality issues, and polishing backend services to ensure the application remains stable as development progresses.
+
+My work centered on implementing authentication-related frontend routes, improving navigation between studio pages, fixing React hook violations and state synchronization issues, and improving backend code quality. I also verified the OpenRouter integration to ensure the system could successfully communicate with external model APIs.
+
+The goal was to improve overall application stability, maintain clean code standards across the frontend and backend, and ensure the development environment remained free of build or linting errors.
+
+---
+
+## Diya 
+
+## Work Completed
+
+- Implemented authentication-related routing by creating and wiring up a **SignUpPage** and fixing the **LoginPage** navigation to correctly redirect users to the dashboard.
+- Updated the **LandingPage Bento grid navigation**, making the studio tiles clickable and routing them correctly to pages such as `/writing` and `/research`.
+- Added the latest **atelier-plus UI mockups** for the landing page, pricing page, and sign-up page.
+
+- Resolved a **React Hook violation** where `useTransform()` was being called inside a `.map()` loop on the LandingPage by extracting the mapped element into a separate `ManifestoWord` component.
+- Fixed a **synchronous state update issue** inside the `AuthContext` provider caused by calling `setState` improperly inside a `useEffect`.
+- Corrected a broken dependency array (`[workspaceId]`) inside `ChatPage.tsx` to prevent React warnings.
+- Suppressed safe type-check warnings for raw UI mockup variants to achieve a **clean `bun run lint` result with zero build errors**.
+
+- Improved backend code quality by running:
+  - `uvx ruff format .`
+  - `uvx ruff check .`
+  
+  across the `backend/src` directory to enforce consistent formatting and remove unused imports.
+
+- Tested the **OpenRouter integration** and verified successful API connectivity for model requests.
+
+---
+
+## Research / Technical Findings
+
+- React Hook rules require hooks to be called consistently outside loops or conditional blocks, which is why extracting components like `ManifestoWord` improves code reliability.
+- Maintaining strict linting and formatting checks ensures the project remains easier to maintain as the codebase grows.
+- Integrating OpenRouter through a centralized API layer makes it easier to manage model requests and expand to additional providers in the future.
+
+---
+
+## Blockers / Risks
+
+- Some UI mockup variants required linter suppression due to incomplete type definitions.
+- Navigation and studio routes will require further testing as additional features are connected to them.
+
+---
+
+## Startup / Execution Notes
+
+This week focused on stabilizing both the frontend and backend foundations of the application. Ensuring proper routing, eliminating React warnings, and maintaining clean backend code helps prevent future integration issues as more features are implemented.
+
+With these improvements in place, development can continue toward refining studio workflows and expanding the system’s AI-powered functionality.
