@@ -31,3 +31,40 @@
 
 ## Hours Worked
 - Total estimated time: 10 hours
+
+
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 1 focused on translating the initial product idea into a clearer technical direction and beginning the foundational setup work needed for development.
+- I spent time helping refine the system architecture and thinking through how the different parts of the platform (studios, artifacts, runs, and model interactions) would interact at the backend level.
+- This week also included early setup work for the development environment and planning the structure of the API layer that will support the studios and artifact workflows.
+
+## Work Completed
+- Participated in planning discussions to refine the overall system architecture and how data would flow through the application.
+- Helped outline how artifacts, runs, and run steps should be represented in the backend so that studio workflows could save structured outputs.
+- Worked through how the backend API should handle model execution requests, artifact storage, and workspace isolation.
+- Began preparing the backend structure for the project, including planning the FastAPI service layout and endpoint structure.
+- Evaluated how OpenRouter would be integrated to support multi-model execution and comparison features.
+- Assisted with initial repository setup tasks and development environment preparation so the team could start implementation in later phases.
+- Helped review and refine parts of the proposal and architecture planning to make sure the system design matched the product goals.
+
+## Research / Technical Findings
+- Using Supabase for authentication, database, and storage simplifies the infrastructure and reduces the amount of custom backend work required.
+- FastAPI provides a clean way to structure API endpoints for studio runs, artifact storage, and model execution workflows.
+- Separating “runs” from “artifacts” in the data model makes it easier to track execution history while still allowing outputs to be reused across different studios.
+- Integrating OpenRouter allows the system to support multiple models without tightly coupling the backend to a single provider.
+
+## Blockers / Risks
+- The system architecture was still evolving during this week, so some decisions were provisional and might require adjustment during implementation.
+- Model integration details still depended on confirming how OpenRouter responses would be handled across different studio workflows.
+- The backend structure needed to remain flexible enough to support multiple studio types without becoming overly complex.
+
+## Startup / Execution Notes
+- This week focused on laying down the technical structure so that development work in later weeks would be easier to execute.
+- The goal was to reduce ambiguity in how the system would work internally before large amounts of code were written.
+
+## Hours Worked
+- Total estimated time: 7 hours
