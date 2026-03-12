@@ -1,297 +1,232 @@
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { useState, type FormEvent } from "react";
-import { useAuth } from "../../context/AuthContext";
-
-const heading = "'Bricolage Grotesque', sans-serif";
-const body = "'Plus Jakarta Sans', sans-serif";
-
-const c = {
-  canvas: "#F2F2F0",
-  surface: "#FFFFFF",
-  ink: "#0D0D0D",
-  primary: "#4F3FE8",
-  muted: "#6B6B70",
-  border: "#E2E2E0",
-};
-
-const studios = [
-  {
-    id: "writing",
-    name: "Writing Studio",
-    desc: "Draft with constraints, refine with AI, export polished documents.",
-    color: "#4F3FE8",
-    icon: "✎",
-    span: 2,
-  },
-  {
-    id: "research",
-    name: "Research Studio",
-    desc: "Multi-step investigations that produce organized, citation-rich reports.",
-    color: "#0E7AE6",
-    icon: "◉",
-    span: 1,
-  },
-  {
-    id: "image",
-    name: "Image Studio",
-    desc: "Visual prompt engineering with variant grids and iterative refinement.",
-    color: "#E5484D",
-    icon: "◧",
-    span: 1,
-  },
-  {
-    id: "data",
-    name: "Data Studio",
-    desc: "Upload tables, apply transformations, and surface statistical insights.",
-    color: "#30A46C",
-    icon: "▤",
-    span: 1,
-  },
-  {
-    id: "finance",
-    name: "Finance Studio",
-    desc: "Autonomous agent research with transparent step-by-step reasoning.",
-    color: "#E55613",
-    icon: "△",
-    span: 1,
-  },
-  {
-    id: "compare",
-    name: "Model Compare",
-    desc: "Same prompt. GPT-4, Claude, Gemini side-by-side.",
-    color: "#8B5CF6",
-    icon: "⧉",
-    span: 2,
-  },
-];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  getCalendarEvents,
+  getProviderStatuses,
+  getReminders,
+  getWorkspace,
+  type ProviderRecord,
+  type Reminder,
+} from "../../lib/api";
+import { fadeUp, stagger, studioColors } from "../../lib/theme";
+import { EmptyState, MotionCard, PageSection, PrimaryButton, SecondaryButton, StatusBadge } from "../../components/protectedUi";
 
 export default function HomePage() {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const [prompt, setPrompt] = useState("Draft a 5-point MVP shipping plan for this week.");
-  const [model, setModel] = useState("openai/gpt-4o-mini");
-  const [loadingModel, setLoadingModel] = useState(false);
-  const [modelOutput, setModelOutput] = useState("");
-  const [modelError, setModelError] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<Array<{ id: string; title: string; startsAt: string; location: string }>>([]);
+  const [providers, setProviders] = useState<Record<string, ProviderRecord>>({});
+  const [error, setError] = useState<string | null>(null);
 
-  const firstName = user?.email?.split("@")[0] ?? "there";
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const [workspaceResponse, reminderResponse, providerResponse, eventResponse] = await Promise.all([
+          getWorkspace(),
+          getReminders(),
+          getProviderStatuses(),
+          getCalendarEvents(),
+        ]);
 
-  const runOpenRouterPrompt = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoadingModel(true);
-    setModelError("");
+        if (!active) {
+          return;
+        }
 
-    try {
-      const response = await fetch("/api/openrouter/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-
-      const payload = (await response.json()) as { detail?: string; content?: string };
-      if (!response.ok) {
-        throw new Error(payload.detail ?? "OpenRouter request failed.");
+        setWorkspaceName(workspaceResponse.workspace.name);
+        setReminders(reminderResponse.items);
+        setProviders(providerResponse.providers);
+        setCalendarEvents(eventResponse.items);
+      } catch (err) {
+        if (active) {
+          setError(err instanceof Error ? err.message : "Failed to load dashboard.");
+        }
       }
+    })();
 
-      setModelOutput(payload.content ?? "");
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unexpected OpenRouter error.";
-      setModelError(message);
-      setModelOutput("");
-    } finally {
-      setLoadingModel(false);
-    }
-  };
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const providerList = Object.entries(providers);
 
   return (
-    <div style={{ padding: "2.5rem 3rem", maxWidth: 960, fontFamily: body }}>
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        style={{ marginBottom: "2.5rem" }}
-      >
-        <h1
-          style={{
-            fontFamily: heading,
-            fontSize: "1.85rem",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            color: c.ink,
-            marginBottom: "0.35rem",
-          }}
-        >
-          Good {getGreeting()}, {firstName}
-        </h1>
-        <p style={{ color: c.muted, fontSize: "0.95rem", margin: 0 }}>
-          Pick a studio to start working, or continue where you left off.
-        </p>
+    <motion.div className="page-wrap" variants={stagger} initial="hidden" animate="visible">
+      <PageSection
+        eyebrow="Workspace Home"
+        title={`Hello, ${workspaceName}`}
+        description="A productivity surface for calendar, reminders, integrations, and studio entry points."
+        actions={
+          <div className="inline-actions">
+            <PrimaryButton type="button" onClick={() => navigate("/chat")}>
+              Open Today’s Focus
+            </PrimaryButton>
+            <SecondaryButton type="button" onClick={() => navigate("/settings")}>
+              Review Integrations
+            </SecondaryButton>
+          </div>
+        }
+      />
+
+      {error ? <div className="error-copy">{error}</div> : null}
+
+      <motion.div variants={fadeUp} className="hero-grid">
+        <MotionCard className="hero-card">
+          <div className="hero-copy">
+            <div className="hero-kicker">Workspace Command Center</div>
+            <h2>Google Calendar, reminders, and upcoming work all in one focused morning view.</h2>
+            <p>
+              The homepage is built to feel more like a personal operating system than a landing screen. Integrations can
+              be disconnected today and still keep the product useful.
+            </p>
+            <div className="inline-actions">
+              <PrimaryButton type="button" onClick={() => navigate("/chat")}>
+                Start New Chat
+              </PrimaryButton>
+              <SecondaryButton type="button" onClick={() => navigate("/writing")}>
+                Open Writing Library
+              </SecondaryButton>
+            </div>
+          </div>
+
+          <div className="hero-preview">
+            <div className="hero-preview-card">
+              <span>Agenda</span>
+              <strong>{calendarEvents[0]?.title ?? "Connect Google Calendar"}</strong>
+              <p>{calendarEvents[0]?.location ?? "Read-only agenda preview will appear here."}</p>
+            </div>
+            <div className="hero-preview-matrix">
+              {["Chat", "Writing", "Research", "Image"].map((label) => (
+                <div key={label} className="hero-mini-tile">
+                  <div className="hero-mini-dot" />
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </MotionCard>
       </motion.div>
 
-      <motion.form
-        onSubmit={runOpenRouterPrompt}
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.1 }}
-        style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: "1rem", marginBottom: "1.5rem" }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.6rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
-          <h2 style={{ fontFamily: heading, fontSize: "1rem", fontWeight: 700, letterSpacing: "-0.01em", margin: 0 }}>
-            OpenRouter Quick Prompt (MVP)
-          </h2>
-          <select
-            value={model}
-            onChange={(event) => setModel(event.target.value)}
-            style={{ border: `1px solid ${c.border}`, borderRadius: 8, background: c.canvas, padding: "0.45rem 0.55rem", fontSize: "0.82rem" }}
-          >
-            <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
-            <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
-            <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
-          </select>
-        </div>
-
-        <textarea
-          value={prompt}
-          onChange={(event) => setPrompt(event.target.value)}
-          rows={3}
-          style={{
-            width: "100%",
-            border: `1px solid ${c.border}`,
-            borderRadius: 10,
-            background: c.canvas,
-            padding: "0.6rem 0.7rem",
-            fontSize: "0.88rem",
-            resize: "vertical",
-          }}
-        />
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.6rem", gap: "0.8rem", flexWrap: "wrap" }}>
-          <p style={{ margin: 0, fontSize: "0.78rem", color: c.muted }}>Requires `OPENROUTER_API_KEY` in `backend/.env`.</p>
-          <button
-            type="submit"
-            disabled={loadingModel || prompt.trim().length === 0}
-            style={{
-              background: c.ink,
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
-              padding: "0.5rem 0.9rem",
-              fontSize: "0.82rem",
-              fontWeight: 600,
-              cursor: loadingModel ? "not-allowed" : "pointer",
-              opacity: loadingModel ? 0.65 : 1,
-            }}
-          >
-            {loadingModel ? "Running..." : "Run Prompt"}
-          </button>
-        </div>
-
-        {modelError && (
-          <p style={{ marginTop: "0.6rem", color: "#B42318", fontSize: "0.82rem" }}>{modelError}</p>
-        )}
-        {modelOutput && (
-          <div style={{ marginTop: "0.6rem", padding: "0.7rem", borderRadius: 10, border: `1px solid ${c.border}`, background: c.canvas }}>
-            <p style={{ whiteSpace: "pre-wrap", margin: 0, lineHeight: 1.45, fontSize: "0.88rem" }}>{modelOutput}</p>
-          </div>
-        )}
-      </motion.form>
-
-      {/* Studio Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, 1fr)",
-          gap: "1rem",
-        }}
-      >
-        {studios.map((studio, i) => (
-          <motion.div
-            key={studio.id}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: i * 0.06 }}
-            onClick={() => navigate(`/studio/${studio.id}`)}
-            style={{
-              gridColumn: studio.span === 2 ? "span 2" : "span 1",
-              background: c.surface,
-              borderRadius: 14,
-              border: `1px solid ${c.border}`,
-              padding: "1.5rem",
-              cursor: "pointer",
-              transition: "all 0.2s",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            whileHover={{
-              y: -3,
-              boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
-              borderColor: studio.color,
-            }}
-          >
-            {/* Accent bar */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 3,
-                background: studio.color,
-                opacity: 0.7,
-                borderRadius: "14px 14px 0 0",
-              }}
-            />
-
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "1rem" }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  background: `${studio.color}10`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.1rem",
-                  color: studio.color,
-                  flexShrink: 0,
-                }}
-              >
-                {studio.icon}
-              </div>
-              <div>
-                <h3
-                  style={{
-                    fontFamily: heading,
-                    fontSize: "1.05rem",
-                    fontWeight: 700,
-                    color: c.ink,
-                    margin: "0 0 0.3rem 0",
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  {studio.name}
-                </h3>
-                <p style={{ color: c.muted, fontSize: "0.85rem", margin: 0, lineHeight: 1.5 }}>
-                  {studio.desc}
-                </p>
-              </div>
+      <div className="dashboard-grid">
+        <MotionCard accent={studioColors.chat}>
+          <div className="context-builder-head">
+            <div>
+              <h3>Agenda</h3>
+              <p>Read-only Google Calendar preview with graceful disconnected states.</p>
             </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-}
+            <StatusBadge status={providers.googleCalendar?.status ?? "not_configured"} />
+          </div>
+          {calendarEvents.length ? (
+            <div className="stack-md">
+              {calendarEvents.map((event) => (
+                <div key={event.id} className="list-row">
+                  <div>
+                    <strong>{event.title}</strong>
+                    <p>{new Date(event.startsAt).toLocaleString()}</p>
+                  </div>
+                  <span>{event.location}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Calendar is not connected"
+              body="The card remains visible even before OAuth is configured so the layout is stable from day one."
+            />
+          )}
+        </MotionCard>
 
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
+        <MotionCard accent={studioColors.finance}>
+          <div className="context-builder-head">
+            <div>
+              <h3>Reminders</h3>
+              <p>Internal tasks keep the homepage useful before third-party task systems are added.</p>
+            </div>
+          </div>
+          <div className="stack-md">
+            {reminders.map((reminder) => (
+              <div key={reminder.id} className="reminder-card">
+                <div className="reminder-top">
+                  <strong>{reminder.title}</strong>
+                  <StatusBadge status={reminder.source === "internal" ? "connected" : "disconnected"} label={reminder.source} />
+                </div>
+                <p>{reminder.note}</p>
+                <span>{new Date(reminder.due_at).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+        </MotionCard>
+      </div>
+
+      <div className="dashboard-grid dashboard-grid-three">
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Integrations</h3>
+              <p>Provider status cards stay explicit instead of hiding failures.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            {providerList.map(([key, provider]) => (
+              <div key={key} className="list-row">
+                <div>
+                  <strong>{provider.label}</strong>
+                  <p>{provider.details}</p>
+                </div>
+                <StatusBadge status={provider.status} />
+              </div>
+            ))}
+          </div>
+        </MotionCard>
+
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>MCP Servers</h3>
+              <p>Prepared shell states for future server-level integrations.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            {["Playwright Browser QA", "Linear Workspace Sync", "Notion Context Connector"].map((item, index) => (
+              <div key={item} className="server-card">
+                <div>
+                  <strong>{item}</strong>
+                  <p>{index === 0 ? "Ready for local QA workflows." : "Awaiting final provider configuration."}</p>
+                </div>
+                <StatusBadge status={index === 0 ? "disconnected" : "not_configured"} />
+              </div>
+            ))}
+          </div>
+        </MotionCard>
+
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Studio Shortcuts</h3>
+              <p>Direct entry points matching the rest of the protected workspace aesthetic.</p>
+            </div>
+          </div>
+          <div className="shortcut-grid">
+            {[
+              ["Chat", studioColors.chat],
+              ["Writing", studioColors.writing],
+              ["Research", studioColors.research],
+              ["Image", studioColors.image],
+              ["Data", studioColors.data],
+              ["Finance", studioColors.finance],
+            ].map(([label, color]) => (
+              <div key={label} className="shortcut-card">
+                <div className="shortcut-swatch" style={{ background: `${color}18`, color }} />
+                <strong>{label}</strong>
+                <p>Open the studio and continue where you left off.</p>
+              </div>
+            ))}
+          </div>
+        </MotionCard>
+      </div>
+    </motion.div>
+  );
 }

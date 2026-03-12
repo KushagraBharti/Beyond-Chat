@@ -1,0 +1,140 @@
+import { useEffect, useState } from "react";
+import {
+  getProviderStatuses,
+  getWorkspace,
+  startGoogleCalendarConnect,
+  type ProviderRecord,
+} from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
+import { isMvpBypassSessionActive } from "../../lib/mvpBypass";
+import { isMvpBypassEnabled } from "../../lib/supabaseClient";
+import {
+  MotionCard,
+  PageSection,
+  PrimaryButton,
+  SecondaryButton,
+  StatusBadge,
+} from "../../components/protectedUi";
+
+export default function SettingsPage() {
+  const { user, mvpBypassActive } = useAuth();
+  const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
+  const [providers, setProviders] = useState<Record<string, ProviderRecord>>({});
+  const [status, setStatus] = useState("Ready");
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const [workspaceResponse, providersResponse] = await Promise.all([getWorkspace(), getProviderStatuses()]);
+        if (active) {
+          setWorkspaceName(workspaceResponse.workspace.name);
+          setProviders(providersResponse.providers);
+        }
+      } catch (err) {
+        if (active) {
+          setStatus(err instanceof Error ? err.message : "Failed to load settings.");
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleGoogleConnect = async () => {
+    try {
+      const response = await startGoogleCalendarConnect();
+      if (response.url) {
+        window.open(response.url, "_blank", "noopener,noreferrer");
+        setStatus("Opened Google OAuth flow in a new tab.");
+      } else {
+        setStatus(`Google Calendar is currently ${response.status}.`);
+      }
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Connect failed.");
+    }
+  };
+
+  const bypassActive = mvpBypassActive || (isMvpBypassEnabled && isMvpBypassSessionActive());
+
+  return (
+    <div className="page-wrap">
+      <PageSection
+        eyebrow="Settings"
+        title="Workspace and provider configuration"
+        description="A setup surface for workspace info, connected providers, auth mode, and future model preferences."
+      />
+
+      <div className="dashboard-grid dashboard-grid-three">
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Workspace</h3>
+              <p>Current protected shell identity and account state.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            <div className="list-row">
+              <div>
+                <strong>Name</strong>
+                <p>{workspaceName}</p>
+              </div>
+            </div>
+            <div className="list-row">
+              <div>
+                <strong>User</strong>
+                <p>{user?.email ?? "MVP Preview User"}</p>
+              </div>
+            </div>
+            <div className="list-row">
+              <div>
+                <strong>Auth mode</strong>
+                <p>{bypassActive ? "MVP bypass active" : "Supabase session"}</p>
+              </div>
+              <StatusBadge status={bypassActive ? "disconnected" : "connected"} />
+            </div>
+          </div>
+        </MotionCard>
+
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Providers</h3>
+              <p>Every provider-backed page consumes the same normalized status shape.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            {Object.entries(providers).map(([key, provider]) => (
+              <div key={key} className="list-row">
+                <div>
+                  <strong>{provider.label}</strong>
+                  <p>{provider.details}</p>
+                </div>
+                <StatusBadge status={provider.status} />
+              </div>
+            ))}
+          </div>
+        </MotionCard>
+
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Connections</h3>
+              <p>Manual setup can happen later without blocking the implemented UX.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            <PrimaryButton type="button" onClick={handleGoogleConnect}>
+              Connect Google Calendar
+            </PrimaryButton>
+            <SecondaryButton type="button">Model Preferences</SecondaryButton>
+            <SecondaryButton type="button">Workspace Metadata</SecondaryButton>
+          </div>
+          <div className="meta-placeholder">{status}</div>
+        </MotionCard>
+      </div>
+    </div>
+  );
+}
