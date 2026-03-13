@@ -65,3 +65,16 @@
 
 ## Hours Worked
 - Total estimated time: 5 hours
+# Harsh Kothari
+
+  ## Week 0 — Project Planning & Research
+
+  Researched the overall tech stack and helped finalize the architecture
+  decisions — React + TypeScript + Vite for the frontend, FastAPI for the
+  backend, Supabase for auth and database. Evaluated different hosting options
+  and settled on Vercel for frontend deployment. Contributed to early
+  brainstorming around the studio-based UX concept (Writing, Research, Image,
+  Data, Finance, Model Compare) and helped define the product scope for the MVP.
+
+  **Time spent: ~5 hours**
+
