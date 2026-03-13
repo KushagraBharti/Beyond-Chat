@@ -68,3 +68,15 @@
 
 ## Hours Worked
 - Total estimated time: 7 hours
+# Harsh Kothari
+
+  ## Week 1 — Environment Setup & Backend Foundation
+
+  Set up the local development environment — configured the backend with `uv`,
+  initialized the FastAPI project structure, and established the `/api/health`
+  endpoint for connectivity checks. Helped clean up the repo structure
+  separating `frontend/` from `frontend-mock/` so the team had a clear
+  production path. Tested Supabase project provisioning and started mapping out
+  the auth flow that would ship the following week.
+
+  **Time spent: ~7 hours**
