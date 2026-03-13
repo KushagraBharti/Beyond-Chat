@@ -161,3 +161,44 @@ The goal was to improve overall application stability, maintain clean code stand
 This week focused on stabilizing both the frontend and backend foundations of the application. Ensuring proper routing, eliminating React warnings, and maintaining clean backend code helps prevent future integration issues as more features are implemented.
 
 With these improvements in place, development can continue toward refining studio workflows and expanding the system’s AI-powered functionality.
+# HARSH KOTHARI
+                                                                                
+  ## Weekly Summary                                                             
+  - Week 4 was focused on building the core backend API layer, connecting
+  FastAPI endpoints to Supabase for data persistence, and wiring the frontend   
+  studios to real server responses.
+  - I spent most of the time creating request/response schemas, implementing    
+  CRUD endpoints, and making sure the frontend could actually talk to the       
+  backend end-to-end.
+  - By the end of the week, the studios went from static placeholders to        
+  functional, server-connected experiences.                                     
+   
+  ## Work Completed                                                             
+  - Created FastAPI endpoints for studio interactions including prompt
+  submission and artifact retrieval.
+  - Wired up Supabase database calls for storing and retrieving user-generated
+  artifacts by workspace.                                                       
+  - Defined request/response schemas using Pydantic models for type-safe API
+  contracts.                                                                    
+  - Connected the frontend studio components to the backend API so user inputs
+  trigger real server requests.                                                 
+  - Added CORS configuration to allow the Vercel-hosted frontend to communicate
+  with the backend.                                                             
+  - Implemented input validation and error handling across all new endpoints.
+                                                                                
+  ## Research / Technical Findings
+  - Pydantic models in FastAPI provide automatic request validation and OpenAPI
+  documentation generation, reducing boilerplate significantly.                 
+  - CORS must be explicitly configured on the backend when the frontend and API
+  are hosted on different domains.                                              
+  - Structuring API responses with consistent envelope patterns (data, error,
+  metadata) simplifies frontend error handling.                                 
+                  
+  ## Blockers / Risks                                                           
+  - Database schema may need adjustments as more studios come online and
+  artifact types diversify.                                                     
+  - Rate limiting and request throttling not yet implemented — needed before any
+   public-facing release.                                                       
+                  
+  ## Hours Worked
+  - Total estimated time: 7 hours
