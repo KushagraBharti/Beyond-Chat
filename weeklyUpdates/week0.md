@@ -65,7 +65,11 @@
 
 ## Hours Worked
 - Total estimated time: 5 hours
-#HARSH KOTHARI   
+
+
+
+
+HARSH KOTHARI   
   Weekly Summary                                                                
   This week focused on researching and finalizing the technology stack for the
   Beyond Chat platform, evaluating architecture options, and contributing to    
