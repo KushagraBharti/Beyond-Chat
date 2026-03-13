@@ -65,16 +65,46 @@
 
 ## Hours Worked
 - Total estimated time: 5 hours
-# Harsh Kothari
+#HARSH KOTHARI   
+  Weekly Summary                                                                
+  This week focused on researching and finalizing the technology stack for the
+  Beyond Chat platform, evaluating architecture options, and contributing to    
+  early product scoping.
+                                                                                
+  Work was centered around comparing frontend frameworks, backend options, and  
+  database/auth providers to determine the best fit for a multi-studio AI
+  platform. The goal was to establish a clear technical direction before any    
+  code was written.
 
-  ## Week 0 — Project Planning & Research
+  Work Completed
+  Researched and evaluated React + TypeScript + Vite as the frontend stack,
+  comparing it against Next.js and SvelteKit for our use case.                  
+  Evaluated FastAPI as the backend framework and confirmed it as the best fit
+  for async LLM request handling.                                               
+  Helped finalize Supabase as the auth and database provider after comparing it
+  with Firebase and Auth0.                                                      
+  Evaluated hosting options including Vercel, Netlify, and Railway — settled on
+  Vercel for frontend deployment.                                               
+  Contributed to brainstorming sessions around the studio-based UX concept,
+  helping define the six core studios: Writing, Research, Image, Data, Finance, 
+  and Model Compare.
+  Helped define the MVP product scope and feature prioritization for the first  
+  development cycle.                                                            
+   
+  Research / Technical Findings                                                 
+  Supabase offers a strong combination of Postgres, built-in auth, and storage
+  that reduces the number of external services needed.                          
+  Vite provides significantly faster dev server startup and HMR compared to CRA,
+   making it the clear choice for React projects.                               
+  FastAPI's native async support and automatic OpenAPI docs make it ideal for an
+   LLM-backed API layer.                                                        
+                  
+  Blockers / Risks                                                              
+  No major blockers — the team needed alignment on scope before committing to
+  implementation.                                                               
+   
+  Hours Worked                                                                  
+  Total estimated time: 5 hours
 
-  Researched the overall tech stack and helped finalize the architecture
-  decisions — React + TypeScript + Vite for the frontend, FastAPI for the
-  backend, Supabase for auth and database. Evaluated different hosting options
-  and settled on Vercel for frontend deployment. Contributed to early
-  brainstorming around the studio-based UX concept (Writing, Research, Image,
-  Data, Finance, Model Compare) and helped define the product scope for the MVP.
 
-  **Time spent: ~5 hours**
 
