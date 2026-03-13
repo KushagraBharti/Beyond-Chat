@@ -65,3 +65,14 @@
 
 ## Hours Worked
 - Total estimated time: 13 hours
+# Harsh Kothari
+
+  ## Week 2 — Supabase Auth & Session Management
+
+  Implemented full Supabase authentication — login, signup, and persistent
+  session management across the app. This was the critical security layer that
+  turned the frontend from a static site into a real authenticated platform.
+  Without this, nothing downstream (dashboard, studios, user data) would have
+  been possible.
+
+  **Time spent: ~4 hours**
