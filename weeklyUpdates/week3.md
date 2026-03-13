@@ -139,4 +139,17 @@ tldr: i focused on getting us to a shippable MVP baseline fast, even if some stu
 
 ## Hours Worked
 - Total estimated time: 16 hours
+# Harsh Kothari
 
+  ## Week 3 — Dashboard, Studios & Vercel Deployment
+
+  Built out the entire authenticated dashboard experience — a polished sidebar
+  layout, navigation for all 6 studios, a dynamic home page with a time-aware
+  greeting and animated studio card grid using Framer Motion. Added protected
+  routing with `/studio/:studioId` and placeholder studio pages. Then took the
+  app live — deployed the frontend to Vercel with GitHub integration, configured
+   SPA rewrites and environment variables, and pointed Supabase to the
+  production URL. Also fixed backend stability by adding missing `python-dotenv`
+   and `supabase` dependencies that were causing crashes.
+
+  **Time spent: ~12 hours**
