@@ -153,3 +153,51 @@ tldr: i focused on getting us to a shippable MVP baseline fast, even if some stu
    and `supabase` dependencies that were causing crashes.
 
   **Time spent: ~12 hours**
+ # HARSH KOTHARI
+                                                                                
+  ## Weekly Summary
+  - Week 3 was the biggest week yet — focused on building the authenticated
+  dashboard experience, implementing studio navigation, and deploying the       
+  frontend to Vercel for the first time.
+  - I spent most of the time creating the post-login experience from scratch and
+   then getting the app live on the internet.                                   
+  - By the end of the week, the app went from a localhost-only project to a
+  fully deployed platform with a working dashboard, animated UI, and all six    
+  studio routes wired up.
+                                                                                
+  ## Work Completed
+  - Built the DashboardLayout component with a fixed sidebar featuring logo,
+  navigation links for all 6 studios, user avatar, and sign-out button.         
+  - Redesigned the HomePage with a time-aware greeting
+  (morning/afternoon/evening) and a studio cards grid with staggered entrance   
+  animations using Framer Motion.
+  - Created the StudioPage placeholder component with header bar, coming soon
+  state, and back navigation.                                                   
+  - Added protected routing for /studio/:studioId wrapped in the
+  DashboardLayout.                                                              
+  - Deployed the frontend to Vercel via GitHub integration with automatic builds
+   on push.
+  - Configured vercel.json with SPA rewrite rules for client-side routing
+  support.                                                                      
+  - Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY as Vercel environment 
+  variables.                                                                    
+  - Updated Supabase Site URL to point to the Vercel deployment instead of 
+  localhost.                                                                    
+  - Fixed backend dependency crashes by adding missing python-dotenv and 
+  supabase packages to backend/pyproject.toml.                                  
+  - Ran uv sync to install all 55 backend packages successfully.
+
+  ## Research / Technical Findings
+  - Vercel requires an explicit SPA rewrite rule in vercel.json to prevent 404s 
+  on direct navigation to client-side routes.                                   
+  - Framer Motion's staggerChildren property creates polished sequential 
+  entrance animations with minimal configuration.                               
+  - Backend dependencies that are imported but not declared in pyproject.toml 
+  cause silent runtime crashes that are easy to miss during development.        
+   
+  ## Blockers / Risks                                                           
+  - Pre-existing TypeScript build issue with lib.es2023.d.ts needs investigation
+   — does not block development but causes build warnings.                      
+                  
+  ## Hours Worked                                                               
+  - Total estimated time: 12 hours
