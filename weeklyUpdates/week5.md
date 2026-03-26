@@ -55,3 +55,34 @@
    
   ## Hours Worked                                                               
   - Total estimated time: 14 hours
+
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 5 focused on improving the backend integration for multi-model execution and making the system more reliable for real end-to-end workflows.
+- My work this week was centered around refining the OpenRouter integration, improving how model responses are handled, and connecting backend execution more cleanly with frontend studio flows.
+- The goal was to make the system feel like a cohesive multi-LLM platform rather than a set of partially connected features.
+
+## Work Completed
+- Improved the backend OpenRouter integration to better handle multiple model requests and normalize responses across different providers.
+- Worked on refining the API layer so model execution requests from the frontend could be handled more consistently.
+- Helped structure how responses from different models are stored and associated with runs and artifacts for later retrieval.
+- Tested multi-model execution flows locally to ensure prompts could be sent to different providers without breaking the pipeline.
+- Assisted with debugging issues related to authentication flow and ensuring backend endpoints correctly handled authenticated requests.
+- Helped review and validate the Model Compare workflow from a backend perspective to ensure compatibility with frontend implementation.
+- Ran local testing and validation to ensure the backend, model execution layer, and frontend interactions were working together reliably.
+
+## Research / Technical Findings
+- Different LLM providers return slightly different response formats, so normalizing outputs at the backend layer simplifies frontend logic significantly.
+- A consistent execution pipeline for model requests is critical when supporting multi-model comparison features.
+- Storing model outputs alongside run metadata enables better tracking, debugging, and future evaluation of model performance.
+
+## Blockers / Risks
+- Model response consistency still requires additional validation across edge cases and different prompt types.
+- Authentication and session handling still need further refinement to ensure all backend routes behave correctly under protected access.
+- Multi-model execution increases complexity in error handling, especially when one provider fails while others succeed.
+
+## Hours Worked
+- Total estimated time: 21 hours
