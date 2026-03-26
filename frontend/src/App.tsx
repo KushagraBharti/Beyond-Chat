@@ -5,6 +5,7 @@ import PricingPage from "./pages/public/PricingPage";
 import LoginPage from "./pages/public/LoginPage";
 import HomePage from "./pages/protected/HomePage";
 import StudioPage from "./pages/protected/StudioPage";
+import ComparePage from "./pages/protected/ComparePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardLayout from "./components/DashboardLayout";
 
@@ -22,6 +23,16 @@ function App() {
               <ProtectedRoute>
                 <DashboardLayout>
                   <HomePage />
+                </DashboardLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/studio/compare"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <ComparePage />
                 </DashboardLayout>
               </ProtectedRoute>
             }

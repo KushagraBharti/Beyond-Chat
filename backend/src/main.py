@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
+from src.routers.compare import router as compare_router
+
 load_dotenv()  # loads backend/.env into environment variables
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
@@ -25,11 +27,15 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://beyond-chat-wheat.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.include_router(compare_router)
 
 
 @app.get("/")
