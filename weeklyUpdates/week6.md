@@ -66,5 +66,33 @@
 - Image generation latency creates UX challenges that require better feedback mechanisms (progress indicators, status states).
 - Differences in backend response formats can still introduce edge cases in how outputs are rendered on the frontend.
 
+
 ## Hours Worked
 - Total estimated time: 19 hours
+
+# Diya
+
+# 1. Primary Objective
+Finalize the Data Studio by wiring it to the backend AI and complete the Supabase authentication flows for the Login page.
+
+# 2. Work Completed
+
+## Data Studio Integration (`StudioPage.tsx`, `main.py`)
+- Wired the disconnected `DataPage` UI into the main application router.
+- Replaced hardcoded backend data with dynamic OpenRouter LLM queries.
+- Built robust JSON parsing with regex fallbacks to reliably extract the model's insights.
+
+## Login & Authentication (`LoginPage.tsx`)
+- Integrated the new "Atelier-Plus" variant for the Login UI.
+- Wired up Supabase authentication, managing sessions for secure email login and routing directly to personalized workspaces.
+
+# 3. Technical Findings
+- **Data Parsing:** Using regex to strip Markdown code blocks before `json.loads` natively solved crashes from varied LLM output formats.
+- **Auth Flexibility:** Separating local MVP bypass logic from Supabase auth ensured seamless local development without needing cloud credentials.
+
+# 4. Blockers & Risks
+- **Data Privacy:** Sending raw CSV datasets to OpenRouter poses risks if users upload sensitive PII.
+- **CORS Configuration:** Enforcing session persistence between FastAPI and React required explicitly whitelisting localhost ports in `main.py`.
+
+# 5. Hours Worked
+8
