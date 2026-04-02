@@ -33,3 +33,38 @@
 
 ## Hours Worked
 - Total estimated time: 6 hours
+
+
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 6 was focused on significantly improving the frontend experience and making the Image Studio feel like a polished, usable product rather than just a functional pipeline.
+- I spent most of the week working on UI/UX improvements, state handling, and making sure the image generation flow felt smooth, responsive, and consistent with the rest of the app.
+- The goal was to bridge the gap between backend functionality and actual user experience by refining how users interact with image generation, previews, and saved outputs.
+
+## Work Completed
+- Refactored the Image Studio frontend to support a more structured generation flow, including prompt input, model selection, and output rendering.
+- Improved the UI layout and interaction patterns for the Image Studio to better match the overall design system used across other studios.
+- Implemented responsive state handling for generation requests, including loading states, disabled actions during execution, and error feedback.
+- Worked on rendering generated images dynamically using signed URLs, ensuring images display correctly immediately after generation.
+- Improved the gallery experience by restructuring how image artifacts are displayed, including grid layout adjustments and better visual hierarchy.
+- Added client-side handling for newly generated images so they appear instantly in the UI without requiring a full refresh.
+- Refined the artifact preview system so images are properly linked to runs and can be revisited across sessions.
+- Helped debug frontend/backend integration issues related to run outputs and ensured the data contract between the API and UI remained consistent.
+- Worked on improving UX details such as prompt input behavior, button states, and transitions to make the interaction feel more fluid.
+- Ran end-to-end testing of the Image Studio flow (prompt → generation → upload → display) to ensure the experience was stable and intuitive.
+
+## Research / Technical Findings
+- Handling async UI state correctly (loading, success, error) is critical for long-running operations like image generation.
+- Rendering images from signed URLs requires careful state management to avoid broken or expired previews.
+- Immediate UI updates after generation (optimistic rendering) significantly improve perceived performance and usability.
+- Consistent component structure across studios helps maintain a unified product experience while still allowing specialized functionality.
+
+## Blockers / Risks
+- Signed URL expiration can cause images to disappear from the UI unless a refresh mechanism is implemented.
+- Image generation latency creates UX challenges that require better feedback mechanisms (progress indicators, status states).
+- Differences in backend response formats can still introduce edge cases in how outputs are rendered on the frontend.
+
+## Hours Worked
+- Total estimated time: 21 hours
