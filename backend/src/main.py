@@ -20,6 +20,7 @@ from .providers import (
     TAVILY_NOT_CONFIGURED,
     build_google_connect_url,
     call_openrouter,
+    call_openrouter_image,
     compare_models,
     google_calendar_events,
     provider_statuses,
@@ -181,6 +182,15 @@ def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> d
     }
 
 
+def _ratio_to_size(ratio: str) -> str:
+    return {
+        "1:1": "1024x1024",
+        "16:9": "1792x1024",
+        "9:16": "1024x1792",
+        "4:5": "1024x1280",
+    }.get(ratio, "1024x1024")
+
+
 def parse_tags(raw_tags: str | None) -> list[str]:
     if not raw_tags:
         return []
@@ -192,7 +202,7 @@ def sanitize_storage_filename(filename: str) -> str:
     return candidate or "upload.bin"
 
 
-async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
+async def execute_run(payload: RunRequest, run_id: str, workspace_id: str) -> dict[str, Any]:
     store.add_run_step(run_id, "prepare", "system", "completed", payload.prompt, "Run accepted")
 
     if payload.studio == "data":
@@ -216,7 +226,82 @@ async def execute_run(payload: RunRequest, run_id: str) -> dict[str, Any]:
         return output
 
     if payload.studio == "image":
-        raise RuntimeError("Image generation is not configured yet. Add provider keys to enable live runs.")
+        # Resolve the image model: use payload.model unless it's the text default
+        image_model = (
+            payload.model
+            if payload.model and payload.model != settings.openrouter_default_model
+            else settings.openrouter_image_default_model
+        )
+        style = str(payload.options.get("style", ""))
+        quality = str(payload.options.get("quality", "High"))
+        ratio = str(payload.options.get("ratio", "1:1"))
+
+        # Step 1: enhance_prompt
+        store.add_run_step(run_id, "enhance_prompt", "openrouter", "running", payload.prompt, "Enhancing prompt")
+        enhanced_prompt = await call_openrouter(
+            model=settings.openrouter_default_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a prompt engineer for AI image generation. "
+                        "Rewrite the user's prompt to be vivid, specific, and optimized for image models. "
+                        "Incorporate the style and quality hints naturally. "
+                        "Return only the enhanced prompt, no commentary."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Prompt: {payload.prompt}\nStyle: {style}\nQuality: {quality}",
+                },
+            ],
+            temperature=0.5,
+            max_tokens=300,
+        )
+        store.add_run_step(run_id, "enhance_prompt", "openrouter", "completed", payload.prompt, enhanced_prompt)
+
+        # Step 2: generate
+        store.add_run_step(run_id, "generate", "openrouter-images", "running", enhanced_prompt, "Generating image")
+        size = _ratio_to_size(ratio)
+        image_results = await call_openrouter_image(
+            model=image_model,
+            prompt=enhanced_prompt,
+            size=size,
+            n=1,
+        )
+        store.add_run_step(
+            run_id, "generate", "openrouter-images", "completed",
+            enhanced_prompt, f"{len(image_results)} image(s) generated",
+        )
+
+        # Step 3: upload
+        store.add_run_step(run_id, "upload", "supabase", "running", run_id, "Uploading to Supabase Storage")
+        storage_urls: list[str] = []
+        storage_paths: list[str] = []
+        for idx, (image_bytes, content_type) in enumerate(image_results):
+            ext = "jpg" if "jpeg" in content_type else "png"
+            upload = supabase_service.upload_image_file(
+                workspace_id=workspace_id,
+                run_id=run_id,
+                filename=f"image_{idx + 1}.{ext}",
+                content_type=content_type,
+                image_bytes=image_bytes,
+            )
+            if upload and upload.get("signed_url"):
+                storage_urls.append(upload["signed_url"])
+                storage_paths.append(upload["path"])
+
+        store.add_run_step(run_id, "upload", "supabase", "completed", run_id, {"urls": storage_urls})
+
+        return {
+            "format": "image",
+            "prompt": payload.prompt,
+            "enhanced_prompt": enhanced_prompt,
+            "urls": storage_urls,
+            "paths": storage_paths,
+            "model": image_model,
+            "count": len(storage_urls),
+        }
 
     if payload.studio in {"research", "finance"}:
         store.add_run_step(run_id, "search", "tavily", "running", payload.prompt, "Searching sources")
@@ -443,7 +528,7 @@ async def create_run(
     )
 
     try:
-        output = await execute_run(payload, run["id"])
+        output = await execute_run(payload, run["id"], context.workspace_id)
         completed = store.complete_run(context.workspace_id, run["id"], "completed", output=output)
     except RuntimeError as exc:
         store.add_run_step(run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)})

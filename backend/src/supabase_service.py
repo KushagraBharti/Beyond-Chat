@@ -110,6 +110,34 @@ class SupabaseService:
             "signed_url": signed.get("signedURL") if isinstance(signed, dict) else None,
         }
 
+    def upload_image_file(
+        self,
+        workspace_id: str,
+        run_id: str,
+        filename: str,
+        content_type: str,
+        image_bytes: bytes,
+    ) -> dict[str, Any] | None:
+        client = self.client()
+        if client is None:
+            return None
+
+        storage_path = f"{workspace_id}/images/{run_id}/{filename}"
+        client.storage.from_(settings.supabase_storage_bucket).upload(
+            path=storage_path,
+            file=image_bytes,
+            file_options={
+                "content-type": content_type,
+                "upsert": "true",
+            },
+        )
+        signed = client.storage.from_(settings.supabase_storage_bucket).create_signed_url(storage_path, 86400)
+        return {
+            "bucket": settings.supabase_storage_bucket,
+            "path": storage_path,
+            "signed_url": signed.get("signedURL") if isinstance(signed, dict) else None,
+        }
+
     def create_signed_artifact_url(self, path: str, expires_in: int = 3600) -> dict[str, Any] | None:
         client = self.client()
         if client is None:

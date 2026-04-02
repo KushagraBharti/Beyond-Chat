@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -64,6 +65,51 @@ async def call_openrouter(
         return ""
     content = message.get("content", "")
     return content if isinstance(content, str) else ""
+
+
+async def call_openrouter_image(
+    model: str,
+    prompt: str,
+    size: str = "1024x1024",
+    n: int = 1,
+) -> list[tuple[bytes, str]]:
+    """Call OpenRouter image generation. Returns list of (image_bytes, content_type)."""
+    if not settings.openrouter_api_key:
+        raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
+
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(
+            "https://openrouter.ai/api/v1/images/generations",
+            headers={
+                "Authorization": f"Bearer {settings.openrouter_api_key}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": settings.openrouter_http_referer,
+                "X-Title": settings.app_title,
+            },
+            json={
+                "model": model,
+                "prompt": prompt,
+                "n": n,
+                "size": size,
+            },
+        )
+        response.raise_for_status()
+        payload = response.json()
+
+    results: list[tuple[bytes, str]] = []
+    for item in payload.get("data", []):
+        if not isinstance(item, dict):
+            continue
+        if item.get("b64_json"):
+            results.append((base64.b64decode(item["b64_json"]), "image/png"))
+        elif item.get("url"):
+            async with httpx.AsyncClient(timeout=60.0) as dl:
+                img_resp = await dl.get(item["url"])
+                img_resp.raise_for_status()
+                ct = img_resp.headers.get("content-type", "image/png").split(";")[0].strip()
+                results.append((img_resp.content, ct))
+
+    return results
 
 
 async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]:

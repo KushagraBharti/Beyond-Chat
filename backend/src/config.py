@@ -30,6 +30,7 @@ class Settings:
     supabase_storage_bucket: str = os.getenv("SUPABASE_STORAGE_BUCKET", "artifacts")
     local_workspace_id: str = os.getenv("LOCAL_WORKSPACE_ID", "local-workspace")
     local_workspace_name: str = os.getenv("LOCAL_WORKSPACE_NAME", "Beyond Chat Local")
+    openrouter_image_default_model: str = os.getenv("OPENROUTER_IMAGE_DEFAULT_MODEL", "openai/dall-e-3")
 
 
 settings = Settings()
