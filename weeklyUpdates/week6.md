@@ -67,4 +67,4 @@
 - Differences in backend response formats can still introduce edge cases in how outputs are rendered on the frontend.
 
 ## Hours Worked
-- Total estimated time: 21 hours
+- Total estimated time: 19 hours
