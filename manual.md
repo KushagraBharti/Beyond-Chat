@@ -7,19 +7,19 @@ This file lists the human-run tasks that cannot be completed entirely from the r
 Run these files in the Supabase SQL editor in this order:
 
 1. `backend/sql-related-files/000_workspace_membership_schema.sql`
-2. `backend/sql-related-files/006_users_workspaces_members.sql`
-3. `backend/sql-related-files/001_chat_tables.sql`
-4. `backend/sql-related-files/002_integrations_tables.sql`
-5. `backend/sql-related-files/007_artifacts_runs_steps_base.sql`
-6. `backend/sql-related-files/004_run_extensions.sql`
-7. `backend/sql-related-files/003_artifact_extensions.sql`
-8. `backend/sql-related-files/005_rls_policies.sql`
+2. `backend/sql-related-files/001_users_workspaces_members.sql`
+3. `backend/sql-related-files/002_chat_tables.sql`
+4. `backend/sql-related-files/003_integrations_tables.sql`
+5. `backend/sql-related-files/004_artifacts_runs_steps_base.sql`
+6. `backend/sql-related-files/005_run_extensions.sql`
+7. `backend/sql-related-files/006_artifact_extensions.sql`
+8. `backend/sql-related-files/007_rls_policies.sql`
 9. `backend/sql-related-files/008_storage_setup.sql`
 
 Why this order:
 
 - workspace tables must exist before workspace-scoped tables and policies
-- the workspace bootstrap upgrade should run after the base workspace schema
+- the workspace bootstrap function and auth trigger must run immediately after the base workspace schema
 - artifacts and runs must exist before the extension and policy layers
 - storage policies should run only after the workspace RLS helpers exist
 
@@ -126,7 +126,7 @@ Before production:
 
 1. Disable local auth bypass on frontend and backend.
 2. Verify JWT-protected backend routes with a real Supabase session.
-3. Confirm workspace bootstrap inserts rows into:
+3. Confirm `public.ensure_workspace_for_user(...)` and the `auth.users` trigger insert rows into:
    - `user_profiles`
    - `workspaces`
    - `workspace_members`

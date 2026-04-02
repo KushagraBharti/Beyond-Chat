@@ -19,8 +19,6 @@ set public = excluded.public,
     file_size_limit = excluded.file_size_limit,
     allowed_mime_types = excluded.allowed_mime_types;
 
-alter table storage.objects enable row level security;
-
 do $$
 begin
     if not exists (
@@ -34,7 +32,7 @@ begin
         for select
         using (
             bucket_id = 'artifacts'
-            and (storage.foldername(name))[1] in (select workspace_id::text from public.current_workspace_ids())
+            and (storage.foldername(name))[1] in (select current_workspace_ids()::text)
         );
     end if;
 
@@ -49,7 +47,7 @@ begin
         for insert
         with check (
             bucket_id = 'artifacts'
-            and (storage.foldername(name))[1] in (select workspace_id::text from public.current_workspace_ids())
+            and (storage.foldername(name))[1] in (select current_workspace_ids()::text)
         );
     end if;
 
@@ -64,11 +62,11 @@ begin
         for update
         using (
             bucket_id = 'artifacts'
-            and (storage.foldername(name))[1] in (select workspace_id::text from public.current_workspace_ids())
+            and (storage.foldername(name))[1] in (select current_workspace_ids()::text)
         )
         with check (
             bucket_id = 'artifacts'
-            and (storage.foldername(name))[1] in (select workspace_id::text from public.current_workspace_ids())
+            and (storage.foldername(name))[1] in (select current_workspace_ids()::text)
         );
     end if;
 
@@ -83,7 +81,7 @@ begin
         for delete
         using (
             bucket_id = 'artifacts'
-            and (storage.foldername(name))[1] in (select workspace_id::text from public.current_workspace_ids())
+            and (storage.foldername(name))[1] in (select current_workspace_ids()::text)
         );
     end if;
 end $$;

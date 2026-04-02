@@ -1,14 +1,15 @@
 import { useState } from "react";
+import ArtifactSaveButton from "./ArtifactSaveButton";
 import ContextBuilder from "./ContextBuilder";
 import StepTimeline from "./StepTimeline";
-import { createArtifact, createRun, type RunRecord } from "../lib/api";
+import { createRun, type RunRecord } from "../lib/api";
+import { buildRunArtifactInput } from "../lib/artifactDrafts";
 import {
   EmptyState,
   FieldLabel,
   MotionCard,
   PageSection,
   PrimaryButton,
-  SecondaryButton,
   Select,
   StatusBadge,
   TextArea,
@@ -64,30 +65,6 @@ export default function RunStudioWorkspace({
     }
   };
 
-  const handleSaveArtifact = async () => {
-    if (!run?.output.content) {
-      return;
-    }
-    try {
-      await createArtifact({
-        title: `${title} artifact`,
-        type: "report",
-        studio,
-        content: String(run.output.content),
-        summary: prompt,
-        content_format: "markdown",
-        metadata: {
-          runId: run.id,
-          sources: run.output.sources ?? [],
-        },
-        tags: [studio, "report"],
-      });
-      setStatus("Saved as artifact");
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Save failed.");
-    }
-  };
-
   return (
     <div className="page-wrap">
       <PageSection
@@ -99,9 +76,22 @@ export default function RunStudioWorkspace({
             <PrimaryButton type="button" onClick={handleRun} disabled={loading}>
               {loading ? "Running..." : "Run"}
             </PrimaryButton>
-            <SecondaryButton type="button" onClick={handleSaveArtifact} disabled={!run?.output.content}>
-              Save as Artifact
-            </SecondaryButton>
+            <ArtifactSaveButton
+              buildPayload={() =>
+                buildRunArtifactInput({
+                  studio,
+                  title: `${title} artifact`,
+                  prompt,
+                  run,
+                  type: "report",
+                  tags: ["report"],
+                })
+              }
+              disabled={!run?.output}
+              saveKey={run?.id}
+              onSaved={() => setStatus("Saved as artifact")}
+              onError={setStatus}
+            />
           </div>
         }
       />

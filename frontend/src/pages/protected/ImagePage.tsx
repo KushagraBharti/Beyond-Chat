@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { createArtifact, createRun, listArtifacts, type ArtifactRecord } from "../../lib/api";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import { createRun, listArtifacts, type ArtifactRecord } from "../../lib/api";
+import { buildImageArtifactInput } from "../../lib/artifactDrafts";
 import {
   EmptyState,
   FieldLabel,
@@ -18,6 +20,17 @@ const imageModels = [
   { value: "stability/stable-diffusion-3.5-large", label: "Stable Diffusion 3.5" },
 ];
 
+interface FreshImage {
+  id: string;
+  url: string;
+  prompt: string;
+  storagePath: string;
+  model: string;
+  ratio: string;
+  style: string;
+  quality: string;
+}
+
 export default function ImagePage() {
   const [prompt, setPrompt] = useState("");
   const [model, setModel] = useState(imageModels[0].value);
@@ -25,7 +38,7 @@ export default function ImagePage() {
   const [style, setStyle] = useState("Editorial");
   const [quality, setQuality] = useState("High");
   const [gallery, setGallery] = useState<ArtifactRecord[]>([]);
-  const [freshUrls, setFreshUrls] = useState<string[]>([]);
+  const [freshImages, setFreshImages] = useState<FreshImage[]>([]);
   const [status, setStatus] = useState("Ready");
   const [loading, setLoading] = useState(false);
 
@@ -48,7 +61,7 @@ export default function ImagePage() {
     if (!prompt.trim()) return;
     setLoading(true);
     setStatus("Running…");
-    setFreshUrls([]);
+    setFreshImages([]);
     try {
       const response = await createRun({
         studio: "image",
@@ -65,44 +78,27 @@ export default function ImagePage() {
       }
 
       const urls = (run.output?.urls as string[] | undefined) ?? [];
-      setFreshUrls(urls);
-      setStatus(`Done — ${urls.length} image(s) generated`);
-
-      // Persist each image as an artifact so it appears in the gallery
-      if (urls.length > 0) {
-        const enhancedPrompt = (run.output?.enhanced_prompt as string | undefined) ?? prompt;
-        const paths = (run.output?.paths as string[] | undefined) ?? [];
-        const saved = await Promise.allSettled(
-          urls.map((url, i) =>
-            createArtifact({
-              title: prompt.slice(0, 60) || "Generated image",
-              type: "image",
-              studio: "image",
-              content: enhancedPrompt,
-              summary: `Generated with ${model}`,
-              content_format: "plain",
-              preview_image: url,
-              metadata: { model, ratio, style, quality, storage_path: paths[i] ?? "" },
-              tags: ["generated", style.toLowerCase()],
-            }),
-          ),
-        );
-        const newArtifacts = saved
-          .filter((r): r is PromiseFulfilledResult<{ artifact: ArtifactRecord }> => r.status === "fulfilled")
-          .map((r) => r.value.artifact);
-        setGallery((prev) => [...newArtifacts, ...prev]);
-      }
+      const enhancedPrompt = (run.output?.enhanced_prompt as string | undefined) ?? prompt;
+      const paths = (run.output?.paths as string[] | undefined) ?? [];
+      setFreshImages(
+        urls.map((url, index) => ({
+          id: `${run.id}-${index}`,
+          url,
+          prompt: enhancedPrompt,
+          storagePath: paths[index] ?? "",
+          model,
+          ratio,
+          style,
+          quality,
+        })),
+      );
+      setStatus(urls.length ? `Done — ${urls.length} image(s) ready to save` : "No images returned.");
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Image generation failed.");
     } finally {
       setLoading(false);
     }
   };
-
-  const allImages = [
-    ...freshUrls.map((url) => ({ id: `fresh-${url}`, previewImage: url, title: prompt, summary: null })),
-    ...gallery,
-  ];
 
   return (
     <div className="page-wrap">
@@ -187,31 +183,80 @@ export default function ImagePage() {
           <div className="context-builder-head">
             <div>
               <h3>Generated gallery</h3>
-              <p>History stays visible even between sessions.</p>
+              <p>Fresh results stay separate until you explicitly save them as artifacts.</p>
             </div>
             <StatusBadge
-              status={allImages.length ? "connected" : "disconnected"}
-              label={`${allImages.length} image${allImages.length === 1 ? "" : "s"}`}
+              status={freshImages.length || gallery.length ? "connected" : "disconnected"}
+              label={`${freshImages.length + gallery.length} image${freshImages.length + gallery.length === 1 ? "" : "s"}`}
             />
           </div>
 
-          {allImages.length ? (
-            <div className="image-gallery-grid">
-              {allImages.map((item) => (
-                <div key={item.id} className="image-gallery-card">
-                  <div className="image-gallery-preview">
-                    {item.previewImage ? (
-                      <img
-                        src={item.previewImage}
-                        alt={item.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
-                      />
-                    ) : null}
+          {freshImages.length || gallery.length ? (
+            <div className="stack-sm">
+              {freshImages.length ? (
+                <>
+                  <strong>Fresh outputs</strong>
+                  <div className="image-gallery-grid">
+                    {freshImages.map((item) => (
+                      <div key={item.id} className="image-gallery-card">
+                        <div className="image-gallery-preview">
+                          <img
+                            src={item.url}
+                            alt={item.prompt}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+                          />
+                        </div>
+                        <strong>{item.prompt.slice(0, 60) || "Generated image"}</strong>
+                        <p>Not saved yet</p>
+                        <ArtifactSaveButton
+                          buildPayload={() =>
+                            buildImageArtifactInput({
+                              prompt: item.prompt,
+                              model: item.model,
+                              ratio: item.ratio,
+                              style: item.style,
+                              quality: item.quality,
+                              url: item.url,
+                              storagePath: item.storagePath,
+                            })
+                          }
+                          variant="primary"
+                          saveKey={item.id}
+                          onSaved={(artifact) => {
+                            setGallery((prev) => [artifact, ...prev]);
+                            setFreshImages((prev) => prev.filter((entry) => entry.id !== item.id));
+                            setStatus("Saved as artifact");
+                          }}
+                          onError={setStatus}
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <strong>{item.title}</strong>
-                  <p>{item.summary ?? ""}</p>
-                </div>
-              ))}
+                </>
+              ) : null}
+
+              {gallery.length ? (
+                <>
+                  <strong>Saved gallery</strong>
+                  <div className="image-gallery-grid">
+                    {gallery.map((item) => (
+                      <div key={item.id} className="image-gallery-card">
+                        <div className="image-gallery-preview">
+                          {item.previewImage ? (
+                            <img
+                              src={item.previewImage}
+                              alt={item.title}
+                              style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }}
+                            />
+                          ) : null}
+                        </div>
+                        <strong>{item.title}</strong>
+                        <p>{item.summary ?? ""}</p>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </div>
           ) : (
             <EmptyState

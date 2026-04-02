@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import mimetypes
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -13,21 +14,21 @@ from pydantic import BaseModel, Field
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
+from .ai_context import merge_prompt_with_context, resolve_context_artifacts
 from .auth import RequestContext, require_request_context, resolve_request_context
+from .artifact_drafts import build_run_artifact_payload
 from .config import settings
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
-    TAVILY_NOT_CONFIGURED,
     build_google_connect_url,
     call_openrouter,
-    call_openrouter_image,
     compare_models,
     google_calendar_events,
     provider_statuses,
-    tavily_search,
 )
 from .store import store
 from .supabase_service import supabase_service
+from .workflows import run_studio_workflow
 
 load_dotenv()
 
@@ -121,6 +122,14 @@ class ArtifactRequest(BaseModel):
     preview_image: str | None = None
 
 
+class SaveRunArtifactRequest(BaseModel):
+    title: str | None = None
+    artifact_type: str | None = Field(default=None, alias="type")
+    summary: str | None = None
+    content_format: str | None = None
+    tags: list[str] = Field(default_factory=list)
+
+
 class ExportRequest(BaseModel):
     format: str = Field(pattern="^(markdown|pdf)$")
 
@@ -163,7 +172,11 @@ def build_pdf(title: str, content: str) -> bytes:
 
 def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
     if context.source == "supabase_jwt" and bootstrap:
-        bootstrapped = supabase_service.ensure_workspace_for_user(context.user_id, context.email)
+        bootstrapped = supabase_service.ensure_workspace_for_user(
+            context.user_id,
+            context.email,
+            context.access_token,
+        )
         if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
             workspace = bootstrapped["workspace"]
             workspace_id = workspace.get("id") or context.workspace_id
@@ -182,15 +195,6 @@ def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> d
     }
 
 
-def _ratio_to_size(ratio: str) -> str:
-    return {
-        "1:1": "1024x1024",
-        "16:9": "1792x1024",
-        "9:16": "1024x1792",
-        "4:5": "1024x1280",
-    }.get(ratio, "1024x1024")
-
-
 def parse_tags(raw_tags: str | None) -> list[str]:
     if not raw_tags:
         return []
@@ -202,175 +206,43 @@ def sanitize_storage_filename(filename: str) -> str:
     return candidate or "upload.bin"
 
 
-async def execute_run(payload: RunRequest, run_id: str, workspace_id: str) -> dict[str, Any]:
+def resolve_content_type(filename: str, provided_content_type: str | None) -> str:
+    if provided_content_type and provided_content_type != "application/octet-stream":
+        return provided_content_type
+    inferred, _ = mimetypes.guess_type(filename)
+    return inferred or "application/octet-stream"
+
+
+async def execute_run(
+    payload: RunRequest,
+    run_id: str,
+    workspace_id: str,
+    access_token: str | None = None,
+) -> dict[str, Any]:
+    context_artifacts = resolve_context_artifacts(workspace_id, payload.context_ids)
+    effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
     store.add_run_step(run_id, "prepare", "system", "completed", payload.prompt, "Run accepted")
-
-    if payload.studio == "data":
-        summary = payload.options.get("data_summary") or "Sample CSV detected with 120 rows and 6 columns."
-        insights = [
-            "Detected a moderate concentration in the top revenue segment.",
-            "Two columns contain sparse values and should be normalized before export.",
-            "Trends suggest a weekly cycle worth charting in the next iteration.",
-        ]
-        output = {
-            "headline": "Dataset review completed",
-            "summary": summary,
-            "insights": insights,
-            "steps": [
-                "Validated uploaded structure",
-                "Profiled columns and missingness",
-                "Generated starter insights",
-            ],
-        }
-        store.add_run_step(run_id, "analyze-data", "local-profiler", "completed", summary, output)
-        return output
-
-    if payload.studio == "image":
-        # Resolve the image model: use payload.model unless it's the text default
-        image_model = (
-            payload.model
-            if payload.model and payload.model != settings.openrouter_default_model
-            else settings.openrouter_image_default_model
-        )
-        style = str(payload.options.get("style", ""))
-        quality = str(payload.options.get("quality", "High"))
-        ratio = str(payload.options.get("ratio", "1:1"))
-
-        # Step 1: enhance_prompt
-        store.add_run_step(run_id, "enhance_prompt", "openrouter", "running", payload.prompt, "Enhancing prompt")
-        enhanced_prompt = await call_openrouter(
-            model=settings.openrouter_default_model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are a prompt engineer for AI image generation. "
-                        "Rewrite the user's prompt to be vivid, specific, and optimized for image models. "
-                        "Incorporate the style and quality hints naturally. "
-                        "Return only the enhanced prompt, no commentary."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": f"Prompt: {payload.prompt}\nStyle: {style}\nQuality: {quality}",
-                },
-            ],
-            temperature=0.5,
-            max_tokens=300,
-        )
-        store.add_run_step(run_id, "enhance_prompt", "openrouter", "completed", payload.prompt, enhanced_prompt)
-
-        # Step 2: generate
-        store.add_run_step(run_id, "generate", "openrouter-images", "running", enhanced_prompt, "Generating image")
-        size = _ratio_to_size(ratio)
-        image_results = await call_openrouter_image(
-            model=image_model,
-            prompt=enhanced_prompt,
-            size=size,
-            n=1,
-        )
+    if context_artifacts:
         store.add_run_step(
-            run_id, "generate", "openrouter-images", "completed",
-            enhanced_prompt, f"{len(image_results)} image(s) generated",
+            run_id,
+            "context",
+            "artifact-library",
+            "completed",
+            {"contextIds": payload.context_ids},
+            {
+                "artifactIds": [artifact["id"] for artifact in context_artifacts],
+                "count": len(context_artifacts),
+            },
         )
-
-        # Step 3: upload
-        store.add_run_step(run_id, "upload", "supabase", "running", run_id, "Uploading to Supabase Storage")
-        storage_urls: list[str] = []
-        storage_paths: list[str] = []
-        for idx, (image_bytes, content_type) in enumerate(image_results):
-            ext = "jpg" if "jpeg" in content_type else "png"
-            upload = supabase_service.upload_image_file(
-                workspace_id=workspace_id,
-                run_id=run_id,
-                filename=f"image_{idx + 1}.{ext}",
-                content_type=content_type,
-                image_bytes=image_bytes,
-            )
-            if upload and upload.get("signed_url"):
-                storage_urls.append(upload["signed_url"])
-                storage_paths.append(upload["path"])
-
-        store.add_run_step(run_id, "upload", "supabase", "completed", run_id, {"urls": storage_urls})
-
-        return {
-            "format": "image",
-            "prompt": payload.prompt,
-            "enhanced_prompt": enhanced_prompt,
-            "urls": storage_urls,
-            "paths": storage_paths,
-            "model": image_model,
-            "count": len(storage_urls),
-        }
-
-    if payload.studio in {"research", "finance"}:
-        store.add_run_step(run_id, "search", "tavily", "running", payload.prompt, "Searching sources")
-        search_results = await tavily_search(payload.prompt)
-        store.add_run_step(run_id, "search", "tavily", "completed", payload.prompt, search_results)
-
-        evidence_lines = [
-            f"- {item['title']}: {item['snippet']} ({item['url']})"
-            for item in search_results.get("results", [])
-        ]
-        system_prompt = (
-            "You are producing a structured report for Beyond Chat. "
-            "Return concise markdown with sections for Summary, Key Findings, Risks, and Recommended Next Steps."
-        )
-        synthesis_prompt = (
-            f"Studio: {payload.studio}\n"
-            f"User request: {payload.prompt}\n\n"
-            "Evidence:\n"
-            + ("\n".join(evidence_lines) if evidence_lines else "- No external evidence was available.")
-        )
-        store.add_run_step(run_id, "synthesize", "openrouter", "running", synthesis_prompt, "Generating report")
-        content = await call_openrouter(
-            model=payload.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": synthesis_prompt},
-            ],
-            temperature=0.2,
-            max_tokens=900,
-        )
-        output = {
-            "format": "markdown",
-            "content": content,
-            "sources": search_results.get("results", []),
-        }
-        store.add_run_step(run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output)
-        return output
-
-    if payload.studio == "writing":
-        store.add_run_step(run_id, "rewrite", "openrouter", "running", payload.prompt, "Drafting content")
-        content = await call_openrouter(
-            model=payload.model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are Beyond Chat's writing assistant. "
-                        "Return polished markdown suitable for a rich-text editor import."
-                    ),
-                },
-                {"role": "user", "content": payload.prompt},
-            ],
-            temperature=0.4,
-            max_tokens=1200,
-        )
-        output = {"format": "markdown", "content": content}
-        store.add_run_step(run_id, "rewrite", "openrouter", "completed", payload.prompt, output)
-        return output
-
-    store.add_run_step(run_id, "complete", "openrouter", "running", payload.prompt, "Generating response")
-    content = await call_openrouter(
+    return await run_studio_workflow(
+        studio=payload.studio,
+        run_id=run_id,
+        workspace_id=workspace_id,
+        prompt=effective_prompt,
         model=payload.model,
-        messages=[{"role": "user", "content": payload.prompt}],
-        temperature=0.3,
-        max_tokens=800,
+        options=payload.options,
+        access_token=access_token,
     )
-    output = {"format": "markdown", "content": content}
-    store.add_run_step(run_id, "complete", "openrouter", "completed", payload.prompt, output)
-    return output
 
 
 @app.get("/")
@@ -499,24 +371,34 @@ async def add_message(
 
 
 @app.post("/api/chat/compare")
+@app.post("/api/compare")
 async def compare(
     payload: CompareRequest,
-    _context: RequestContext = Depends(require_request_context),
+    context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
     try:
-        results = await compare_models(payload.prompt, payload.models)
+        context_artifacts = resolve_context_artifacts(context.workspace_id, payload.context_ids)
+        effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
+        results = await compare_models(effective_prompt, payload.models)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"results": results}
 
 
 @app.post("/api/runs")
+@app.post("/api/run")
 async def create_run(
     payload: RunRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
     if payload.studio not in SUPPORTED_STUDIOS:
         raise HTTPException(status_code=400, detail=f"Unsupported studio '{payload.studio}'.")
+    try:
+        resolve_context_artifacts(context.workspace_id, payload.context_ids)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     run = store.create_run(
         context.workspace_id,
@@ -528,7 +410,12 @@ async def create_run(
     )
 
     try:
-        output = await execute_run(payload, run["id"], context.workspace_id)
+        output = await execute_run(
+            payload,
+            run["id"],
+            context.workspace_id,
+            context.access_token,
+        )
         completed = store.complete_run(context.workspace_id, run["id"], "completed", output=output)
     except RuntimeError as exc:
         store.add_run_step(run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)})
@@ -575,6 +462,43 @@ def create_artifact(
         metadata=payload.metadata,
         tags=payload.tags,
         preview_image=payload.preview_image,
+    )
+    return api_success(artifact)
+
+
+@app.post("/api/runs/{run_id}/artifact")
+def save_run_as_artifact(
+    run_id: str,
+    payload: SaveRunArtifactRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    run = store.get_run(context.workspace_id, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    artifact_payload = build_run_artifact_payload(
+        run=run,
+        title=payload.title,
+        artifact_type=payload.artifact_type,
+        summary=payload.summary,
+        tags=payload.tags,
+        content_format=payload.content_format,
+    )
+    if artifact_payload is None:
+        raise HTTPException(status_code=400, detail="Run output cannot be saved as an artifact.")
+
+    artifact = store.upsert_artifact(
+        context.workspace_id,
+        title=artifact_payload["title"],
+        artifact_type=artifact_payload["type"],
+        studio=artifact_payload["studio"],
+        content=artifact_payload["content"],
+        summary=artifact_payload["summary"],
+        content_format=artifact_payload["content_format"],
+        metadata=artifact_payload["metadata"],
+        tags=artifact_payload["tags"],
+        preview_image=artifact_payload["preview_image"],
+        content_json=artifact_payload["content_json"],
     )
     return api_success(artifact)
 
@@ -700,8 +624,12 @@ async def upload_artifact_file(
         workspace_id=context.workspace_id,
         artifact_id=target_artifact_id,
         filename=sanitize_storage_filename(file.filename or "upload.bin"),
-        content_type=file.content_type or "application/octet-stream",
+        content_type=resolve_content_type(
+            file.filename or "upload.bin",
+            file.content_type,
+        ),
         file_bytes=payload,
+        access_token=context.access_token,
     )
     if upload is None:
         raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
@@ -725,7 +653,11 @@ def create_storage_signed_url(
     if not payload.path.startswith(workspace_prefix):
         raise HTTPException(status_code=403, detail="Requested storage path is outside the active workspace.")
 
-    signed = supabase_service.create_signed_artifact_url(payload.path, payload.expires_in)
+    signed = supabase_service.create_signed_artifact_url(
+        payload.path,
+        payload.expires_in,
+        context.access_token,
+    )
     if signed is None:
         raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
 

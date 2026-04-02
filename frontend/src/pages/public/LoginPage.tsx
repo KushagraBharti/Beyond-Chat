@@ -42,7 +42,7 @@ export default function AtelierPlusLogin() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const isShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "k";
+      const isShortcut = (event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "k";
       if (!isShortcut) return;
       if (!isMvpBypassEnabled) return;
 
@@ -255,7 +255,7 @@ export default function AtelierPlusLogin() {
             </p>
             {isMvpBypassEnabled && (
               <p style={{ color: c.primary, fontSize: "0.8rem", marginTop: "0.45rem", fontWeight: 600 }}>
-                MVP bypass: press Ctrl+Shift+K (Cmd+Shift+K on Mac)
+                Dev bypass: press Ctrl+K (Cmd+K on Mac)
               </p>
             )}
           </div>

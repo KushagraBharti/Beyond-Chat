@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from supabase import Client, create_client
+from supabase.lib.client_options import SyncClientOptions
 
 from .config import settings
-
-
-def slugify_workspace_name(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "workspace"
 
 
 class SupabaseService:
@@ -18,68 +14,66 @@ class SupabaseService:
 
     @property
     def is_configured(self) -> bool:
-        return bool(settings.supabase_url and settings.supabase_service_role_key)
+        return bool(settings.supabase_url and (settings.supabase_anon_key or settings.supabase_service_role_key))
 
-    def client(self) -> Client | None:
-        if not self.is_configured:
+    def client(self, access_token: str | None = None) -> Client | None:
+        if not settings.supabase_url:
+            return None
+        if access_token:
+            if not settings.supabase_anon_key:
+                return None
+            return create_client(
+                settings.supabase_url,
+                settings.supabase_anon_key,
+                options=SyncClientOptions(headers={"Authorization": f"Bearer {access_token}"}),
+            )
+        if not settings.supabase_service_role_key:
             return None
         if self._client is None:
             self._client = create_client(settings.supabase_url, settings.supabase_service_role_key)
         return self._client
 
-    def ensure_workspace_for_user(self, user_id: str, email: str | None) -> dict[str, Any] | None:
-        client = self.client()
+    def ensure_workspace_for_user(
+        self,
+        user_id: str,
+        email: str | None,
+        access_token: str | None = None,
+    ) -> dict[str, Any] | None:
+        client = self.client(access_token)
         if client is None:
             return None
 
-        membership_rows = (
-            client.table("workspace_members").select("workspace_id, role").eq("user_id", user_id).limit(1).execute().data
-            or []
-        )
-        if membership_rows:
-            membership = membership_rows[0]
-            workspace_id = membership.get("workspace_id")
-            workspace_rows = (
-                client.table("workspaces").select("*").eq("id", workspace_id).limit(1).execute().data or []
+        display_name = email.split("@")[0] if email else "Beyond Chat User"
+        response = (
+            client.rpc(
+                "ensure_workspace_for_user",
+                {
+                    "target_user_id": user_id,
+                    "target_email": email,
+                    "target_display_name": display_name,
+                    "target_metadata": {"bootstrapped_by": "api/auth/bootstrap"},
+                },
             )
-            workspace = workspace_rows[0] if workspace_rows else {"id": workspace_id, "name": "Beyond Chat Workspace"}
-            return {
-                "workspace": workspace,
-                "role": membership.get("role", "admin"),
-                "created": False,
-            }
+            .execute()
+            .data
+        )
 
-        profile_payload = {
-            "id": user_id,
-            "email": email,
-            "display_name": email.split("@")[0] if email else "Beyond Chat User",
-        }
-        client.table("user_profiles").upsert(profile_payload).execute()
+        if isinstance(response, list):
+            payload = response[0] if response else None
+        else:
+            payload = response
 
-        workspace_name = f"{profile_payload['display_name']}'s Workspace"
-        workspace_payload = {
-            "owner_id": user_id,
-            "name": workspace_name,
-            "slug": slugify_workspace_name(workspace_name),
-            "metadata": {"bootstrappedBy": "api/auth/bootstrap"},
-        }
-        created_workspace = client.table("workspaces").insert(workspace_payload).execute()
-        workspace_rows = created_workspace.data or []
-        if not workspace_rows:
+        if not isinstance(payload, dict):
+            raise RuntimeError("Workspace bootstrap did not return a valid payload.")
+
+        workspace = payload.get("workspace")
+        if not isinstance(workspace, dict) or not workspace.get("id"):
             raise RuntimeError("Workspace bootstrap did not return a workspace row.")
 
-        workspace = workspace_rows[0]
-        client.table("workspace_members").insert(
-            {
-                "workspace_id": workspace["id"],
-                "user_id": user_id,
-                "role": "admin",
-            }
-        ).execute()
         return {
             "workspace": workspace,
-            "role": "admin",
-            "created": True,
+            "role": payload.get("role", "admin"),
+            "created": bool(payload.get("created")),
         }
 
     def upload_artifact_file(
@@ -89,8 +83,9 @@ class SupabaseService:
         filename: str,
         content_type: str,
         file_bytes: bytes,
+        access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client()
+        client = self.client(access_token)
         if client is None:
             return None
 
@@ -117,8 +112,9 @@ class SupabaseService:
         filename: str,
         content_type: str,
         image_bytes: bytes,
+        access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client()
+        client = self.client(access_token)
         if client is None:
             return None
 
@@ -138,8 +134,13 @@ class SupabaseService:
             "signed_url": signed.get("signedURL") if isinstance(signed, dict) else None,
         }
 
-    def create_signed_artifact_url(self, path: str, expires_in: int = 3600) -> dict[str, Any] | None:
-        client = self.client()
+    def create_signed_artifact_url(
+        self,
+        path: str,
+        expires_in: int = 3600,
+        access_token: str | None = None,
+    ) -> dict[str, Any] | None:
+        client = self.client(access_token)
         if client is None:
             return None
 

@@ -5,7 +5,9 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { createArtifact, createRun, getArtifact } from "../../lib/api";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import { createRun, getArtifact } from "../../lib/api";
+import { buildWritingArtifactInput } from "../../lib/artifactDrafts";
 import { markdownToHtml } from "../../lib/editor";
 import {
   EmptyState,
@@ -94,38 +96,6 @@ export default function WritingEditorPage() {
     return editor.state.doc.textBetween(from, to, "\n");
   })();
 
-  const handleSave = async () => {
-    if (!editor) {
-      return;
-    }
-    setLoading(true);
-    try {
-      const payload = {
-        title,
-        type: "document",
-        studio: "writing",
-        content: editor.getText(),
-        summary: editor.getText().slice(0, 180),
-        content_format: "rich_text",
-        metadata: {
-          tiptap: editor.getJSON(),
-          html: editor.getHTML(),
-          assistantDraft,
-        },
-        tags: ["writing", "document"],
-      };
-      const response = await createArtifact(payload);
-      setStatusMessage("Document saved to the writing library.");
-      if (documentId === "new") {
-        navigate(`/writing/${response.artifact.id}`, { replace: true });
-      }
-    } catch (err) {
-      setStatusMessage(err instanceof Error ? err.message : "Save failed.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAssistantRun = async () => {
     if (!editor || !assistantPrompt.trim()) {
       return;
@@ -183,9 +153,45 @@ export default function WritingEditorPage() {
             <SecondaryButton type="button" onClick={() => navigate("/writing")}>
               Back to Library
             </SecondaryButton>
-            <PrimaryButton disabled={loading} type="button" onClick={handleSave}>
-              {loading ? "Saving..." : "Save Document"}
-            </PrimaryButton>
+            <ArtifactSaveButton
+              buildPayload={() => {
+                if (!editor) {
+                  return null;
+                }
+
+                const payload = buildWritingArtifactInput({
+                  title,
+                  content: editor.getText(),
+                  summary: editor.getText().slice(0, 180),
+                });
+                if (!payload) {
+                  return null;
+                }
+
+                return {
+                  ...payload,
+                  content_format: "rich_text",
+                  metadata: {
+                    ...(payload.metadata ?? {}),
+                    tiptap: editor.getJSON(),
+                    html: editor.getHTML(),
+                    assistantDraft,
+                  },
+                };
+              }}
+              variant="primary"
+              disabled={loading || !editor.getText().trim()}
+              label="Save Document"
+              savingLabel="Saving..."
+              saveKey={`${documentId}:${title}:${editor.getText()}`}
+              onSaved={(artifact) => {
+                setStatusMessage("Document saved to the writing library.");
+                if (documentId === "new") {
+                  navigate(`/writing/${artifact.id}`, { replace: true });
+                }
+              }}
+              onError={setStatusMessage}
+            />
           </div>
         }
       />

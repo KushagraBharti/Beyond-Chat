@@ -1,27 +1,5 @@
 create extension if not exists "pgcrypto";
 
-alter table if exists public.runs
-    add column if not exists title text,
-    add column if not exists model text,
-    add column if not exists options jsonb not null default '{}'::jsonb,
-    add column if not exists output jsonb not null default '{}'::jsonb,
-    add column if not exists error_message text,
-    add column if not exists provider_status text,
-    add column if not exists metadata jsonb not null default '{}'::jsonb;
-
-create index if not exists runs_workspace_studio_idx
-    on public.runs (workspace_id, studio, created_at desc);
-
-create index if not exists runs_workspace_status_idx
-    on public.runs (workspace_id, status, created_at desc);
-
-alter table if exists public.run_steps
-    add column if not exists status text not null default 'queued',
-    add column if not exists input jsonb not null default '{}'::jsonb,
-    add column if not exists output jsonb not null default '{}'::jsonb,
-    add column if not exists metadata jsonb not null default '{}'::jsonb,
-    add column if not exists created_at timestamptz not null default timezone('utc', now());
-
 do $$
 begin
     if exists (
@@ -40,6 +18,29 @@ begin
         alter table public.run_steps rename column timestamp to created_at;
     end if;
 end $$;
+
+alter table if exists public.runs
+    add column if not exists title text,
+    add column if not exists model text,
+    add column if not exists options jsonb not null default '{}'::jsonb,
+    add column if not exists output jsonb not null default '{}'::jsonb,
+    add column if not exists error_message text,
+    add column if not exists provider_status text,
+    add column if not exists completed_at timestamptz,
+    add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+create index if not exists runs_workspace_studio_idx
+    on public.runs (workspace_id, studio, created_at desc);
+
+create index if not exists runs_workspace_status_idx
+    on public.runs (workspace_id, status, created_at desc);
+
+alter table if exists public.run_steps
+    add column if not exists status text not null default 'queued',
+    add column if not exists input jsonb not null default '{}'::jsonb,
+    add column if not exists output jsonb not null default '{}'::jsonb,
+    add column if not exists metadata jsonb not null default '{}'::jsonb,
+    add column if not exists created_at timestamptz not null default timezone('utc', now());
 
 create index if not exists run_steps_run_idx
     on public.run_steps (run_id, created_at asc);

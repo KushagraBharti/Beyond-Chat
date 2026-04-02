@@ -115,6 +115,18 @@ export interface ArtifactRecord {
   updated_at: string;
 }
 
+export interface CreateArtifactInput {
+  title: string;
+  type: string;
+  studio: string;
+  content: string;
+  summary?: string | null;
+  content_format?: string;
+  metadata?: Record<string, unknown>;
+  tags?: string[];
+  preview_image?: string | null;
+}
+
 export function getStoredWorkspaceId() {
   if (typeof window === "undefined") return null;
   return window.localStorage.getItem(workspaceStorageKey);
@@ -258,17 +270,7 @@ export async function getRunSteps(runId: string) {
   return api<{ steps: RunStep[] }>(`/api/runs/${runId}/steps`);
 }
 
-export async function createArtifact(payload: {
-  title: string;
-  type: string;
-  studio: string;
-  content: string;
-  summary?: string | null;
-  content_format?: string;
-  metadata?: Record<string, unknown>;
-  tags?: string[];
-  preview_image?: string | null;
-}) {
+export async function createArtifact(payload: CreateArtifactInput) {
   const artifact = await api<ArtifactRecord>("/api/artifact", {
     method: "POST",
     body: JSON.stringify(payload),

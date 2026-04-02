@@ -1,4 +1,8 @@
 import { useMemo, useState } from "react";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import StepTimeline from "../../components/StepTimeline";
+import { createRun, type RunRecord } from "../../lib/api";
+import { buildWritingArtifactInput } from "../../lib/artifactDrafts";
 
 const heading = "'Bricolage Grotesque', sans-serif";
 const body = "'Plus Jakarta Sans', sans-serif";
@@ -7,9 +11,10 @@ const c = {
   canvas: "#F2F2F0",
   surface: "#FFFFFF",
   ink: "#0D0D0D",
-  primary: "#4F3FE8",
   muted: "#6B6B70",
   border: "#E2E2E0",
+  success: "#117A37",
+  danger: "#B42318",
 };
 
 const DEFAULT_TEXT = [
@@ -24,17 +29,8 @@ function extractLatestAssistantInstruction(text: string): string {
   const marker = "@assistant";
   const index = text.toLowerCase().lastIndexOf(marker);
   if (index < 0) return "";
-
   const afterMarker = text.slice(index + marker.length).trim();
   return afterMarker.split("\n")[0].trim();
-}
-
-function normalizeModelOutput(content: string): string {
-  const trimmed = content.trim();
-  if (trimmed.startsWith("```")) {
-    return trimmed.replace(/^```[a-z]*\s*/i, "").replace(/```$/, "").trim();
-  }
-  return trimmed;
 }
 
 export default function WritingStudioPage() {
@@ -44,6 +40,7 @@ export default function WritingStudioPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [run, setRun] = useState<RunRecord | null>(null);
 
   const words = useMemo(() => {
     const trimmed = docText.trim();
@@ -54,6 +51,7 @@ export default function WritingStudioPage() {
     setError("");
     setStatus("");
     setLoading(true);
+    setRun(null);
 
     try {
       const instruction =
@@ -65,38 +63,26 @@ export default function WritingStudioPage() {
         throw new Error("No assistant instruction found. Add @assistant ... or type a prompt.");
       }
 
-      const response = await fetch("/api/openrouter/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          max_tokens: 1600,
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are a writing assistant. Return only the revised document as raw plain text/markdown. No code fences and no extra commentary.",
-            },
-            {
-              role: "user",
-              content: `Current document:\n\n${docText}\n\nInstruction:\n${instruction}\n\nReturn the full updated document text.`,
-            },
-          ],
-        }),
+      const fullPrompt = `Document:\n\n${docText}\n\nInstruction:\n${instruction}`;
+
+      const response = await createRun({
+        studio: "writing",
+        title: `Writing: ${instruction.slice(0, 60)}`,
+        prompt: fullPrompt,
+        model,
       });
 
-      const payload = (await response.json()) as { detail?: string; content?: string };
-      if (!response.ok) {
-        throw new Error(payload.detail ?? "Assistant request failed.");
-      }
+      setRun(response.run);
 
-      const output = normalizeModelOutput(payload.content ?? "");
-      if (!output) {
-        throw new Error("Assistant returned an empty response.");
+      const content = response.run.output?.content;
+      if (typeof content === "string" && content.trim()) {
+        setDocText(content.trim());
+        setStatus("Assistant update applied.");
+      } else if (response.run.status === "failed") {
+        setError(response.run.error_message ?? "Run failed.");
+      } else {
+        setStatus(response.run.status);
       }
-
-      setDocText(output);
-      setStatus("Assistant update applied.");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unexpected assistant error.");
     } finally {
@@ -107,16 +93,35 @@ export default function WritingStudioPage() {
   return (
     <div style={{ padding: "1.4rem 2rem 2rem", fontFamily: body }}>
       <div style={{ marginBottom: "1rem" }}>
-        <h2 style={{ fontFamily: heading, fontSize: "1.2rem", margin: 0, letterSpacing: "-0.02em", color: c.ink }}>
-          Writing Studio MVP
+        <h2
+          style={{
+            fontFamily: heading,
+            fontSize: "1.2rem",
+            margin: 0,
+            letterSpacing: "-0.02em",
+            color: c.ink,
+          }}
+        >
+          Writing Studio
         </h2>
         <p style={{ margin: "0.35rem 0 0", color: c.muted, fontSize: "0.85rem" }}>
           Plain text/markdown editor + `@assistant` command flow.
         </p>
       </div>
 
-      <div className="editor-layout" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "0.9rem", alignItems: "start" }}>
-        <section style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, overflow: "hidden" }}>
+      <div
+        className="editor-layout"
+        style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "0.9rem", alignItems: "start" }}
+      >
+        {/* Editor */}
+        <section
+          style={{
+            border: `1px solid ${c.border}`,
+            borderRadius: 14,
+            background: c.surface,
+            overflow: "hidden",
+          }}
+        >
           <div
             style={{
               display: "flex",
@@ -142,7 +147,8 @@ export default function WritingStudioPage() {
               border: "none",
               outline: "none",
               resize: "vertical",
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace",
               fontSize: "0.92rem",
               lineHeight: 1.6,
               color: c.ink,
@@ -152,82 +158,155 @@ export default function WritingStudioPage() {
           />
         </section>
 
-        <aside style={{ border: `1px solid ${c.border}`, borderRadius: 14, background: c.surface, padding: "0.8rem" }}>
-          <h3 style={{ margin: 0, fontFamily: heading, fontSize: "1rem", letterSpacing: "-0.01em" }}>Assistant Controls</h3>
-          <p style={{ margin: "0.45rem 0 0.6rem", fontSize: "0.8rem", color: c.muted }}>
-            Type `@assistant` in the document, or give instruction here.
-          </p>
-
-          <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600 }}>
-            Model
-            <select
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-              style={{ marginTop: "0.35rem", width: "100%", border: `1px solid ${c.border}`, borderRadius: 8, padding: "0.45rem 0.55rem", background: c.canvas }}
+        {/* Controls + Step Timeline */}
+        <aside style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+          <div
+            style={{
+              border: `1px solid ${c.border}`,
+              borderRadius: 14,
+              background: c.surface,
+              padding: "0.8rem",
+            }}
+          >
+            <h3
+              style={{ margin: 0, fontFamily: heading, fontSize: "1rem", letterSpacing: "-0.01em" }}
             >
-              <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
-              <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
-              <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
-            </select>
-          </label>
+              Assistant Controls
+            </h3>
+            <p style={{ margin: "0.45rem 0 0.6rem", fontSize: "0.8rem", color: c.muted }}>
+              Type `@assistant` in the document, or give instruction here.
+            </p>
 
-          <label style={{ display: "block", marginTop: "0.65rem", fontSize: "0.75rem", fontWeight: 600 }}>
-            Instruction
-            <textarea
-              value={assistantPrompt}
-              onChange={(event) => setAssistantPrompt(event.target.value)}
-              rows={6}
-              placeholder="Make the intro more concise and formal."
-              style={{
-                marginTop: "0.35rem",
-                width: "100%",
-                border: `1px solid ${c.border}`,
-                borderRadius: 8,
-                padding: "0.5rem 0.55rem",
-                background: c.canvas,
-                resize: "vertical",
-              }}
-            />
-          </label>
+            <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600 }}>
+              Model
+              <select
+                value={model}
+                onChange={(event) => setModel(event.target.value)}
+                style={{
+                  marginTop: "0.35rem",
+                  width: "100%",
+                  border: `1px solid ${c.border}`,
+                  borderRadius: 8,
+                  padding: "0.45rem 0.55rem",
+                  background: c.canvas,
+                }}
+              >
+                <option value="openai/gpt-4o-mini">openai/gpt-4o-mini</option>
+                <option value="anthropic/claude-3.5-sonnet">anthropic/claude-3.5-sonnet</option>
+                <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
+              </select>
+            </label>
 
-          <div style={{ display: "grid", gap: "0.45rem", marginTop: "0.7rem" }}>
-            <button
-              type="button"
-              onClick={() => void runAssistant()}
-              disabled={loading}
-              style={{
-                border: "none",
-                borderRadius: 8,
-                background: c.ink,
-                color: "#fff",
-                padding: "0.55rem 0.65rem",
-                fontWeight: 700,
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.65 : 1,
-              }}
+            <label
+              style={{ display: "block", marginTop: "0.65rem", fontSize: "0.75rem", fontWeight: 600 }}
             >
-              {loading ? "Running..." : "Run Assistant"}
-            </button>
-            <button
-              type="button"
-              onClick={() => void runAssistant(extractLatestAssistantInstruction(docText))}
-              disabled={loading}
-              style={{
-                border: `1px solid ${c.border}`,
-                borderRadius: 8,
-                background: c.canvas,
-                color: c.ink,
-                padding: "0.5rem 0.65rem",
-                fontWeight: 600,
-                cursor: loading ? "not-allowed" : "pointer",
-              }}
-            >
-              Run Latest @assistant
-            </button>
+              Instruction
+              <textarea
+                value={assistantPrompt}
+                onChange={(event) => setAssistantPrompt(event.target.value)}
+                rows={6}
+                placeholder="Make the intro more concise and formal."
+                style={{
+                  marginTop: "0.35rem",
+                  width: "100%",
+                  border: `1px solid ${c.border}`,
+                  borderRadius: 8,
+                  padding: "0.5rem 0.55rem",
+                  background: c.canvas,
+                  resize: "vertical",
+                }}
+              />
+            </label>
+
+            <div style={{ display: "grid", gap: "0.45rem", marginTop: "0.7rem" }}>
+              <button
+                type="button"
+                onClick={() => void runAssistant()}
+                disabled={loading}
+                style={{
+                  border: "none",
+                  borderRadius: 8,
+                  background: c.ink,
+                  color: "#fff",
+                  padding: "0.55rem 0.65rem",
+                  fontWeight: 700,
+                  cursor: loading ? "not-allowed" : "pointer",
+                  opacity: loading ? 0.65 : 1,
+                }}
+              >
+                {loading ? "Running..." : "Run Assistant"}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  void runAssistant(extractLatestAssistantInstruction(docText))
+                }
+                disabled={loading}
+                style={{
+                  border: `1px solid ${c.border}`,
+                  borderRadius: 8,
+                  background: c.canvas,
+                  color: c.ink,
+                  padding: "0.5rem 0.65rem",
+                  fontWeight: 600,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                Run Latest @assistant
+              </button>
+              <ArtifactSaveButton
+                buildPayload={() =>
+                  buildWritingArtifactInput({
+                    title: `Writing Document – ${new Date().toLocaleDateString()}`,
+                    content: docText,
+                    summary:
+                      assistantPrompt.trim() ||
+                      extractLatestAssistantInstruction(docText) ||
+                      "Writing Studio document",
+                    runId: run?.id ?? null,
+                  })
+                }
+                disabled={loading || !docText.trim()}
+                saveKey={`${run?.id ?? "manual"}:${docText}`}
+                onSaved={() => setStatus("Saved as artifact.")}
+                onError={setError}
+              />
+            </div>
+
+            {!!status && (
+              <p style={{ margin: "0.65rem 0 0", color: c.success, fontSize: "0.8rem" }}>
+                {status}
+              </p>
+            )}
+            {!!error && (
+              <p style={{ margin: "0.65rem 0 0", color: c.danger, fontSize: "0.8rem" }}>
+                {error}
+              </p>
+            )}
           </div>
 
-          {!!status && <p style={{ margin: "0.65rem 0 0", color: "#117A37", fontSize: "0.8rem" }}>{status}</p>}
-          {!!error && <p style={{ margin: "0.65rem 0 0", color: "#B42318", fontSize: "0.8rem" }}>{error}</p>}
+          {run && (
+            <div
+              style={{
+                border: `1px solid ${c.border}`,
+                borderRadius: 14,
+                background: c.surface,
+                padding: "0.8rem",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 0.5rem",
+                  fontFamily: heading,
+                  fontSize: "0.95rem",
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Run Steps
+              </h3>
+              <StepTimeline steps={run.steps ?? []} />
+            </div>
+          )}
         </aside>
       </div>
 

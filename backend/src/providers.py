@@ -13,6 +13,51 @@ OPENROUTER_NOT_CONFIGURED = "OPENROUTER_NOT_CONFIGURED"
 TAVILY_NOT_CONFIGURED = "TAVILY_NOT_CONFIGURED"
 
 
+def _openrouter_headers() -> dict[str, str]:
+    return {
+        "Authorization": f"Bearer {settings.openrouter_api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": settings.openrouter_http_referer,
+        "X-Title": settings.app_title,
+    }
+
+
+async def _post_openrouter_json(
+    *,
+    url: str,
+    payload: dict[str, Any],
+    timeout: float,
+    retries: int = 3,
+    error_provider: str = "OpenRouter",
+) -> dict[str, Any]:
+    last_error: Exception | None = None
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        for attempt in range(retries):
+            try:
+                response = await client.post(url, headers=_openrouter_headers(), json=payload)
+                response.raise_for_status()
+                data = response.json()
+                return data if isinstance(data, dict) else {}
+            except httpx.HTTPError as exc:
+                last_error = exc
+                if attempt == retries - 1:
+                    response = exc.response if isinstance(exc, httpx.HTTPStatusError) else None
+                    raise RuntimeError(_provider_error_message(error_provider, exc, response)) from exc
+                await asyncio.sleep(0.35 * (attempt + 1))
+
+    raise RuntimeError(str(last_error) if last_error else "OpenRouter request failed.")
+
+
+def _provider_error_message(provider: str, exc: Exception, response: httpx.Response | None = None) -> str:
+    if response is not None:
+        try:
+            payload = response.json()
+        except ValueError:
+            payload = response.text
+        return f"{provider} request failed with {response.status_code}: {payload}"
+    return f"{provider} request failed: {exc}"
+
+
 async def call_openrouter(
     model: str,
     messages: list[dict[str, str]],
@@ -22,37 +67,17 @@ async def call_openrouter(
     if not settings.openrouter_api_key:
         raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
 
-    payload: dict[str, Any] | None = None
-    last_error: Exception | None = None
-    async with httpx.AsyncClient(timeout=settings.openrouter_timeout_seconds) as client:
-        for attempt in range(3):
-            try:
-                response = await client.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {settings.openrouter_api_key}",
-                        "Content-Type": "application/json",
-                        "HTTP-Referer": settings.openrouter_http_referer,
-                        "X-Title": settings.app_title,
-                    },
-                    json={
-                        "model": model,
-                        "messages": messages,
-                        "temperature": temperature,
-                        "max_tokens": max_tokens,
-                    },
-                )
-                response.raise_for_status()
-                payload = response.json()
-                break
-            except httpx.HTTPError as exc:
-                last_error = exc
-                if attempt == 2:
-                    raise
-                await asyncio.sleep(0.35 * (attempt + 1))
-
-    if payload is None:
-        raise RuntimeError(str(last_error) if last_error else "OpenRouter request failed.")
+    payload = await _post_openrouter_json(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        payload={
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        },
+        timeout=settings.openrouter_timeout_seconds,
+        error_provider="OpenRouter chat",
+    )
 
     choices = payload.get("choices") or []
     if not choices:
@@ -77,24 +102,17 @@ async def call_openrouter_image(
     if not settings.openrouter_api_key:
         raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(
-            "https://openrouter.ai/api/v1/images/generations",
-            headers={
-                "Authorization": f"Bearer {settings.openrouter_api_key}",
-                "Content-Type": "application/json",
-                "HTTP-Referer": settings.openrouter_http_referer,
-                "X-Title": settings.app_title,
-            },
-            json={
-                "model": model,
-                "prompt": prompt,
-                "n": n,
-                "size": size,
-            },
-        )
-        response.raise_for_status()
-        payload = response.json()
+    payload = await _post_openrouter_json(
+        url="https://openrouter.ai/api/v1/images/generations",
+        payload={
+            "model": model,
+            "prompt": prompt,
+            "n": n,
+            "size": size,
+        },
+        timeout=120.0,
+        error_provider="OpenRouter images",
+    )
 
     results: list[tuple[bytes, str]] = []
     for item in payload.get("data", []):
@@ -219,12 +237,12 @@ def provider_statuses() -> dict[str, Any]:
             "details": "Image generation provider",
         },
         "supabase": {
-            "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
+            "status": "connected" if settings.supabase_url and settings.supabase_anon_key else "not_configured",
             "label": "Supabase",
             "details": "Workspace auth, storage, and persistence",
         },
         "supabaseStorage": {
-            "status": "connected" if settings.supabase_url and settings.supabase_service_role_key else "not_configured",
+            "status": "connected" if settings.supabase_url and settings.supabase_anon_key else "not_configured",
             "label": "Supabase Storage",
             "details": f"Bucket target: {settings.supabase_storage_bucket}",
         },

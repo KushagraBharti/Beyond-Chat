@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
 import ContextBuilder from "../../components/ContextBuilder";
+import { buildCompareArtifactInput } from "../../lib/artifactDrafts";
 import {
   comparePrompt,
   createThread,
@@ -289,7 +291,24 @@ export default function ChatPage() {
                       />
                     </div>
                     <p>{result.content || result.error || "No response returned."}</p>
-                    <span>{result.latencyMs ? `${result.latencyMs}ms` : "No provider latency yet"}</span>
+                    <div className="inline-actions inline-actions-stretch">
+                      <span>{result.latencyMs ? `${result.latencyMs}ms` : "No provider latency yet"}</span>
+                      <ArtifactSaveButton
+                        buildPayload={() =>
+                          buildCompareArtifactInput({
+                            prompt: comparePromptText,
+                            result,
+                            contextIds: selectedContextIds,
+                          })
+                        }
+                        disabled={!result.content || result.status === "failed"}
+                        label="Save Result"
+                        savedLabel="Saved"
+                        saveKey={`${comparePromptText}:${result.model}:${result.content}`}
+                        onSaved={() => setError(null)}
+                        onError={setError}
+                      />
+                    </div>
                   </div>
                 ))
               ) : (

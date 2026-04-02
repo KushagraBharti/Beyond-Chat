@@ -1,5 +1,29 @@
 .claude
 .agents
+skills/
+skills-lock.json
+
+# AI agent tool directories
+.codebuddy/
+.commandcode/
+.continue/
+.crush/
+.factory/
+.goose/
+.kilocode/
+.kiro/
+.mcp.json
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.windsurf/
+.zencoder/
 
 # Logs
 logs

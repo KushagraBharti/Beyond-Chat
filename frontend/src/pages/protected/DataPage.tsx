@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
 import StepTimeline from "../../components/StepTimeline";
-import { createArtifact, createRun, type RunRecord } from "../../lib/api";
+import { createRun, type RunRecord } from "../../lib/api";
+import { buildDataArtifactInput } from "../../lib/artifactDrafts";
 import {
   EmptyState,
   FieldLabel,
   MotionCard,
   PageSection,
   PrimaryButton,
-  SecondaryButton,
   TextArea,
 } from "../../components/protectedUi";
 
@@ -59,27 +60,6 @@ export default function DataPage() {
     }
   };
 
-  const handleSave = async () => {
-    if (!run?.output) {
-      return;
-    }
-    try {
-      await createArtifact({
-        title: `Data insight: ${fileName}`,
-        type: "report",
-        studio: "data",
-        content: JSON.stringify(run.output, null, 2),
-        summary: `Insights for ${fileName}`,
-        content_format: "json",
-        metadata: run.output,
-        tags: ["data", "insights"],
-      });
-      setStatus("Saved as artifact");
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : "Could not save artifact.");
-    }
-  };
-
   return (
     <div className="page-wrap">
       <PageSection
@@ -91,9 +71,20 @@ export default function DataPage() {
             <PrimaryButton type="button" onClick={handleRun} disabled={loading}>
               {loading ? "Analyzing..." : "Analyze Data"}
             </PrimaryButton>
-            <SecondaryButton type="button" onClick={handleSave} disabled={!run}>
-              Save Insight
-            </SecondaryButton>
+            <ArtifactSaveButton
+              buildPayload={() =>
+                buildDataArtifactInput({
+                  fileName,
+                  prompt,
+                  run,
+                })
+              }
+              disabled={!run?.output}
+              label="Save Insight"
+              saveKey={run?.id}
+              onSaved={() => setStatus("Saved as artifact")}
+              onError={setStatus}
+            />
           </div>
         }
       />
