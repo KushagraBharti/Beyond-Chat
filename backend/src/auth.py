@@ -102,6 +102,7 @@ async def require_request_context(
     request: Request,
     authorization: str | None = Header(default=None),
     x_workspace_id: str | None = Header(default=None),
+    x_mvp_bypass: str | None = Header(default=None),
 ) -> RequestContext:
     cached_context = getattr(request.state, "request_context", None)
     if isinstance(cached_context, RequestContext):
@@ -111,13 +112,23 @@ async def require_request_context(
     if isinstance(cached_error, HTTPException):
         raise cached_error
 
-    return resolve_request_context(authorization, x_workspace_id)
+    return resolve_request_context(authorization, x_workspace_id, x_mvp_bypass)
 
 
 def resolve_request_context(
     authorization: str | None,
     x_workspace_id: str | None,
+    x_mvp_bypass: str | None = None,
 ) -> RequestContext:
+    if settings.allow_local_auth_bypass and (x_mvp_bypass or "").lower() == "true":
+        return RequestContext(
+            user_id="local-dev-user",
+            workspace_id=x_workspace_id or settings.local_workspace_id,
+            email="local@beyond-chat.dev",
+            source="local_bypass",
+            access_token=None,
+        )
+
     token = _extract_token(authorization)
     if not token:
         raise HTTPException(

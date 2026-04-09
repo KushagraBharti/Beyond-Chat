@@ -1,28 +1,40 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { bootstrapAuth } from "../lib/api";
+import { getMvpBypassEventName, isMvpBypassActive } from "../lib/mvpBypass";
 import { supabase } from "../lib/supabaseClient";
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  mvpBypassActive: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
   loading: true,
+  mvpBypassActive: false,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mvpBypassActive, setMvpBypassActive] = useState(isMvpBypassActive());
 
   useEffect(() => {
+    setMvpBypassActive(isMvpBypassActive());
+    const syncBypassState = () => setMvpBypassActive(isMvpBypassActive());
+    window.addEventListener("storage", syncBypassState);
+    window.addEventListener(getMvpBypassEventName(), syncBypassState);
+
     if (!supabase) {
       setLoading(false);
-      return;
+      return () => {
+        window.removeEventListener("storage", syncBypassState);
+        window.removeEventListener(getMvpBypassEventName(), syncBypassState);
+      };
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,20 +55,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("storage", syncBypassState);
+      window.removeEventListener(getMvpBypassEventName(), syncBypassState);
+    };
   }, []);
 
   useEffect(() => {
-    if (!session || !supabase) {
+    if (mvpBypassActive || !session || !supabase) {
       return;
     }
     void bootstrapAuth().catch(() => {
       // Session bootstrap failures are surfaced by the protected pages that depend on workspace data.
     });
-  }, [session]);
+  }, [mvpBypassActive, session]);
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user: session?.user ?? null,
+        loading,
+        mvpBypassActive,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

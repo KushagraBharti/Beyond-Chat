@@ -7,6 +7,7 @@ vi.mock("../context/AuthContext", () => ({
   useAuth: () => ({
     session: { user: { id: "user-1" } },
     loading: false,
+    mvpBypassActive: false,
   }),
 }));
 
