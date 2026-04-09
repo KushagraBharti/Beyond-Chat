@@ -169,17 +169,19 @@ export function AppBrand({ compact = false }: { compact?: boolean }) {
           }}
         />
       </div>
-      <span
-        style={{
-          fontFamily: headingFont,
-          fontSize: compact ? "1rem" : "1.15rem",
-          fontWeight: 800,
-          color: theme.ink,
-          letterSpacing: "-0.03em",
-        }}
-      >
-        Beyond Chat
-      </span>
+      {!compact && (
+        <span
+          style={{
+            fontFamily: headingFont,
+            fontSize: "1.15rem",
+            fontWeight: 800,
+            color: theme.ink,
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Beyond Chat
+        </span>
+      )}
     </div>
   );
 }
