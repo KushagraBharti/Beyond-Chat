@@ -10,7 +10,7 @@ from .providers import (
     call_openrouter_image,
     tavily_search,
 )
-from .store import store
+from .runtime_store import RuntimeDataStore
 from .supabase_service import supabase_service
 
 
@@ -24,6 +24,8 @@ def _ratio_to_size(ratio: str) -> str:
 
 
 def _record_step(
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     step_name: str,
     tool_used: str,
@@ -31,7 +33,15 @@ def _record_step(
     input_payload: Any,
     output_payload: Any,
 ) -> None:
-    store.add_run_step(run_id, step_name, tool_used, status, input_payload, output_payload)
+    data_store.add_run_step(
+        workspace_id,
+        run_id,
+        step_name=step_name,
+        tool_used=tool_used,
+        status=status,
+        input_payload=input_payload,
+        output_payload=output_payload,
+    )
 
 
 def _format_options_brief(options: dict[str, Any], keys: list[str]) -> str:
@@ -46,6 +56,8 @@ def _format_options_brief(options: dict[str, Any], keys: list[str]) -> str:
 
 async def run_writing_workflow(
     *,
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     prompt: str,
     model: str,
@@ -54,8 +66,8 @@ async def run_writing_workflow(
     brief = _format_options_brief(options, ["tone", "audience", "format", "length", "constraints"])
     prepared_prompt = prompt if not brief else f"{prompt}\n\nWriting brief:\n{brief}"
 
-    _record_step(run_id, "prepare_brief", "system", "completed", options, {"preparedPrompt": prepared_prompt})
-    _record_step(run_id, "draft", "openrouter", "running", prepared_prompt, "Drafting content")
+    _record_step(data_store, workspace_id, run_id, "prepare_brief", "system", "completed", options, {"preparedPrompt": prepared_prompt})
+    _record_step(data_store, workspace_id, run_id, "draft", "openrouter", "running", prepared_prompt, "Drafting content")
     content = await call_openrouter(
         model=model,
         messages=[
@@ -77,12 +89,14 @@ async def run_writing_workflow(
         "workflow": "writing",
         "artifactType": options.get("artifact_type", "document"),
     }
-    _record_step(run_id, "draft", "openrouter", "completed", prepared_prompt, output)
+    _record_step(data_store, workspace_id, run_id, "draft", "openrouter", "completed", prepared_prompt, output)
     return output
 
 
 async def _run_search_backed_report(
     *,
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     studio: str,
     prompt: str,
@@ -94,24 +108,24 @@ async def _run_search_backed_report(
         "goal": options.get("goal"),
         "outputFormat": options.get("output_format", "markdown"),
     }
-    _record_step(run_id, "plan", "system", "completed", planning_payload, {"studio": studio})
+    _record_step(data_store, workspace_id, run_id, "plan", "system", "completed", planning_payload, {"studio": studio})
 
     sources: list[dict[str, str]] = []
     search_answer = ""
     search_note = None
 
-    _record_step(run_id, "search", "tavily", "running", prompt, "Searching sources")
+    _record_step(data_store, workspace_id, run_id, "search", "tavily", "running", prompt, "Searching sources")
     try:
         search_results = await tavily_search(prompt)
         sources = search_results.get("results", [])
         search_answer = search_results.get("answer", "")
-        _record_step(run_id, "search", "tavily", "completed", prompt, search_results)
+        _record_step(data_store, workspace_id, run_id, "search", "tavily", "completed", prompt, search_results)
     except RuntimeError as exc:
         if str(exc) != TAVILY_NOT_CONFIGURED:
             raise
         search_note = "Tavily is not configured; continuing without external search."
         fallback_search = {"answer": "", "results": [], "warning": search_note}
-        _record_step(run_id, "search", "tavily", "completed", prompt, fallback_search)
+        _record_step(data_store, workspace_id, run_id, "search", "tavily", "completed", prompt, fallback_search)
 
     evidence_lines = [
         f"- {item.get('title', 'Untitled source')}: {item.get('snippet', '')} ({item.get('url', '')})"
@@ -139,7 +153,7 @@ async def _run_search_backed_report(
         "Evidence:\n"
         + ("\n".join(evidence_lines) if evidence_lines else "- No external evidence was available.")
     )
-    _record_step(run_id, "synthesize", "openrouter", "running", synthesis_prompt, "Generating report")
+    _record_step(data_store, workspace_id, run_id, "synthesize", "openrouter", "running", synthesis_prompt, "Generating report")
     content = await call_openrouter(
         model=model,
         messages=[
@@ -159,18 +173,22 @@ async def _run_search_backed_report(
     }
     if search_note:
         output["warning"] = search_note
-    _record_step(run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output)
+    _record_step(data_store, workspace_id, run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output)
     return output
 
 
 async def run_research_workflow(
     *,
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     prompt: str,
     model: str,
     options: dict[str, Any],
 ) -> dict[str, Any]:
     return await _run_search_backed_report(
+        data_store=data_store,
+        workspace_id=workspace_id,
         run_id=run_id,
         studio="research",
         prompt=prompt,
@@ -181,12 +199,16 @@ async def run_research_workflow(
 
 async def run_finance_workflow(
     *,
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     prompt: str,
     model: str,
     options: dict[str, Any],
 ) -> dict[str, Any]:
     return await _run_search_backed_report(
+        data_store=data_store,
+        workspace_id=workspace_id,
         run_id=run_id,
         studio="finance",
         prompt=prompt,
@@ -197,6 +219,7 @@ async def run_finance_workflow(
 
 async def run_image_workflow(
     *,
+    data_store: RuntimeDataStore,
     run_id: str,
     workspace_id: str,
     prompt: str,
@@ -215,9 +238,9 @@ async def run_image_workflow(
         "ratio": ratio,
         "model": image_model,
     }
-    _record_step(run_id, "collect_constraints", "system", "completed", options, constraints)
+    _record_step(data_store, workspace_id, run_id, "collect_constraints", "system", "completed", options, constraints)
 
-    _record_step(run_id, "enhance_prompt", "openrouter", "running", prompt, "Enhancing prompt")
+    _record_step(data_store, workspace_id, run_id, "enhance_prompt", "openrouter", "running", prompt, "Enhancing prompt")
     enhanced_prompt = await call_openrouter(
         model=settings.openrouter_default_model,
         messages=[
@@ -233,9 +256,9 @@ async def run_image_workflow(
         temperature=0.5,
         max_tokens=320,
     )
-    _record_step(run_id, "enhance_prompt", "openrouter", "completed", prompt, {"enhancedPrompt": enhanced_prompt})
+    _record_step(data_store, workspace_id, run_id, "enhance_prompt", "openrouter", "completed", prompt, {"enhancedPrompt": enhanced_prompt})
 
-    _record_step(run_id, "generate", "openrouter-images", "running", enhanced_prompt, "Generating image")
+    _record_step(data_store, workspace_id, run_id, "generate", "openrouter-images", "running", enhanced_prompt, "Generating image")
     generated_images = await call_openrouter_image(
         model=image_model,
         prompt=enhanced_prompt,
@@ -243,6 +266,8 @@ async def run_image_workflow(
         n=1,
     )
     _record_step(
+        data_store,
+        workspace_id,
         run_id,
         "generate",
         "openrouter-images",
@@ -251,7 +276,7 @@ async def run_image_workflow(
         {"count": len(generated_images), "model": image_model},
     )
 
-    _record_step(run_id, "upload", "supabase", "running", run_id, "Uploading generated images")
+    _record_step(data_store, workspace_id, run_id, "upload", "supabase", "running", run_id, "Uploading generated images")
     urls: list[str] = []
     paths: list[str] = []
     for index, (image_bytes, content_type) in enumerate(generated_images):
@@ -267,7 +292,7 @@ async def run_image_workflow(
         if uploaded and uploaded.get("signed_url"):
             urls.append(uploaded["signed_url"])
             paths.append(uploaded["path"])
-    _record_step(run_id, "upload", "supabase", "completed", run_id, {"count": len(urls), "paths": paths})
+    _record_step(data_store, workspace_id, run_id, "upload", "supabase", "completed", run_id, {"count": len(urls), "paths": paths})
 
     return {
         "format": "image",
@@ -284,6 +309,8 @@ async def run_image_workflow(
 
 async def run_data_workflow(
     *,
+    data_store: RuntimeDataStore,
+    workspace_id: str,
     run_id: str,
     prompt: str,
     model: str,
@@ -297,7 +324,7 @@ async def run_data_workflow(
         "rowCount": row_count,
         "columns": column_names,
     }
-    _record_step(run_id, "profile_dataset", "system", "completed", options, profile)
+    _record_step(data_store, workspace_id, run_id, "profile_dataset", "system", "completed", options, profile)
 
     analysis_prompt = (
         f"User request: {prompt}\n\n"
@@ -305,7 +332,7 @@ async def run_data_workflow(
         f"Rows: {row_count if row_count is not None else 'Unknown'}\n"
         f"Columns: {', '.join(column_names) if column_names else 'Unknown'}"
     )
-    _record_step(run_id, "analyze", "openrouter", "running", analysis_prompt, "Analyzing dataset")
+    _record_step(data_store, workspace_id, run_id, "analyze", "openrouter", "running", analysis_prompt, "Analyzing dataset")
     content = await call_openrouter(
         model=model,
         messages=[
@@ -330,12 +357,13 @@ async def run_data_workflow(
         "profile": profile,
         "artifactType": "report",
     }
-    _record_step(run_id, "analyze", "openrouter", "completed", analysis_prompt, output)
+    _record_step(data_store, workspace_id, run_id, "analyze", "openrouter", "completed", analysis_prompt, output)
     return output
 
 
 async def run_studio_workflow(
     *,
+    data_store: RuntimeDataStore,
     studio: str,
     run_id: str,
     workspace_id: str,
@@ -345,11 +373,26 @@ async def run_studio_workflow(
     access_token: str | None,
 ) -> dict[str, Any]:
     if studio == "writing":
-        return await run_writing_workflow(run_id=run_id, prompt=prompt, model=model, options=options)
+        return await run_writing_workflow(
+            data_store=data_store,
+            workspace_id=workspace_id,
+            run_id=run_id,
+            prompt=prompt,
+            model=model,
+            options=options,
+        )
     if studio == "research":
-        return await run_research_workflow(run_id=run_id, prompt=prompt, model=model, options=options)
+        return await run_research_workflow(
+            data_store=data_store,
+            workspace_id=workspace_id,
+            run_id=run_id,
+            prompt=prompt,
+            model=model,
+            options=options,
+        )
     if studio == "image":
         return await run_image_workflow(
+            data_store=data_store,
             run_id=run_id,
             workspace_id=workspace_id,
             prompt=prompt,
@@ -358,11 +401,25 @@ async def run_studio_workflow(
             access_token=access_token,
         )
     if studio == "data":
-        return await run_data_workflow(run_id=run_id, prompt=prompt, model=model, options=options)
+        return await run_data_workflow(
+            data_store=data_store,
+            workspace_id=workspace_id,
+            run_id=run_id,
+            prompt=prompt,
+            model=model,
+            options=options,
+        )
     if studio == "finance":
-        return await run_finance_workflow(run_id=run_id, prompt=prompt, model=model, options=options)
+        return await run_finance_workflow(
+            data_store=data_store,
+            workspace_id=workspace_id,
+            run_id=run_id,
+            prompt=prompt,
+            model=model,
+            options=options,
+        )
 
-    _record_step(run_id, "complete", "openrouter", "running", prompt, "Generating response")
+    _record_step(data_store, workspace_id, run_id, "complete", "openrouter", "running", prompt, "Generating response")
     content = await call_openrouter(
         model=model,
         messages=[{"role": "user", "content": prompt}],
@@ -370,7 +427,7 @@ async def run_studio_workflow(
         max_tokens=800,
     )
     output = {"format": "markdown", "content": content}
-    _record_step(run_id, "complete", "openrouter", "completed", prompt, output)
+    _record_step(data_store, workspace_id, run_id, "complete", "openrouter", "completed", prompt, output)
     return output
 
 

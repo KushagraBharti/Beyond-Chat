@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from .store import store
+from .runtime_store import RuntimeDataStore
 
 MAX_CONTEXT_ARTIFACTS = 8
 MAX_CONTEXT_CHARS_PER_ARTIFACT = 2000
 
 
-def resolve_context_artifacts(workspace_id: str, artifact_ids: list[str]) -> list[dict[str, Any]]:
+def resolve_context_artifacts(
+    data_store: RuntimeDataStore,
+    workspace_id: str,
+    artifact_ids: list[str],
+) -> list[dict[str, Any]]:
     seen: set[str] = set()
     artifacts: list[dict[str, Any]] = []
 
@@ -16,7 +20,7 @@ def resolve_context_artifacts(workspace_id: str, artifact_ids: list[str]) -> lis
         if artifact_id in seen:
             continue
         seen.add(artifact_id)
-        artifact = store.get_artifact(workspace_id, artifact_id)
+        artifact = data_store.get_artifact(workspace_id, artifact_id)
         if artifact is None:
             raise ValueError(f"Context artifact '{artifact_id}' was not found in the active workspace.")
         artifacts.append(artifact)
