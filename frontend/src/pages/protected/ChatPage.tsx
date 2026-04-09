@@ -8,7 +8,6 @@ import {
   getThread,
   listChatThreads,
   sendThreadMessage,
-  type ChatCollection,
   type ChatThread,
   type CompareResult,
 } from "../../lib/api";
@@ -32,7 +31,6 @@ const availableModels = [
 ];
 
 export default function ChatPage() {
-  const [collections, setCollections] = useState<ChatCollection[]>([]);
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThread, setActiveThread] = useState<ChatThread | null>(null);
   const [message, setMessage] = useState("");
@@ -53,7 +51,6 @@ export default function ChatPage() {
   async function refreshThreads(selectedId?: string) {
     try {
       const response = await listChatThreads();
-      setCollections(response.collections);
       setThreads(response.threads);
       const firstThread = response.threads[0];
       const targetId = selectedId ?? activeThread?.id ?? firstThread?.id;
@@ -195,7 +192,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {collections.length ? (
+          {threads.length ? (
             <div className="collection-list">
               <ThreadSection title="Projects" items={groupedThreads.project} activeId={activeThread?.id} onOpen={handleOpenThread} />
               <ThreadSection title="Group Chats" items={groupedThreads.group} activeId={activeThread?.id} onOpen={handleOpenThread} />

@@ -146,18 +146,25 @@ export default function HomePage() {
               <p>Internal tasks keep the homepage useful before third-party task systems are added.</p>
             </div>
           </div>
-          <div className="stack-md">
-            {reminders.map((reminder) => (
-              <div key={reminder.id} className="reminder-card">
-                <div className="reminder-top">
-                  <strong>{reminder.title}</strong>
-                  <StatusBadge status={reminder.source === "internal" ? "connected" : "disconnected"} label={reminder.source} />
+          {reminders.length ? (
+            <div className="stack-md">
+              {reminders.map((reminder) => (
+                <div key={reminder.id} className="reminder-card">
+                  <div className="reminder-top">
+                    <strong>{reminder.title}</strong>
+                    <StatusBadge status={reminder.source === "internal" ? "connected" : "disconnected"} label={reminder.source} />
+                  </div>
+                  <p>{reminder.note}</p>
+                  <span>{new Date(reminder.due_at).toLocaleString()}</span>
                 </div>
-                <p>{reminder.note}</p>
-                <span>{new Date(reminder.due_at).toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="No reminders yet"
+              body="This workspace does not have any saved reminders yet, so the card stays clean instead of relying on seeded demo data."
+            />
+          )}
         </MotionCard>
       </div>
 
