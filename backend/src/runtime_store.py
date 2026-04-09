@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 from postgrest.exceptions import APIError
 
-from .store import store as legacy_store
 from .supabase_service import supabase_service
 
 if TYPE_CHECKING:
@@ -128,20 +127,26 @@ class RuntimeDataStore(Protocol):
 class LegacyLocalDataStore:
     """Development/test fallback for local bypass sessions."""
 
+    @staticmethod
+    def _store():
+        from .store import get_local_store
+
+        return get_local_store()
+
     def get_workspace(self, workspace_id: str) -> dict[str, Any] | None:
-        return legacy_store.get_workspace(workspace_id)
+        return self._store().get_workspace(workspace_id)
 
     def ensure_workspace(self, workspace_id: str, workspace_name: str) -> dict[str, Any]:
-        return legacy_store.ensure_workspace(workspace_id, workspace_name)
+        return self._store().ensure_workspace(workspace_id, workspace_name)
 
     def list_reminders(self, workspace_id: str) -> list[dict[str, Any]]:
-        return legacy_store.list_reminders(workspace_id)
+        return self._store().list_reminders(workspace_id)
 
     def list_collections(self, workspace_id: str) -> list[dict[str, Any]]:
-        return legacy_store.list_collections(workspace_id)
+        return self._store().list_collections(workspace_id)
 
     def list_threads(self, workspace_id: str) -> list[dict[str, Any]]:
-        return legacy_store.list_threads(workspace_id)
+        return self._store().list_threads(workspace_id)
 
     def create_thread(
         self,
@@ -154,7 +159,7 @@ class LegacyLocalDataStore:
         model: str,
         prompt: str | None,
     ) -> dict[str, Any]:
-        return legacy_store.create_thread(
+        return self._store().create_thread(
             workspace_id,
             title=title,
             collection_id=collection_id,
@@ -165,7 +170,7 @@ class LegacyLocalDataStore:
         )
 
     def get_thread(self, workspace_id: str, thread_id: str) -> dict[str, Any] | None:
-        return legacy_store.get_thread(workspace_id, thread_id)
+        return self._store().get_thread(workspace_id, thread_id)
 
     def add_message(
         self,
@@ -176,7 +181,7 @@ class LegacyLocalDataStore:
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         _ = workspace_id
-        return legacy_store.add_message(thread_id, role, content, metadata=metadata)
+        return self._store().add_message(thread_id, role, content, metadata=metadata)
 
     def list_artifacts(
         self,
@@ -190,7 +195,7 @@ class LegacyLocalDataStore:
         date_to: str | None = None,
         limit: int = 24,
     ) -> list[dict[str, Any]]:
-        return legacy_store.list_artifacts(
+        return self._store().list_artifacts(
             workspace_id,
             query=query,
             studio=studio,
@@ -202,7 +207,7 @@ class LegacyLocalDataStore:
         )
 
     def get_artifact(self, workspace_id: str, artifact_id: str) -> dict[str, Any] | None:
-        return legacy_store.get_artifact(workspace_id, artifact_id)
+        return self._store().get_artifact(workspace_id, artifact_id)
 
     def upsert_artifact(
         self,
@@ -228,7 +233,7 @@ class LegacyLocalDataStore:
         if storage_path:
             merged_metadata.setdefault("storage_path", storage_path)
 
-        return legacy_store.upsert_artifact(
+        return self._store().upsert_artifact(
             workspace_id,
             title=title,
             artifact_type=artifact_type,
@@ -253,7 +258,7 @@ class LegacyLocalDataStore:
         model: str,
         options: dict[str, Any],
     ) -> dict[str, Any]:
-        return legacy_store.create_run(
+        return self._store().create_run(
             workspace_id,
             studio=studio,
             title=title,
@@ -281,7 +286,7 @@ class LegacyLocalDataStore:
                 payload = {**payload, "_metadata": metadata}
             else:
                 payload = {"value": payload, "_metadata": metadata}
-        legacy_store.add_run_step(run_id, step_name, tool_used, status, input_payload, payload)
+        self._store().add_run_step(run_id, step_name, tool_used, status, input_payload, payload)
 
     def complete_run(
         self,
@@ -292,10 +297,10 @@ class LegacyLocalDataStore:
         output: dict[str, Any] | None = None,
         error: str | None = None,
     ) -> dict[str, Any]:
-        return legacy_store.complete_run(workspace_id, run_id, status, output=output, error=error)
+        return self._store().complete_run(workspace_id, run_id, status, output=output, error=error)
 
     def get_run(self, workspace_id: str, run_id: str) -> dict[str, Any] | None:
-        return legacy_store.get_run(workspace_id, run_id)
+        return self._store().get_run(workspace_id, run_id)
 
 
 class SupabaseDataStore:

@@ -669,4 +669,11 @@ class LocalStore:
         return step
 
 
-store = LocalStore(Path(__file__).resolve().parent.parent / ".local" / "beyond_chat.db")
+_legacy_store_instance: LocalStore | None = None
+
+
+def get_local_store() -> LocalStore:
+    global _legacy_store_instance
+    if _legacy_store_instance is None:
+        _legacy_store_instance = LocalStore(Path(__file__).resolve().parent.parent / ".local" / "beyond_chat.db")
+    return _legacy_store_instance
