@@ -16,6 +16,7 @@ const primaryNav = [
   { label: "Image", path: "/image", icon: "◧", color: studioColors.image },
   { label: "Data", path: "/data", icon: "▤", color: studioColors.data },
   { label: "Finance", path: "/finance", icon: "△", color: studioColors.finance },
+  { label: "Compare", path: "/compare", icon: "⧉", color: "#8B5CF6" },
 ];
 
 const secondaryNav = [

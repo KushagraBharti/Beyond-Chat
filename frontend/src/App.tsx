@@ -17,6 +17,7 @@ const DataPage = lazy(() => import("./pages/protected/DataPage"));
 const FinancePage = lazy(() => import("./pages/protected/FinancePage"));
 const ArtifactsPage = lazy(() => import("./pages/protected/ArtifactsPage"));
 const SettingsPage = lazy(() => import("./pages/protected/SettingsPage"));
+const ComparePage = lazy(() => import("./pages/protected/ComparePage"));
 
 function RouteFallback() {
   return (
@@ -55,6 +56,7 @@ function App() {
               <Route path="/image" element={<ImagePage />} />
               <Route path="/data" element={<DataPage />} />
               <Route path="/finance" element={<FinancePage />} />
+              <Route path="/compare" element={<ComparePage />} />
               <Route path="/artifacts" element={<ArtifactsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
