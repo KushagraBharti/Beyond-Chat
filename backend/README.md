@@ -2,24 +2,28 @@
 
 FastAPI backend for Beyond Chat.
 
-The backend now has two persistence modes:
+## Canonical Runtime
 
-- hosted/runtime mode: Supabase Auth + Postgres + Storage
-- development fallback mode: local SQLite only for local bypass and test-style sessions
+- Auth: Supabase JWT-backed request context
+- Database: Supabase Postgres
+- Storage: Supabase Storage
+- Model provider: OpenRouter
+- Search provider: Tavily
 
-The hosted runtime path is the intended production path for:
+Hosted runtime data covers:
 
-- workspace lookup/bootstrap
+- workspace lookup and bootstrap
 - chat collections, threads, and messages
 - artifacts
 - runs and run steps
 - reminders
+- storage upload and signed URL flows
 
-## Environment Setup
+## Environment
 
-Copy `backend/env.example` to `backend/.env`.
+Copy `env.example` to `.env`.
 
-### Required for hosted/runtime mode
+Required:
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
@@ -27,7 +31,7 @@ Copy `backend/env.example` to `backend/.env`.
 - `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL`
 - `SUPABASE_STORAGE_BUCKET`
 
-### Optional providers
+Optional providers:
 
 - `OPENROUTER_API_KEY`
 - `TAVILY_API_KEY`
@@ -35,20 +39,10 @@ Copy `backend/env.example` to `backend/.env`.
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI`
 
-### Development-only fallback
-
-- `ALLOW_LOCAL_AUTH_BYPASS=true`
-- `LOCAL_WORKSPACE_ID`
-- `LOCAL_WORKSPACE_NAME`
-
-When a request is authenticated with a Supabase JWT, the backend uses the Supabase/Postgres runtime path.
-When a request is using local bypass, the backend can still fall back to the legacy local SQLite store for local-only work.
-
 ## Run Locally
 
 ```powershell
 cd backend
-$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -76,26 +70,18 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 - `POST /api/storage/artifacts/upload`
 - `POST /api/storage/artifacts/signed-url`
 
-## Canonical Schema
+## Schema Source
 
-Use the SQL files in `backend/sql-related-files/` as the source of truth for the hosted runtime schema.
-
-Current hosted runtime coverage:
-
-- workspaces and memberships
-- chat tables
-- integration tables
-- artifacts, runs, run steps
-- reminders
-- RLS and storage policies
+Use `backend/sql-related-files/` as the live schema source of truth.
 
 ## Validation
 
-- Health: `GET http://127.0.0.1:8000/api/health`
-- Tests: `uv run pytest`
+```powershell
+uv run pytest
+```
 
 ## Notes
 
-- `src/runtime_store.py` selects the active persistence layer
-- `src/store.py` is now a legacy fallback for local bypass only
+- `src/runtime_store.py` is the hosted runtime data access layer
+- `src/store.py` remains only as a legacy local test store
 - `src/supabase_service.py` handles workspace bootstrap and storage helpers

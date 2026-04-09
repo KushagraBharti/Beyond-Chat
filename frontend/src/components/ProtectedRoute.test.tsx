@@ -10,14 +10,6 @@ vi.mock("../context/AuthContext", () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-vi.mock("../lib/mvpBypass", () => ({
-  isMvpBypassSessionActive: () => false,
-}));
-
-vi.mock("../lib/supabaseClient", () => ({
-  isMvpBypassEnabled: false,
-}));
-
 describe("ProtectedRoute", () => {
   beforeEach(() => {
     mockUseAuth.mockReset();
@@ -27,7 +19,6 @@ describe("ProtectedRoute", () => {
     mockUseAuth.mockReturnValue({
       session: { access_token: "token" },
       loading: false,
-      mvpBypassActive: false,
     });
 
     render(
@@ -53,7 +44,6 @@ describe("ProtectedRoute", () => {
     mockUseAuth.mockReturnValue({
       session: null,
       loading: false,
-      mvpBypassActive: false,
     });
 
     render(

@@ -102,7 +102,6 @@ async def require_request_context(
     request: Request,
     authorization: str | None = Header(default=None),
     x_workspace_id: str | None = Header(default=None),
-    x_mvp_bypass: str | None = Header(default=None),
 ) -> RequestContext:
     cached_context = getattr(request.state, "request_context", None)
     if isinstance(cached_context, RequestContext):
@@ -112,59 +111,48 @@ async def require_request_context(
     if isinstance(cached_error, HTTPException):
         raise cached_error
 
-    return resolve_request_context(authorization, x_workspace_id, x_mvp_bypass)
+    return resolve_request_context(authorization, x_workspace_id)
 
 
 def resolve_request_context(
     authorization: str | None,
     x_workspace_id: str | None,
-    x_mvp_bypass: str | None,
 ) -> RequestContext:
     token = _extract_token(authorization)
-    if token:
-        claims = _decode_supabase_claims(token)
-        user_id = claims.get("sub")
-        if not isinstance(user_id, str) or not user_id:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Supabase JWT is missing the user identifier.",
-            )
-        email = claims.get("email")
-        workspace_id = _workspace_from_claims(claims, x_workspace_id)
-        if workspace_id is None:
-            resolved = supabase_service.resolve_workspace_for_user(
-                user_id,
-                requested_workspace_id=x_workspace_id,
-                access_token=token,
-            )
-            if resolved and isinstance(resolved.get("workspace"), dict):
-                candidate = resolved["workspace"].get("id")
-                if isinstance(candidate, str) and candidate:
-                    workspace_id = candidate
-        if workspace_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="A workspace could not be resolved for the authenticated user.",
-            )
-        return RequestContext(
-            user_id=user_id,
-            workspace_id=workspace_id,
-            email=email if isinstance(email, str) else None,
-            source="supabase_jwt",
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is required for this endpoint.",
+        )
+
+    claims = _decode_supabase_claims(token)
+    user_id = claims.get("sub")
+    if not isinstance(user_id, str) or not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Supabase JWT is missing the user identifier.",
+        )
+    email = claims.get("email")
+    workspace_id = _workspace_from_claims(claims, x_workspace_id)
+    if workspace_id is None:
+        resolved = supabase_service.resolve_workspace_for_user(
+            user_id,
+            requested_workspace_id=x_workspace_id,
             access_token=token,
         )
-
-    bypass_requested = (x_mvp_bypass or "").lower() in {"1", "true", "yes"}
-    if settings.allow_local_auth_bypass and (bypass_requested or settings.environment == "development"):
-        return RequestContext(
-            user_id="local-preview-user",
-            workspace_id=settings.local_workspace_id,
-            email="preview@beyondchat.local",
-            source="local_bypass",
-            access_token=None,
+        if resolved and isinstance(resolved.get("workspace"), dict):
+            candidate = resolved["workspace"].get("id")
+            if isinstance(candidate, str) and candidate:
+                workspace_id = candidate
+    if workspace_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="A workspace could not be resolved for the authenticated user.",
         )
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication is required for this endpoint.",
+    return RequestContext(
+        user_id=user_id,
+        workspace_id=workspace_id,
+        email=email if isinstance(email, str) else None,
+        source="supabase_jwt",
+        access_token=token,
     )

@@ -1,25 +1,10 @@
 from __future__ import annotations
 
-from contextlib import contextmanager
-
 from fastapi.testclient import TestClient
 
 from src.artifact_drafts import build_run_artifact_payload
-from src.config import settings
 from src.providers import TAVILY_NOT_CONFIGURED
-
-
-@contextmanager
-def override_auth_settings(*, environment: str, allow_local_auth_bypass: bool):
-    original_environment = settings.environment
-    original_bypass = settings.allow_local_auth_bypass
-    object.__setattr__(settings, "environment", environment)
-    object.__setattr__(settings, "allow_local_auth_bypass", allow_local_auth_bypass)
-    try:
-        yield
-    finally:
-        object.__setattr__(settings, "environment", original_environment)
-        object.__setattr__(settings, "allow_local_auth_bypass", original_bypass)
+from src.store import get_local_store
 
 
 def test_health_endpoint(client: TestClient):
@@ -53,9 +38,8 @@ def test_artifact_search_returns_seeded_items(client: TestClient):
     assert "title" in items[0]
 
 
-def test_protected_endpoint_rejects_missing_auth_when_bypass_disabled(client: TestClient):
-    with override_auth_settings(environment="production", allow_local_auth_bypass=False):
-        response = client.get("/api/artifact/search")
+def test_protected_endpoint_rejects_missing_auth(unauthenticated_client: TestClient):
+    response = unauthenticated_client.get("/api/artifact/search")
     assert response.status_code == 401
 
 
@@ -94,10 +78,11 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
 
 def test_storage_signed_url_requires_supabase_configuration(client: TestClient, monkeypatch):
     monkeypatch.setattr("src.main.supabase_service.create_signed_artifact_url", lambda *args, **kwargs: None)
+    workspace_id = get_local_store().get_workspace()["id"]
 
     response = client.post(
         "/api/storage/artifacts/signed-url",
-        json={"path": "local-workspace/example/file.txt", "expires_in": 600},
+        json={"path": f"{workspace_id}/example/file.txt", "expires_in": 600},
     )
     assert response.status_code == 503
 

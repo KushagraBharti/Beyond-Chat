@@ -10,10 +10,12 @@ import {
   MotionCard,
   PageSection,
   PrimaryButton,
+  SecondaryButton,
   Select,
   StatusBadge,
   TextArea,
 } from "./protectedUi";
+import { useComparePanel } from "../features/compare/ComparePanelProvider";
 
 const models = [
   "openai/gpt-4o-mini",
@@ -34,6 +36,7 @@ export default function RunStudioWorkspace({
   description: string;
   promptPlaceholder: string;
 }) {
+  const { openComparePanel } = useComparePanel();
   const [prompt, setPrompt] = useState(promptPlaceholder);
   const [model, setModel] = useState(models[0]);
   const [contextIds, setContextIds] = useState<string[]>([]);
@@ -73,6 +76,18 @@ export default function RunStudioWorkspace({
         description={description}
         actions={
           <div className="inline-actions">
+            <SecondaryButton
+              type="button"
+              onClick={() =>
+                openComparePanel({
+                  prompt,
+                  contextIds,
+                  studio,
+                })
+              }
+            >
+              Compare Prompt
+            </SecondaryButton>
             <PrimaryButton type="button" onClick={handleRun} disabled={loading}>
               {loading ? "Running..." : "Run"}
             </PrimaryButton>

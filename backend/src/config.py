@@ -12,10 +12,9 @@ load_dotenv()
 @dataclass(frozen=True)
 class Settings:
     environment: str = os.getenv("ENVIRONMENT", "development")
-    app_title: str = os.getenv("OPENROUTER_APP_TITLE", "Beyond Chat MVP")
+    app_title: str = os.getenv("OPENROUTER_APP_TITLE", "Beyond Chat")
     app_url: str = os.getenv("APP_URL", "http://127.0.0.1:5173")
     api_base_url: str = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
-    allow_local_auth_bypass: bool = os.getenv("ALLOW_LOCAL_AUTH_BYPASS", "true").lower() == "true"
     openrouter_api_key: str | None = os.getenv("OPENROUTER_API_KEY")
     openrouter_http_referer: str = os.getenv("OPENROUTER_HTTP_REFERER", "http://127.0.0.1:5173")
     openrouter_timeout_seconds: float = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "45"))
@@ -33,8 +32,6 @@ class Settings:
     supabase_jwt_secret: str | None = os.getenv("SUPABASE_JWT_SECRET")
     supabase_jwks_url: str | None = os.getenv("SUPABASE_JWKS_URL")
     supabase_storage_bucket: str = os.getenv("SUPABASE_STORAGE_BUCKET", "artifacts")
-    local_workspace_id: str = os.getenv("LOCAL_WORKSPACE_ID", "local-workspace")
-    local_workspace_name: str = os.getenv("LOCAL_WORKSPACE_NAME", "Beyond Chat Local")
     openrouter_image_default_model: str = os.getenv("OPENROUTER_IMAGE_DEFAULT_MODEL", "openai/dall-e-3")
 
 

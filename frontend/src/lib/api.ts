@@ -1,5 +1,4 @@
-import { isMvpBypassSessionActive } from "./mvpBypass";
-import { isMvpBypassEnabled, supabase } from "./supabaseClient";
+import { supabase } from "./supabaseClient";
 
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
 
@@ -153,7 +152,6 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
-      ...(!accessToken && isMvpBypassEnabled && isMvpBypassSessionActive() ? { "X-MVP-Bypass": "true" } : {}),
       ...(init?.headers ?? {}),
     },
     ...init,
@@ -190,7 +188,7 @@ export async function bootstrapAuth() {
 }
 
 export async function getWorkspace() {
-  const payload = await api<{ workspace: Workspace; mvpBypassEnabled: boolean; authSource?: string }>("/api/workspace");
+  const payload = await api<{ workspace: Workspace; authSource?: string }>("/api/workspace");
   setStoredWorkspaceId(payload.workspace.id);
   return payload;
 }
@@ -318,7 +316,6 @@ export async function exportArtifact(artifactId: string, format: "markdown" | "p
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
-      ...(!accessToken && isMvpBypassEnabled && isMvpBypassSessionActive() ? { "X-MVP-Bypass": "true" } : {}),
     },
     body: JSON.stringify({ format }),
   });

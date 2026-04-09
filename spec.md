@@ -1,237 +1,172 @@
-# Beyond Chat Product Specification
+# Beyond Chat Product Spec
 
-## Overview
+## Product Definition
 
-Beyond Chat is a modular AI workspace built for real work rather than endless prompt threads. Traditional chat interfaces are good at quick question-and-answer interactions, but they break down for multi-step workflows such as writing long documents, researching a topic, comparing model outputs, generating images, analyzing uploaded data, or building repeatable finance workflows. Beyond Chat replaces the single-thread model with dedicated studios, shared workspace structure, reusable artifacts, and provider-aware long-running workflows.
+Beyond Chat is a modular AI workspace for artifact-first work. Users move through dedicated studios instead of collapsing every task into one generic chat feed. The product is organized around reusable outputs, explicit workflows, and workspace-scoped context.
 
-The product exists to solve a simple market gap: people increasingly rely on LLMs for meaningful work, but most interfaces still force that work into one scrolling transcript. That causes lost context, poor organization, weak exportability, and difficult collaboration. Beyond Chat treats outputs as artifacts, workflows as studios, and context as something reusable across the whole product.
+## Product Vision
 
-## Product Goals
+- Replace endless chat history with structured studio workflows
+- Treat outputs as first-class artifacts that can be searched, reopened, exported, and reused as context
+- Make model comparison available from the active workflow without forcing route changes
+- Keep one coherent product surface instead of parallel prototype apps
 
-- Give users a studio-based workspace instead of one generic chat box.
-- Persist useful outputs as searchable, reusable artifacts.
-- Support multi-model evaluation without leaving the main workflow.
-- Make research and finance flows explicit through step timelines and structured outputs.
-- Stay useful even before every third-party integration is fully configured.
-- Support a local-first development workflow while preserving a clear path to Supabase-backed production hardening.
+## Canonical Surface Area
 
-## Core User Personas
+### Public Routes
 
-- Individual power user who wants an AI workspace for writing, research, and organizing outputs.
-- Student or analyst who needs repeatable structured outputs and saved artifacts.
-- Small team that wants a shared workspace, artifact history, and multi-model comparison without enterprise complexity.
-- Builder or startup operator who needs one product surface for prompting, drafting, research, export, and iteration.
+- Landing
+- Pricing
+- Login
+- Signup
 
-## Product Positioning
+### Protected Routes
 
-Beyond Chat is not “just another AI chat app.” It is a workspace for structured AI-assisted production. The key differentiators are:
+- Home
+- Chat
+- Writing
+- Research
+- Image
+- Data
+- Finance
+- Artifacts
+- Settings
 
-- Dedicated studios by workflow.
-- Artifact-first persistence.
-- Compare mode for model evaluation.
-- Tool-runner visibility for long-running work.
-- Graceful disconnected states so the product can keep functioning before full provider setup.
+### Explicitly Removed
 
-## Functional Scope
+- Standalone `/compare` route
+- Local-auth product mode
+- SQLite-backed hosted runtime
+- `frontend-mock/` as an active application
 
-### 1. Authentication and Workspace Model
+## Core Concepts
 
-- Users authenticate with Supabase Auth.
-- New users are bootstrapped into a default workspace.
-- Workspace membership is modeled explicitly through `workspaces` and `workspace_members`.
-- Protected backend routes accept validated JWT sessions in production.
-- Local development can use a controlled bypass mode until production secrets are configured.
+### Studios
 
-### 2. Home
+Studios are purpose-built workflows. Each studio has its own framing, controls, and outputs, but they share one app shell, one auth model, one context model, and one artifact library.
 
-- Workspace greeting and identity.
-- Reminder/task cards.
-- Google Calendar preview area.
-- Integration/provider status cards.
-- MCP-server-style shell cards for future server integrations.
-- Quick links into the main studios.
+### Artifacts
 
-### 3. Chat
+Artifacts are the durable units of value in the product. They are searchable, filterable, exportable, and attachable as context to future runs. Writing drafts, research reports, compare results, generated images, and data outputs all become artifacts.
 
-- Project, group chat, and standalone chat organization.
-- Persistent conversation threads.
-- Model selector.
-- Context Builder integration.
-- Compare mode embedded in Chat instead of a separate destination.
+### Shared Compare Panel
 
-### 4. Writing Studio
+Compare remains a core capability, but it is invoked as a shared reusable panel from Chat and any other studio that needs side-by-side model output review. Compare is no longer its own destination.
 
-- Writing library view with prior documents.
-- Rich-text editor view using TipTap.
-- Formatting toolbar.
-- `@assistant` workflows for selected text, whole document, or insertion.
-- Saved writing artifacts with rich-text metadata.
+### Workspace Context
 
-### 5. Research Studio
+All protected data is workspace-scoped. Auth, chat threads, artifacts, runs, reminders, and storage paths resolve inside the active workspace.
 
-- Prompt input.
-- Context Builder.
-- Long-running run/timeline UI.
-- Structured markdown report output.
-- Source visibility.
-- Save-as-artifact support.
+## Studio Expectations
 
-### 6. Image Studio
+### Home
 
-- Prompt rail.
-- Model selector.
-- Aspect ratio, style, and quality controls.
-- Gallery/history area.
-- Disconnected-safe rendering when the provider is not configured.
+- workspace overview
+- reminders
+- provider status
+- quick links into studios
 
-### 7. Data Studio
+### Chat
 
-- File upload entry point.
-- Dataset preview.
-- Prompt-driven analysis shell.
-- Results and step timeline.
-- Artifact save flow for insights or transformed outputs.
+- persistent threads and collections
+- model selection
+- context attachment
+- launch point for the shared compare panel
 
-### 8. Finance Studio
+### Writing
 
-- Finance-oriented prompt flow.
-- Timeline of steps.
-- Structured report output.
-- Reuses the research/timeline pattern but with finance-specific framing.
+- writing library
+- editor experience
+- save/reopen writing artifacts
 
-### 9. Artifact Library
+### Research
 
-- Search.
-- Filters by studio/type/date/tags.
-- Detail view.
-- Export to Markdown and PDF.
+- prompt + context
+- structured run output
+- source visibility
+- save-to-artifact flow
 
-### 10. Context Builder
+### Image
 
-- Search/browse existing artifacts.
-- Attach context to studio or chat runs.
-- Remove selected context.
-- Show the current included-context list clearly before submission.
+- prompt controls
+- model/ratio/style options
+- generated image outputs
+- storage-backed saved results
 
-## User Experience Principles
+### Data
 
-- The product should feel like one coherent workspace, not a collection of disconnected prototypes.
-- Protected pages should inherit the visual language established by the landing, pricing, and login surfaces.
-- Every provider-backed surface must handle `connected`, `disconnected`, `not_configured`, and `error` states explicitly.
-- The interface should remain useful even when providers are not live.
-- Routing and navigation must be stable and predictable.
+- upload and prompt-driven analysis
+- run output and step history
+- save-to-artifact flow
 
-## Frontend Architecture
+### Finance
 
-- React + TypeScript + Vite.
-- React Router controls public and protected route separation.
-- Shared protected UI primitives provide buttons, cards, inputs, empty states, status badges, and page-section framing.
-- Supabase client lives in the frontend for auth/session handling.
-- The API client attaches the Supabase access token automatically when available and falls back cleanly to local preview mode.
+- finance-oriented research/synthesis workflow
+- timeline and structured memo output
 
-## Backend Architecture
+### Artifacts
 
-- FastAPI backend with route groups for health, auth bootstrap, provider status, workspace data, chat, compare, runs, artifacts, export, and Google Calendar scaffolding.
-- Local SQLite store supports a local-first developer workflow.
-- Backend request context supports:
-  - validated Supabase JWTs when configured
-  - local auth bypass when explicitly enabled
-- Provider abstraction layer covers:
-  - OpenRouter for LLM calls
-  - Tavily for research search
-  - Google Calendar connection scaffolding
-  - image-provider and storage status scaffolding
+- search
+- filters
+- detail view
+- export to Markdown/PDF
 
-## Data Model
+### Settings
 
-### Auth and Workspace
+- authenticated user state
+- provider/connectivity status
+- workspace/runtime-facing configuration visibility
 
-- `auth.users` is managed by Supabase.
-- `public.user_profiles` stores application-facing user metadata.
-- `public.workspaces` stores workspace identity.
-- `public.workspace_members` stores membership and role.
+## UX Rules
 
-### AI Workflows
+- Protected screens must feel like one product, not mixed prototypes
+- Shared UI primitives should be reused across studios
+- Tailwind CSS is the canonical frontend styling layer
+- Provider-backed states must degrade clearly when a provider is disconnected or not configured
+- Navigation must be stable and predictable
 
-- `artifacts` stores reusable outputs.
-- `runs` stores long-running workflow executions.
-- `run_steps` stores timeline and tool-step visibility.
-- `chat_collections`, `chat_threads`, and `chat_messages` support persistent conversational organization.
-- `integration_connections` and `integration_sync_logs` support external integration state and syncing metadata.
+## Technical Contract
 
-## API Design Principles
+### Frontend
 
-- `GET /api/health` remains the simplest baseline integration path.
-- Protected routes should require authenticated context in production.
-- New artifact contract supports:
-  - `POST /api/artifact`
-  - `GET /api/artifact/search`
-  - `GET /api/artifact/{id}`
-  - `POST /api/artifact/{id}/export`
-- Existing plural routes can remain as compatibility shims where needed.
-- Runs use a shared lifecycle:
-  - create run
-  - inspect run
-  - inspect run steps
-- Auth bootstrap is responsible for ensuring workspace membership exists after login/signup.
+- React + TypeScript + Vite + Tailwind CSS
+- feature-oriented structure:
+  - `app shell`
+  - `auth`
+  - `studios`
+  - `artifacts`
+  - `shared compare panel`
+  - `shared ui`
 
-## Integrations
+### Backend
 
-### Supabase
+- FastAPI
+- Supabase Auth verified request context
+- Supabase Postgres for persistence
+- Supabase Storage for uploaded/generated files
+- OpenRouter for model calls
+- Tavily for research search
 
-- Auth for user sessions.
-- Postgres for production persistence.
-- RLS for workspace-scoped access.
-- Storage bucket for file/image uploads.
+### Persistence
 
-### OpenRouter
+Hosted runtime persistence is limited to:
 
-- Shared LLM provider for writing, compare, and synthesis workflows.
+- workspaces and membership
+- chat collections, threads, and messages
+- artifacts
+- runs and run steps
+- reminders
+- storage uploads and signed URLs
 
-### Tavily
+## Non-Goals
 
-- External search provider for research and finance.
+- Maintaining a second active frontend under `frontend-mock/`
+- Supporting local bypass as a product feature
+- Preserving outdated route/documentation structure for backward comfort
 
-### Google Calendar
+## Done Criteria For Reorganization
 
-- Read-only agenda integration.
-- OAuth configured outside the repo but supported in code and UI.
-
-## Environment Strategy
-
-### Local-first mode
-
-- Local SQLite persistence.
-- Optional MVP/local auth bypass.
-- Disconnected-safe provider states.
-- Fast iteration without waiting on full provider setup.
-
-### Production mode
-
-- Supabase JWT verification enabled.
-- SQL migrations executed in Supabase.
-- RLS active on workspace-scoped tables.
-- Storage bucket created and policy-configured.
-- OAuth/provider credentials configured through environment variables.
-
-## Quality and Validation
-
-- Frontend build via `bun run build`.
-- Frontend tests via `bun run test` using Vitest.
-- Backend tests via `uv run pytest`.
-- Browser QA via Playwright-driven manual verification.
-- Health endpoint must stay stable across all implementation changes.
-
-## Risks and Constraints
-
-- Provider-dependent features cannot be fully production-verified without real credentials and Supabase dashboard configuration.
-- Image generation remains partially scaffolded until storage and provider configuration are completed.
-- Local bypass improves development speed but must be disabled in hardened environments.
-- RLS and workspace bootstrapping must be executed correctly in Supabase before production use.
-
-## Success Criteria
-
-- User can authenticate, enter a workspace, and navigate all protected routes.
-- Artifact save/search/read/export flows function in the implemented app.
-- Compare mode and studio pages render and communicate with backend contracts.
-- The repo contains the SQL, docs, manual setup steps, and validation paths needed to take the project from local-first to production-ready.
+- The protected route surface matches this spec
+- Compare is only available through shared invocation points
+- Docs no longer describe SQLite/local bypass as supported architecture
+- The repo presents one canonical stack and one canonical runtime story

@@ -1,26 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { activateMvpBypassSession } from "../../lib/mvpBypass";
 import { bootstrapAuth } from "../../lib/api";
-import { isMvpBypassEnabled, supabase } from "../../lib/supabaseClient";
+import { isSupabaseEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 
-const heading = "'Bricolage Grotesque', sans-serif";
-const body = "'Plus Jakarta Sans', sans-serif";
-
-const c = {
-  canvas: "#F2F2F0",
-  surface: "#FFFFFF",
-  ink: "#0D0D0D",
-  primary: "#4F3FE8",
-  accent: "#E55613",
-  muted: "#6B6B70",
-  border: "#E2E2E0",
-};
-
-export default function AtelierPlusLogin() {
-  const { session, loading: authLoading, mvpBypassActive } = useAuth();
+export default function LoginPage() {
+  const { session, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -35,34 +20,16 @@ export default function AtelierPlusLogin() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleMvpBypass = () => {
-    activateMvpBypassSession();
-    navigate("/dashboard", { replace: true });
-  };
-
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const isShortcut = (event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "k";
-      if (!isShortcut) return;
-      if (!isMvpBypassEnabled) return;
-
-      event.preventDefault();
-      activateMvpBypassSession();
-      navigate("/dashboard", { replace: true });
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [navigate]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    if (!session && !mvpBypassActive) return;
+    if (authLoading || !session) {
+      return;
+    }
     navigate("/dashboard", { replace: true });
-  }, [authLoading, mvpBypassActive, navigate, session]);
+  }, [authLoading, navigate, session]);
 
-  if (authLoading) return null;
-  if (session || mvpBypassActive) return null;
+  if (authLoading || session) {
+    return null;
+  }
 
   async function handleSubmit() {
     setLoading(true);
@@ -76,12 +43,7 @@ export default function AtelierPlusLogin() {
       }
 
       if (!supabase) {
-        if (isMvpBypassEnabled) {
-          setMessage("MVP bypass is active. Opening dashboard.");
-          handleMvpBypass();
-        } else {
-          setError("Supabase is not configured for this environment.");
-        }
+        setError("Supabase is not configured for this environment.");
         return;
       }
 
@@ -94,7 +56,7 @@ export default function AtelierPlusLogin() {
           setMessage("Account created and workspace provisioned.");
           navigate("/dashboard", { replace: true });
         } else {
-          setMessage("Account created. Confirm the email if required, then sign in to provision the default workspace.");
+          setMessage("Account created. Confirm the email if required, then sign in.");
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -105,318 +67,148 @@ export default function AtelierPlusLogin() {
         navigate("/dashboard", { replace: true });
       }
     } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : "Something went wrong.";
-      setError(errorMessage);
+      setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: body, background: c.surface, overflow: "hidden" }}>
-      {/* Left Panel - Branding Visual */}
-      <div
-        style={{
-          flex: "1 1 50%",
-          background: c.ink,
-          position: "relative",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "3rem",
-          overflow: "hidden",
-        }}
-        className="brand-panel"
-      >
-        {/* Abstract animated background */}
-        <div style={{ position: "absolute", inset: 0, opacity: 0.8, pointerEvents: "none" }}>
-          <motion.div
-            animate={{
-              scale: [1, 1.2, 1],
-              rotate: [0, 90, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            style={{
-              position: "absolute",
-              top: "-20%",
-              left: "-10%",
-              width: "70%",
-              height: "70%",
-              background: `radial-gradient(circle, ${c.primary}40 0%, transparent 70%)`,
-              filter: "blur(60px)",
-              borderRadius: "50%",
-            }}
-          />
-          <motion.div
-            animate={{
-              scale: [1, 1.5, 1],
-              rotate: [0, -90, 0],
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            style={{
-              position: "absolute",
-              bottom: "-10%",
-              right: "-20%",
-              width: "80%",
-              height: "80%",
-              background: `radial-gradient(circle, ${c.accent}30 0%, transparent 70%)`,
-              filter: "blur(60px)",
-              borderRadius: "50%",
-            }}
-          />
-          {/* Subtle Grid */}
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage: `linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px)`,
-              backgroundSize: "40px 40px",
-            }}
-          />
-        </div>
+    <div className="min-h-screen bg-stone-100 text-stone-950">
+      <div className="grid min-h-screen lg:grid-cols-[1.15fr_0.85fr]">
+        <section className="relative hidden overflow-hidden bg-stone-950 px-10 py-12 text-stone-50 lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.18),transparent_34%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:42px_42px]" />
 
-        {/* Logo */}
-        <Link
-          to="/"
-          style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem", position: "relative", zIndex: 10 }}
-        >
-          <div style={{ position: "relative", width: "28px", height: "28px" }}>
-            <div style={{ position: "absolute", inset: 0, borderRadius: "6px", background: `linear-gradient(135deg, ${c.primary}, ${c.accent})` }} />
-            <div style={{ position: "absolute", inset: "2px", borderRadius: "4px", background: c.ink }} />
-            <div style={{ position: "absolute", inset: "6px", borderRadius: "2px", background: c.surface }} />
-          </div>
-          <span style={{ fontFamily: heading, fontSize: "1.2rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em" }}>
-            Beyond Chat <span style={{ color: c.primary, fontWeight: 500, fontSize: "1rem" }}>+</span>
-          </span>
-        </Link>
-
-        {/* Floating Abstract Element */}
-        <div style={{ position: "relative", zIndex: 10, flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: "easeOut" }} style={{ width: "300px", height: "400px", position: "relative" }}>
-            <motion.div
-              animate={{ y: [-10, 10, -10] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              style={{ position: "absolute", top: "10%", left: "10%", right: "-10%", height: "60%", background: "rgba(255,255,255,0.03)", backdropFilter: "blur(20px)", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.1)", padding: "2rem" }}
-            >
-              <div style={{ width: "40%", height: "8px", background: "rgba(255,255,255,0.2)", borderRadius: "4px", marginBottom: "1rem" }} />
-              <div style={{ width: "80%", height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px", marginBottom: "0.5rem" }} />
-              <div style={{ width: "60%", height: "8px", background: "rgba(255,255,255,0.1)", borderRadius: "4px" }} />
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [10, -10, 10] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              style={{ position: "absolute", bottom: "10%", left: "-10%", right: "10%", height: "50%", background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.15)", padding: "2rem", boxShadow: "0 20px 40px rgba(0,0,0,0.5)" }}
-            >
-              <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: c.primary }} />
-                <div>
-                  <div style={{ width: "80px", height: "8px", background: "rgba(255,255,255,0.3)", borderRadius: "4px", marginBottom: "0.5rem", marginTop: "4px" }} />
-                  <div style={{ width: "40px", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "3px" }} />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        <div style={{ position: "relative", zIndex: 10 }}>
-          <p style={{ fontFamily: heading, fontSize: "1.25rem", color: "#fff", lineHeight: 1.5, marginBottom: "1rem" }}>
-            "The workspace finally matches the power of the models. It's fundamentally changed how our team ships."
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: c.border, overflow: "hidden" }}>
-              <img src="https://i.pravatar.cc/100?img=32" alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(100%)" }} />
-            </div>
-            <div>
-              <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>Sarah Jenkins</div>
-              <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)" }}>Product Lead, Nexus</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Right Panel - Form */}
-      <div style={{ flex: "1 1 50%", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", position: "relative" }}>
-        {/* Mobile Nav */}
-        <div style={{ position: "absolute", top: "2rem", left: "2rem" }} className="mobile-nav">
-          <Link to="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div style={{ width: "20px", height: "20px", borderRadius: "4px", background: `linear-gradient(135deg, ${c.primary}, ${c.accent})` }} />
-            <span style={{ fontFamily: heading, fontSize: "1rem", fontWeight: 800, color: c.ink, letterSpacing: "-0.02em" }}>Beyond Chat</span>
+          <Link to="/" className="relative z-10 flex items-center gap-3">
+            <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-blue-500 to-rose-500 p-[2px]">
+              <span className="block h-full w-full rounded-[6px] bg-stone-950 p-[5px]">
+                <span className="block h-full w-full rounded-[3px] bg-stone-100" />
+              </span>
+            </span>
+            <span className="font-[Bricolage_Grotesque] text-xl font-extrabold tracking-[-0.04em]">Beyond Chat</span>
           </Link>
-        </div>
 
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, ease: "easeOut" }} style={{ width: "100%", maxWidth: "420px" }}>
-          <div style={{ marginBottom: "2.5rem" }}>
-            <h1 style={{ fontFamily: heading, fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.03em", color: c.ink, marginBottom: "0.5rem" }}>
-              {mode === "signup" ? "Create your account" : "Welcome back"}
+          <div className="relative z-10 max-w-xl space-y-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-stone-400">Studio Workspace</p>
+            <h1 className="font-[Bricolage_Grotesque] text-5xl font-extrabold leading-none tracking-[-0.06em]">
+              Artifacts, not endless transcripts.
             </h1>
-            <p style={{ color: c.muted, fontSize: "0.95rem" }}>
-              {mode === "signup" ? "Create an account to access your workspace." : "Enter your details to access your workspace."}
+            <p className="max-w-lg text-base text-stone-300">
+              Beyond Chat organizes writing, research, image, data, and finance work into focused studios with reusable
+              context and shared model comparison.
             </p>
-            {isMvpBypassEnabled && (
-              <p style={{ color: c.primary, fontSize: "0.8rem", marginTop: "0.45rem", fontWeight: 600 }}>
-                Dev bypass: press Ctrl+K (Cmd+K on Mac)
-              </p>
-            )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {[
+                "Dedicated studios for distinct workflows",
+                "Supabase-backed auth, data, and storage",
+                "Saved artifacts that survive across sessions",
+                "Compare panel shared across the workspace",
+              ].map((item) => (
+                <div key={item} className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur">
+                  <div className="mb-3 h-2 w-14 rounded-full bg-gradient-to-r from-blue-400 to-rose-400" />
+                  <p className="text-sm text-stone-200">{item}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void handleSubmit();
-            }}
-            style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
-          >
-            <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: c.ink, marginBottom: "0.5rem" }}>Email</label>
-              <input
-                type="email"
-                placeholder="name@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{
-                  width: "100%",
-                  padding: "0.85rem 1rem",
-                  borderRadius: "10px",
-                  border: `1px solid ${c.border}`,
-                  background: c.canvas,
-                  fontFamily: body,
-                  fontSize: "0.95rem",
-                  color: c.ink,
-                  outline: "none",
-                  transition: "all 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = c.primary;
-                  e.currentTarget.style.boxShadow = `0 0 0 3px ${c.primary}15`;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = c.border;
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
+          <div className="relative z-10 max-w-md rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+            <p className="font-[Bricolage_Grotesque] text-xl leading-relaxed">
+              “The product now behaves like a real workspace instead of a collection of disconnected surfaces.”
+            </p>
+            <div className="mt-4 text-sm text-stone-400">Canonical stack: React, Tailwind, FastAPI, Supabase, OpenRouter.</div>
+          </div>
+        </section>
+
+        <section className="flex items-center justify-center px-6 py-10 sm:px-8 lg:px-12">
+          <div className="w-full max-w-md rounded-[2rem] border border-stone-200 bg-white p-8 shadow-[0_30px_80px_rgba(28,25,23,0.08)]">
+            <Link to="/" className="mb-8 inline-flex items-center gap-3 lg:hidden">
+              <span className="h-6 w-6 rounded-md bg-gradient-to-br from-blue-500 to-rose-500" />
+              <span className="font-[Bricolage_Grotesque] text-lg font-extrabold">Beyond Chat</span>
+            </Link>
+
+            <div className="mb-8 space-y-2">
+              <h1 className="font-[Bricolage_Grotesque] text-4xl font-extrabold tracking-[-0.05em] text-stone-950">
+                {mode === "signup" ? "Create your account" : "Welcome back"}
+              </h1>
+              <p className="text-sm text-stone-600">
+                {mode === "signup"
+                  ? "Create an account to enter your studio workspace."
+                  : "Sign in to reopen your workspace, artifacts, and recent runs."}
+              </p>
+              {!isSupabaseEnabled ? (
+                <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  Supabase is required for this app. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to continue.
+                </p>
+              ) : null}
             </div>
 
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: c.ink }}>Password</label>
-                <a href="#" style={{ fontSize: "0.8rem", color: c.muted, textDecoration: "none" }}>Forgot?</a>
-              </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                style={{
-                  width: "100%",
-                  padding: "0.85rem 1rem",
-                  borderRadius: "10px",
-                  border: `1px solid ${c.border}`,
-                  background: c.canvas,
-                  fontFamily: body,
-                  fontSize: "0.95rem",
-                  color: c.ink,
-                  outline: "none",
-                  transition: "all 0.2s",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = c.primary;
-                  e.currentTarget.style.boxShadow = `0 0 0 3px ${c.primary}15`;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = c.border;
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
-            </div>
-
-            {error && (
-              <p style={{ color: "#DC2626", fontSize: "0.85rem", margin: 0, padding: "0.5rem 0.75rem", background: "#FEF2F2", borderRadius: "8px", border: "1px solid #FECACA" }}>
-                {error}
-              </p>
-            )}
-            {message && (
-              <p style={{ color: c.muted, fontSize: "0.85rem", margin: 0, padding: "0.5rem 0.75rem", background: c.canvas, borderRadius: "8px", border: `1px solid ${c.border}` }}>
-                {message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: "100%",
-                padding: "0.9rem",
-                borderRadius: "10px",
-                background: loading ? c.muted : c.ink,
-                color: "#fff",
-                fontFamily: body,
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                border: "none",
-                cursor: loading ? "not-allowed" : "pointer",
-                marginTop: "0.5rem",
-                transition: "all 0.2s",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
-                opacity: loading ? 0.7 : 1,
+            <form
+              className="space-y-5"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleSubmit();
               }}
-              onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)"; } }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.1)"; }}
             >
-              {loading ? "Please wait..." : mode === "signup" ? "Sign Up" : "Sign In"}
-            </button>
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-stone-800">Email</span>
+                <input
+                  type="email"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </label>
 
-            {isMvpBypassEnabled && (
+              <label className="block space-y-2">
+                <span className="text-sm font-semibold text-stone-800">Password</span>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-100"
+                />
+              </label>
+
+              {error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+              {message ? (
+                <p className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">{message}</p>
+              ) : null}
+
               <button
-                type="button"
-                onClick={handleMvpBypass}
-                style={{
-                  width: "100%",
-                  padding: "0.8rem",
-                  borderRadius: "10px",
-                  background: c.canvas,
-                  color: c.ink,
-                  fontFamily: body,
-                  fontSize: "0.9rem",
-                  fontWeight: 700,
-                  border: `1px solid ${c.border}`,
-                  cursor: "pointer",
-                }}
+                type="submit"
+                disabled={loading || !isSupabaseEnabled}
+                className="w-full rounded-2xl bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
               >
-                Enter MVP Dashboard (Bypass)
+                {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
               </button>
-            )}
+            </form>
 
-            <p style={{ textAlign: "center", fontSize: "0.85rem", color: c.muted, marginTop: "1rem" }}>
+            <p className="mt-6 text-center text-sm text-stone-600">
               {mode === "signup" ? (
                 <>
                   Already have an account?{" "}
-                  <Link to="/login" style={{ color: c.primary, fontWeight: 600, textDecoration: "none" }}>
+                  <Link to="/login" className="font-semibold text-blue-700 hover:text-blue-900">
                     Sign in
                   </Link>
                 </>
               ) : (
                 <>
-                  Don't have an account?{" "}
-                  <Link to="/login?mode=signup" style={{ color: c.primary, fontWeight: 600, textDecoration: "none" }}>
+                  Need an account?{" "}
+                  <Link to="/login?mode=signup" className="font-semibold text-blue-700 hover:text-blue-900">
                     Sign up
                   </Link>
                 </>
               )}
             </p>
-          </form>
-        </motion.div>
+          </div>
+        </section>
       </div>
-
-      <style>{`
-        .mobile-nav { display: none; }
-        @media (max-width: 900px) {
-          .brand-panel { display: none !important; }
-          .mobile-nav { display: block !important; }
-        }
-      `}</style>
     </div>
   );
 }

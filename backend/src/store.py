@@ -8,10 +8,11 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
-from .config import settings
+# Legacy local test store only.
+# The hosted runtime path uses Supabase/Postgres through runtime_store.py.
 
-# Legacy local fallback only.
-# The hosted runtime path now uses Supabase/Postgres through runtime_store.py.
+TEST_WORKSPACE_ID = "test-workspace"
+TEST_WORKSPACE_NAME = "Beyond Chat Test Workspace"
 
 
 def utc_now() -> str:
@@ -161,10 +162,10 @@ class LocalStore:
             return
 
         now = utc_now()
-        workspace_id = settings.local_workspace_id
+        workspace_id = TEST_WORKSPACE_ID
         connection.execute(
             "INSERT INTO workspace (id, name, created_at) VALUES (?, ?, ?)",
-            (workspace_id, settings.local_workspace_name, now),
+            (workspace_id, TEST_WORKSPACE_NAME, now),
         )
 
         reminders = [
@@ -489,6 +490,8 @@ class LocalStore:
         preview_image: str | None,
         artifact_id: str | None = None,
         content_json: Any | None = None,
+        source_run_id: str | None = None,
+        storage_path: str | None = None,
     ) -> dict[str, Any]:
         record_id = artifact_id or str(uuid.uuid4())
         now = utc_now()
@@ -582,12 +585,14 @@ class LocalStore:
 
     def add_run_step(
         self,
+        workspace_id: str,
         run_id: str,
         step_name: str,
         tool_used: str,
         status: str,
         input_payload: Any,
         output_payload: Any,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         with self.connect() as connection:
             connection.execute(

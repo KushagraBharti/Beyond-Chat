@@ -1,32 +1,25 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { bootstrapAuth } from "../lib/api";
-import { isMvpBypassSessionActive } from "../lib/mvpBypass";
-import { isMvpBypassEnabled, supabase } from "../lib/supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  mvpBypassActive: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
   loading: true,
-  mvpBypassActive: false,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mvpBypassActive, setMvpBypassActive] = useState(false);
 
   useEffect(() => {
-    const bypassOn = isMvpBypassEnabled && isMvpBypassSessionActive();
-    setMvpBypassActive(bypassOn);
-
     if (!supabase) {
       setLoading(false);
       return;
@@ -63,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   return (
-    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading, mvpBypassActive }}>
+    <AuthContext.Provider value={{ session, user: session?.user ?? null, loading }}>
       {children}
     </AuthContext.Provider>
   );

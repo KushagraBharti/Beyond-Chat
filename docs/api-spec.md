@@ -1,44 +1,36 @@
-# Beyond Chat API Specification
+# Beyond Chat API Spec
 
-## Authentication Model
+## Runtime Contract
 
-- Public routes:
+- Public:
   - `GET /`
   - `GET /api/health`
   - `GET /api/status/providers`
-- Protected routes require one of:
+- Protected routes require:
   - `Authorization: Bearer <supabase_access_token>`
-  - local bypass headers when `ALLOW_LOCAL_AUTH_BYPASS=true`
-- Request context is resolved in middleware and enforced through the shared dependency layer.
-- Optional workspace override header:
+- Optional active-workspace header:
   - `X-Workspace-Id: <workspace-id>`
 
-## Normalized Response Conventions
+Hosted runtime authentication is Supabase-only. Local bypass is not part of the supported API contract.
 
-- Most JSON routes return either:
-  - `{ "data": ..., "error": null }`
-  - route-specific payloads such as `{ "workspace": ... }` or `{ "items": [...] }`
-- Export routes return raw file responses.
-- Provider-backed routes return explicit readiness states instead of failing silently.
+## Response Conventions
+
+- Some routes use `{ "data": ..., "error": null }`
+- Some routes use route-specific payloads like `{ "workspace": ... }` or `{ "items": [...] }`
+- Export routes return raw file responses
 
 ## Public Routes
 
 ### `GET /`
 
-- Purpose: basic root banner
-- Response:
-
 ```json
 {
-  "app": "Beyond Chat API",
+  "service": "beyond-chat-backend",
   "status": "ok"
 }
 ```
 
 ### `GET /api/health`
-
-- Purpose: backend liveness check
-- Response:
 
 ```json
 {
@@ -49,9 +41,6 @@
 
 ### `GET /api/status/providers`
 
-- Purpose: expose normalized provider availability
-- Response shape:
-
 ```json
 {
   "providers": {
@@ -59,42 +48,31 @@
       "status": "connected",
       "label": "OpenRouter",
       "details": "..."
-    },
-    "tavily": {
-      "status": "not_configured",
-      "label": "Tavily",
-      "details": "..."
-    },
-    "googleCalendar": {
-      "status": "disconnected",
-      "label": "Google Calendar",
-      "details": "..."
     }
   }
 }
 ```
 
-Status values:
+Valid provider states:
 
 - `connected`
 - `disconnected`
 - `not_configured`
 - `error`
 
-## Auth and Workspace Routes
+## Auth And Workspace
 
 ### `POST /api/auth/bootstrap`
 
-- Purpose: ensure the current user has a profile, workspace, and membership
-- Auth: required in production
-- Response:
+Ensures the authenticated user resolves to a workspace.
 
 ```json
 {
   "data": {
     "workspace": {
       "id": "workspace-id",
-      "name": "Beyond Chat Workspace"
+      "name": "Beyond Chat Workspace",
+      "created_at": "2026-04-09T00:00:00Z"
     },
     "role": "admin",
     "created": true,
@@ -106,65 +84,67 @@ Status values:
 
 ### `GET /api/workspace`
 
-- Purpose: fetch active workspace metadata and auth mode information
-- Auth: required in production
-- Response:
-
 ```json
 {
   "workspace": {
     "id": "workspace-id",
     "name": "Beyond Chat Workspace",
-    "created_at": "2026-03-11T12:00:00Z"
+    "created_at": "2026-04-09T00:00:00Z"
   },
-  "mvpBypassEnabled": true,
-  "authSource": "local_bypass"
+  "authSource": "supabase_jwt"
 }
 ```
 
 ### `GET /api/reminders`
-
-- Purpose: fetch reminder cards for the workspace home surface
-- Auth: required in production
-- Response:
 
 ```json
 {
   "items": [
     {
       "id": "reminder-id",
-      "title": "Follow up on artifact export",
-      "dueAt": "2026-03-12T09:00:00Z"
+      "title": "Follow up",
+      "note": "Review the latest artifact",
+      "due_at": "2026-04-10T09:00:00Z",
+      "status": "open",
+      "source": "internal",
+      "workspace_id": "workspace-id",
+      "created_at": "2026-04-09T00:00:00Z"
     }
   ]
 }
 ```
 
-## Chat Routes
+## Chat
 
 ### `GET /api/chat/threads`
 
-- Purpose: list threads for the active workspace
-- Auth: required in production
-- Response:
-
 ```json
 {
-  "items": [
+  "collections": [
+    {
+      "id": "collection-id",
+      "workspace_id": "workspace-id",
+      "kind": "project",
+      "title": "Launch"
+    }
+  ],
+  "threads": [
     {
       "id": "thread-id",
-      "title": "Market research",
-      "studio": "chat"
+      "workspace_id": "workspace-id",
+      "collection_id": "collection-id",
+      "collection_type": "project",
+      "studio": "chat",
+      "title": "Launch thread",
+      "model": "openai/gpt-4o-mini",
+      "prompt": "Summarize...",
+      "metadata": {}
     }
   ]
 }
 ```
 
 ### `POST /api/chat/threads`
-
-- Purpose: create a thread and optionally seed the first prompt
-- Auth: required in production
-- Request:
 
 ```json
 {
@@ -173,20 +153,32 @@ Status values:
   "collection_type": "chat",
   "studio": "chat",
   "model": "openai/gpt-4o-mini",
-  "prompt": "Optional first prompt"
+  "prompt": "Optional prompt"
+}
+```
+
+Response:
+
+```json
+{
+  "thread": {}
 }
 ```
 
 ### `GET /api/chat/threads/{thread_id}`
 
-- Purpose: fetch a single thread with messages
-- Auth: required in production
+Response:
+
+```json
+{
+  "thread": {
+    "id": "thread-id",
+    "messages": []
+  }
+}
+```
 
 ### `POST /api/chat/threads/{thread_id}/messages`
-
-- Purpose: append a user message and generate the assistant reply
-- Auth: required in production
-- Request:
 
 ```json
 {
@@ -195,11 +187,16 @@ Status values:
 }
 ```
 
-### `POST /api/chat/compare`
+Response:
 
-- Purpose: run the same prompt against multiple models
-- Auth: required in production
-- Request:
+```json
+{
+  "userMessage": {},
+  "assistantMessage": {}
+}
+```
+
+### `POST /api/chat/compare`
 
 ```json
 {
@@ -209,13 +206,34 @@ Status values:
 }
 ```
 
-## Run Routes
+Response:
+
+```json
+{
+  "results": [
+    {
+      "model": "openai/gpt-4o-mini",
+      "status": "completed",
+      "content": "Result text",
+      "latencyMs": 1200,
+      "error": null
+    }
+  ]
+}
+```
+
+## Runs
 
 ### `POST /api/runs`
 
-- Purpose: create a run for `writing`, `research`, `image`, `data`, `finance`, or `chat`
-- Auth: required in production
-- Request:
+Supported studios:
+
+- `chat`
+- `writing`
+- `research`
+- `image`
+- `data`
+- `finance`
 
 ```json
 {
@@ -228,30 +246,34 @@ Status values:
 }
 ```
 
-Errors:
+Response:
 
-- `400` unsupported studio
-- `503` provider not configured
+```json
+{
+  "run": {}
+}
+```
 
 ### `GET /api/runs/{run_id}`
 
-- Purpose: fetch run summary and output
-- Auth: required in production
+```json
+{
+  "run": {}
+}
+```
 
 ### `GET /api/runs/{run_id}/steps`
 
-- Purpose: fetch step timeline for a run
-- Auth: required in production
+```json
+{
+  "steps": []
+}
+```
 
-## Artifact Routes
+## Artifacts
 
 ### `POST /api/artifact`
-
 ### `POST /api/artifacts`
-
-- Purpose: create or update an artifact record
-- Auth: required in production
-- Request:
 
 ```json
 {
@@ -263,43 +285,70 @@ Errors:
   "content_format": "markdown",
   "metadata": {},
   "tags": ["launch"],
-  "preview_image": null
+  "preview_image": null,
+  "content_json": null,
+  "source_run_id": null,
+  "storage_path": null
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "artifact-id"
+  },
+  "error": null
 }
 ```
 
 ### `GET /api/artifact/search`
 
-- Purpose: search/filter artifacts
-- Auth: required in production
-- Query params:
-  - `q`
-  - `studio`
-  - `type`
-  - `tags`
-  - `date_from`
-  - `date_to`
-  - `limit`
+Query params:
+
+- `q`
+- `studio`
+- `type`
+- `tags`
+- `date_from`
+- `date_to`
+- `limit`
+
+Response:
+
+```json
+{
+  "data": []
+}
+```
 
 ### `GET /api/artifacts`
 
-- Purpose: list artifacts in item-array form
-- Auth: required in production
-- Query params: same as `/api/artifact/search`
+Response:
+
+```json
+{
+  "items": []
+}
+```
 
 ### `GET /api/artifact/{artifact_id}`
-
 ### `GET /api/artifacts/{artifact_id}`
 
-- Purpose: fetch a single artifact
-- Auth: required in production
+Response:
+
+```json
+{
+  "data": {
+    "id": "artifact-id"
+  },
+  "error": null
+}
+```
 
 ### `POST /api/artifact/{artifact_id}/export`
-
 ### `POST /api/artifacts/{artifact_id}/export`
-
-- Purpose: export an artifact as Markdown or PDF
-- Auth: required in production
-- Request:
 
 ```json
 {
@@ -307,25 +356,27 @@ Errors:
 }
 ```
 
-- Response:
-  - `text/markdown`
-  - `application/pdf`
+Response content types:
+
+- `text/markdown`
+- `application/pdf`
 
 ### `POST /api/export`
 
-- Purpose: backward-compatible export alias that accepts `artifact_id` in the body
-- Auth: required in production
+Legacy export alias:
 
-## Storage Routes
+```json
+{
+  "artifact_id": "artifact-id",
+  "format": "pdf"
+}
+```
+
+## Storage
 
 ### `POST /api/storage/artifacts/upload`
 
-- Purpose: upload a file into the configured Supabase Storage bucket under a workspace-scoped path
-- Auth: required in production
-- Request: multipart form with:
-  - `file`
-  - optional query param `artifact_id`
-- Response:
+Multipart upload with `file`, optional `artifact_id`.
 
 ```json
 {
@@ -341,10 +392,6 @@ Errors:
 
 ### `POST /api/storage/artifacts/signed-url`
 
-- Purpose: create a time-limited read URL for an existing storage object in the active workspace
-- Auth: required in production
-- Request:
-
 ```json
 {
   "path": "workspace-id/artifact-id/file.png",
@@ -352,27 +399,30 @@ Errors:
 }
 ```
 
-## Google Calendar Integration Routes
+```json
+{
+  "data": {
+    "bucket": "artifacts",
+    "path": "workspace-id/artifact-id/file.png",
+    "signedUrl": "https://...",
+    "expiresIn": 3600
+  },
+  "error": null
+}
+```
+
+## Integrations
 
 ### `POST /api/integrations/google-calendar/connect-start`
-
-- Purpose: return a Google OAuth connect URL when the provider is in a disconnected state
-- Auth: required in production
-
 ### `GET /api/integrations/google-calendar/status`
-
-- Purpose: fetch the normalized Google Calendar provider state
-- Auth: required in production
-
 ### `GET /api/integrations/google-calendar/events`
 
-- Purpose: fetch agenda items for the home dashboard
-- Auth: required in production
+These remain scaffolded integration endpoints behind authenticated context.
 
 ## Error Model
 
+- `400` malformed input or unsupported studio
 - `401` missing or invalid authentication
 - `403` workspace/path mismatch
 - `404` missing artifact or run
-- `400` malformed input or unsupported studio
-- `503` provider or Supabase service configuration missing
+- `503` missing provider or Supabase configuration

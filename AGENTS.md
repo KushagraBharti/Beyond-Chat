@@ -14,9 +14,9 @@ Your role as an agent is to make safe, minimal, correct changes that move the re
 
 ### Package/runtime policy
 
-- Frontend must use **Bun only**.
+- Frontend must use **npm**.
 - Backend must use **uv only**.
-- Never use `npm`, `yarn`, or `pnpm` for frontend dependency management.
+- Never use `bun`, `yarn`, or `pnpm` for frontend dependency management.
 - Never use `pip` for backend dependency management.
 
 ### Scope discipline
@@ -40,7 +40,7 @@ Every agent session must begin with this sequence:
 1. Read `README.md` and this file.
 2. Import/load **ALL available agent skills** before planning or coding.
 3. Inspect repository state and active files related to the request.
-4. Confirm toolchain compliance (Bun frontend, uv backend) for any command you run.
+4. Confirm toolchain compliance (npm frontend, uv backend) for any command you run.
 
 ### Skill-loading requirement
 
@@ -52,7 +52,7 @@ Agents must actively load all discoverable skills from the local agent skill reg
 
 ## 4) Repository Map
 
-- `frontend/` → production frontend (React + TypeScript + Vite, managed with Bun)
+- `frontend/` → production frontend (React + TypeScript + Vite, managed with npm)
 - `frontend-mock/` → visual mock variants / design sandbox
 - `backend/` → FastAPI backend (managed with uv)
 - `backend/sql-related-files/` → SQL and schema-related assets
@@ -61,7 +61,7 @@ Agents must actively load all discoverable skills from the local agent skill reg
 
 - Frontend: React, TypeScript, Vite
 - Backend: FastAPI, Uvicorn
-- JS tooling: Bun
+- JS tooling: npm
 - Python tooling: uv
 - Planned platform integrations: Supabase, OpenRouter, Vercel
 
@@ -81,9 +81,9 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 
 ```powershell
 cd frontend
-bun install
-bun run dev --host 127.0.0.1 --port 5173
-bun run build
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173
+npm run build
 ```
 
 ## 7) API/Connectivity Baseline
@@ -109,7 +109,7 @@ When implementing a task:
 
 After changes, run what is relevant:
 
-- Frontend code changed → `bun run build` in `frontend/`
+- Frontend code changed → `npm run build` in `frontend/`
 - Backend code changed → start/verify backend endpoint(s) using `uv run ...`
 - Cross-stack changes → verify `/api/health` through frontend and backend URLs
 
@@ -133,7 +133,7 @@ Do not attempt to fix unrelated failing tests/issues unless explicitly asked.
 A task is done when:
 
 - Requested behavior is implemented correctly.
-- Toolchain policy (Bun/uv) is fully respected.
+- Toolchain policy (npm/uv) is fully respected.
 - Relevant validation checks pass.
 - Documentation is updated when needed.
 - No unrelated code was modified.

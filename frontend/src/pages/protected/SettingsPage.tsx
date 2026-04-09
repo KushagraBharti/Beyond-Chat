@@ -6,8 +6,6 @@ import {
   type ProviderRecord,
 } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
-import { isMvpBypassSessionActive } from "../../lib/mvpBypass";
-import { isMvpBypassEnabled } from "../../lib/supabaseClient";
 import {
   MotionCard,
   PageSection,
@@ -17,7 +15,7 @@ import {
 } from "../../components/protectedUi";
 
 export default function SettingsPage() {
-  const { user, mvpBypassActive } = useAuth();
+  const { user } = useAuth();
   const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>({});
   const [status, setStatus] = useState("Ready");
@@ -57,8 +55,6 @@ export default function SettingsPage() {
     }
   };
 
-  const bypassActive = mvpBypassActive || (isMvpBypassEnabled && isMvpBypassSessionActive());
-
   return (
     <div className="page-wrap">
       <PageSection
@@ -85,15 +81,15 @@ export default function SettingsPage() {
             <div className="list-row">
               <div>
                 <strong>User</strong>
-                <p>{user?.email ?? "MVP Preview User"}</p>
+                <p>{user?.email ?? "Authenticated user"}</p>
               </div>
             </div>
             <div className="list-row">
               <div>
                 <strong>Auth mode</strong>
-                <p>{bypassActive ? "MVP bypass active" : "Supabase session"}</p>
+                <p>Supabase session</p>
               </div>
-              <StatusBadge status={bypassActive ? "disconnected" : "connected"} />
+              <StatusBadge status="connected" />
             </div>
           </div>
         </MotionCard>
