@@ -171,6 +171,7 @@ export default function WritingEditorPage() {
                 return {
                   ...payload,
                   content_format: "rich_text",
+                  content_json: editor.getJSON(),
                   metadata: {
                     ...(payload.metadata ?? {}),
                     tiptap: editor.getJSON(),

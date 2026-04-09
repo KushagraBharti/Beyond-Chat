@@ -125,6 +125,9 @@ export interface CreateArtifactInput {
   metadata?: Record<string, unknown>;
   tags?: string[];
   preview_image?: string | null;
+  content_json?: unknown;
+  source_run_id?: string | null;
+  storage_path?: string | null;
 }
 
 export function getStoredWorkspaceId() {
