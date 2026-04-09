@@ -1,57 +1,59 @@
 # Beyond Chat
 
-Beyond Chat is a modular AI workspace built for real work, not endless chat threads. Instead of forcing every workflow into one scrolling conversation, the product organizes tasks into purpose-built studios (writing, research, image, data, finance) and stores outputs as reusable artifacts. The goal is to help users iterate faster, stay organized, and collaborate around saved results.
+Beyond Chat is a modular AI workspace built for real work, not endless chat threads. Instead of forcing every workflow into one scrolling conversation, the product organizes work into purpose-built studios such as writing, research, image, data, finance, and chat, then stores outputs as reusable artifacts.
 
-This repository currently contains the initial full-stack foundation: a React frontend, a FastAPI backend, and a strict development policy around tooling. If you are joining the project, this README is the single source of truth for local setup and day-to-day commands.
+This repository contains the current full-stack product surface:
+
+- `frontend/` React + TypeScript + Vite product app
+- `backend/` FastAPI API and workflow orchestration
+- `backend/sql-related-files/` canonical Supabase/Postgres schema handoff
+
+The hosted runtime path now uses Supabase for auth, Postgres persistence, and storage. The old SQLite store remains in the repo only as a development fallback for local bypass sessions and tests.
 
 ## Core Principles
 
-Beyond Chat is designed around three practical principles:
-
-- Work should be structured by intent (studio-based), not buried in long chats.
+- Work should be structured by intent, not buried in long chats.
 - Outputs should be saved as artifacts that can be searched, reused, and exported.
-- The platform should support fast model iteration, including side-by-side compare.
+- The app should support fast model iteration, including compare flows.
 
 ## Tech Stack
 
-The project uses the following baseline technologies:
-
 - Frontend: React + TypeScript + Vite
 - Backend: FastAPI + Uvicorn
-- Python environment/dependency manager: uv
-- JavaScript package manager/runtime: Bun
-
-Planned integrations (as the project grows): Supabase (Auth/DB/Storage), OpenRouter (multi-model), Vercel (deployment).
+- Python tooling: uv
+- JavaScript tooling: Bun
+- Hosted runtime: Supabase Auth + Postgres + Storage
+- AI provider: OpenRouter
+- Search provider: Tavily
 
 ## Repository Structure
 
-The workspace is organized by role:
+- `frontend/` production frontend
+- `frontend-mock/` design playground / visual variants
+- `backend/` production backend
+- `backend/sql-related-files/` canonical SQL for workspace, chat, artifacts, runs, reminders, RLS, and storage
+- `docs/` architecture and API notes
+- `manual.md` manual setup steps for Supabase, env, storage, and providers
 
-- `frontend/` is the actual product frontend.
-- `frontend-mock/` is a design playground for visual variants and experiments.
-- `backend/` is the product backend API.
-- `backend/sql-related-files/` is reserved for schema and SQL artifacts.
+Important project docs:
 
-Key documentation added during implementation:
-
-- `spec.md` → full product specification
-- `manual.md` → human-run setup tasks (Supabase, storage, OAuth, env)
-- `completed.md` → implementation summary
-- `blocker.md` → remaining external blockers
-- `docs/` → architecture diagram, API contracts, API spec, and sprint plan
-
-If you are building product features, work in `frontend/` and `backend/`. Keep visual prototyping in `frontend-mock/`.
+- `spec.md`
+- `manual.md`
+- `completed.md`
+- `blocker.md`
+- `docs/api-spec.md`
+- `docs/system-architecture.md`
 
 ## Prerequisites
 
-Install these tools before cloning/running the project:
+Install these before running the repo:
 
 - Git
-- Bun (latest stable)
-- Python 3.11+ (3.12+ recommended)
-- uv (latest stable)
+- Bun
+- Python 3.11+
+- uv
 
-On Windows, confirm installation with:
+Confirm on Windows:
 
 ```powershell
 git --version
@@ -60,68 +62,126 @@ python --version
 uv --version
 ```
 
-## First-Time Setup (Fresh Clone)
-
-After cloning, set up backend first, then frontend.
+## First-Time Setup
 
 Create local env files first:
 
-- `backend/.env` (copy from `backend/env.example`)
-- `frontend/.env` (copy from `frontend/env.example`)
+- `backend/.env` from `backend/env.example`
+- `frontend/.env.local` from `frontend/env.example`
 
-### 1) Clone the repository
+Clone the repo:
 
 ```powershell
 git clone https://github.com/KushagraBharti/Beyond-Chat
 cd Beyond-Chat
 ```
 
-### Terminal A: backend
+Backend:
 
 ```powershell
 cd backend
-uv venv BeyondChat
-.\BeyondChat\Scripts\Activate.ps1
-uv sync --active
+$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
+uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-`uv sync` creates/updates a local virtual environment from `pyproject.toml` and `uv.lock`. Do not install backend dependencies with `pip`.
-
-### Terminal B: frontend
+Frontend:
 
 ```powershell
 cd frontend
 bun install
-bun run dev
+bun run dev --host 127.0.0.1 --port 5173
 ```
 
-## Frontend ↔ Backend Communication
+Do not install frontend dependencies with `npm`, `yarn`, or `pnpm`.
+Do not install backend dependencies with `pip`.
 
-The connection path is intentionally simple. The frontend requests `GET /api/health`, and Vite proxies `/api/*` traffic from port `5173` to backend port `8000`.
+## Frontend to Backend Communication
 
-Local URLs (to ensure everything works):
+The frontend uses the Vite dev proxy for `/api/*` and expects the backend on `127.0.0.1:8000`.
 
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:8000`
-- Backend health: `http://localhost:8000/api/health`
+Local URLs:
+
+- Frontend: `http://127.0.0.1:5173`
+- Backend: `http://127.0.0.1:8000`
+- Health: `http://127.0.0.1:8000/api/health`
 
 ## Available Commands
 
-### Frontend (`frontend/`)
+Frontend:
 
-- `bun install` → install/update dependencies
-- `bun run dev` → start local dev server
-- `bun run build` → production build check
-- `bun run lint` → lint source files
-- `bun run test` → run Vitest frontend tests
+- `bun install`
+- `bun run dev --host 127.0.0.1 --port 5173`
+- `bun run build`
+- `bun run test`
 
-### Backend (`backend/`)
+Backend:
 
-- `uv sync --active` → sync dependencies from lock/config for the open virtual environment
-- `uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000` → run API locally
-- `uv run pytest` → run backend tests
+- `uv sync`
+- `uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000`
+- `uv run pytest`
+
+## Runtime Persistence
+
+Hosted runtime data now lives in Supabase/Postgres for:
+
+- workspace lookup and membership-backed workspace resolution
+- chat collections, threads, and messages
+- artifacts
+- runs and run steps
+- reminders
+
+Supabase Storage is used for uploaded artifact files and generated image outputs.
+
+The SQLite store in `backend/src/store.py` is now a legacy development fallback used only for local bypass and test-style flows. It is not the intended hosted source of truth.
+
+## Canonical Supabase SQL
+
+Use the SQL files in `backend/sql-related-files/` as the source of truth for the live schema. Apply them in order as documented in `manual.md`.
+
+Important: `backend/supabase/migrations/` is older and should not be treated as the canonical schema for the current hosted runtime.
+
+## Required Environment Variables
+
+Backend runtime:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL`
+- `SUPABASE_STORAGE_BUCKET`
+
+Frontend runtime:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_API_BASE_URL` if not using the default local proxy
+
+Optional providers:
+
+- `OPENROUTER_API_KEY`
+- `TAVILY_API_KEY`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+
+Development-only bypass:
+
+- `ALLOW_LOCAL_AUTH_BYPASS=true`
+- `VITE_ENABLE_MVP_BYPASS=true`
+
+## Deployment Notes
+
+For deployment, configure the app around Supabase Auth, Postgres, and Storage. The backend should not depend on a local SQLite file in hosted environments.
+
+Before deployment:
+
+1. Apply the Supabase SQL in `backend/sql-related-files/` in order.
+2. Set the backend and frontend Supabase environment variables.
+3. Configure the `artifacts` storage bucket and policies.
+4. Disable local bypass in production.
+5. Verify login, workspace bootstrap, chat, runs, artifact save/load, and export flows.
 
 ## Summary
 
-Beyond Chat is built to become a practical AI work platform with studio-based UX and artifact-first workflows. The repo is now initialized with a functioning frontend-backend link and strict Bun/uv standards.
+Beyond Chat is a studio-based AI workspace with artifact-first workflows. The repo now aligns its hosted runtime with Supabase/Postgres while keeping a clearly isolated local fallback path for development.

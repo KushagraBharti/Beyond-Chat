@@ -69,6 +69,7 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
             "content": "Artifact body",
             "summary": "Short summary",
             "content_format": "markdown",
+            "content_json": {"type": "doc", "content": [{"type": "paragraph", "content": [{"type": "text", "text": "Artifact body"}]}]},
             "metadata": {"source": "pytest"},
             "tags": ["test"],
             "preview_image": None,
@@ -76,10 +77,12 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
     )
     assert create_response.status_code == 200
     artifact = create_response.json()["data"]
+    assert artifact["contentJson"]["type"] == "doc"
 
     get_response = client.get(f"/api/artifact/{artifact['id']}")
     assert get_response.status_code == 200
     assert get_response.json()["data"]["title"] == "API Test Artifact"
+    assert get_response.json()["data"]["contentJson"]["type"] == "doc"
 
     export_response = client.post(
         f"/api/artifact/{artifact['id']}/export",
@@ -89,7 +92,9 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
     assert export_response.headers["content-type"].startswith("text/markdown")
 
 
-def test_storage_signed_url_requires_supabase_configuration(client: TestClient):
+def test_storage_signed_url_requires_supabase_configuration(client: TestClient, monkeypatch):
+    monkeypatch.setattr("src.main.supabase_service.create_signed_artifact_url", lambda *args, **kwargs: None)
+
     response = client.post(
         "/api/storage/artifacts/signed-url",
         json={"path": "local-workspace/example/file.txt", "expires_in": 600},
@@ -238,7 +243,8 @@ def test_run_unsupported_studio_returns_400(client: TestClient):
 
 
 def test_create_run_delegates_to_workflow_module(client: TestClient, monkeypatch):
-    async def fake_run_studio_workflow(*, studio, run_id, workspace_id, prompt, model, options, access_token):
+    async def fake_run_studio_workflow(*, data_store, studio, run_id, workspace_id, prompt, model, options, access_token):
+        assert data_store is not None
         assert studio == "writing"
         assert workspace_id
         assert run_id

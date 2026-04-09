@@ -1,8 +1,8 @@
 # Manual Setup Guide
 
-This file lists the human-run tasks that cannot be completed entirely from the repository.
+This file lists the human-run setup tasks that are still required outside the codebase.
 
-## 1. Supabase SQL Execution
+## 1. Apply the Canonical Supabase SQL
 
 Run these files in the Supabase SQL editor in this order:
 
@@ -15,26 +15,34 @@ Run these files in the Supabase SQL editor in this order:
 7. `backend/sql-related-files/006_artifact_extensions.sql`
 8. `backend/sql-related-files/007_rls_policies.sql`
 9. `backend/sql-related-files/008_storage_setup.sql`
+10. `backend/sql-related-files/009_cleanup_and_fixes.sql`
+11. `backend/sql-related-files/010_reminders_runtime.sql`
 
-Why this order:
+Why this order matters:
 
-- workspace tables must exist before workspace-scoped tables and policies
-- the workspace bootstrap function and auth trigger must run immediately after the base workspace schema
-- artifacts and runs must exist before the extension and policy layers
-- storage policies should run only after the workspace RLS helpers exist
+- workspace and membership tables must exist before workspace-scoped tables and policies
+- the workspace bootstrap function and auth trigger must exist before real users sign in
+- chat, artifacts, runs, and run_steps must exist before extension columns and RLS
+- storage policies rely on workspace helper functions
+- reminders are now a workspace-scoped hosted table and must be created before the dashboard uses them
+
+Important:
+
+- Treat `backend/sql-related-files/` as the canonical schema source for the hosted runtime
+- Do not rely on `backend/supabase/migrations/` as the source of truth for the current app state
 
 ## 2. Supabase Auth Configuration
 
 In the Supabase dashboard:
 
-1. Open `Authentication -> URL Configuration`.
-2. Add the production site URL and local URL.
+1. Open `Authentication -> URL Configuration`
+2. Add your local frontend URL and deployed frontend URL
 3. Confirm redirect URLs include:
    - `http://127.0.0.1:5173`
-   - deployed frontend URL
-4. Decide whether email confirmation should be enabled.
+   - your deployed frontend URL
+4. Decide whether email confirmation should be enabled for your environment
 
-Required environment variables:
+Required auth/runtime env vars:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
@@ -48,67 +56,93 @@ Required environment variables:
 
 Copy `backend/env.example` to `backend/.env` and fill:
 
-- `ALLOW_LOCAL_AUTH_BYPASS=true` for local-first work
-- `ALLOW_LOCAL_AUTH_BYPASS=false` for hardened environments
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL`
+- `SUPABASE_STORAGE_BUCKET`
 - `OPENROUTER_API_KEY`
 - `TAVILY_API_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI`
-- Supabase variables listed above
+
+Development-only settings:
+
+- `ALLOW_LOCAL_AUTH_BYPASS=true` for local bypass work
+- `ALLOW_LOCAL_AUTH_BYPASS=false` for hardened or hosted environments
+
+Hosted runtime note:
+
+- The backend now expects Supabase/Postgres to be the live persistence path for workspaces, chat, artifacts, runs, run steps, and reminders
+- SQLite is no longer the intended hosted data store
 
 ## 4. Frontend Environment Setup
 
-Copy `frontend/env.example` to `frontend/.env` and fill:
+Copy `frontend/env.example` to `frontend/.env.local` and fill:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_API_BASE_URL` if frontend and backend are not using the default local proxy path
+- `VITE_API_BASE_URL` if frontend and backend are not on the default local proxy path
+
+Development-only:
+
+- `VITE_ENABLE_MVP_BYPASS=true` when you want bypass mode locally
 - `VITE_ENABLE_MVP_BYPASS=false` when you want full auth enforcement
 
 ## 5. Supabase Storage Bucket
 
-Create the `artifacts` bucket manually in Supabase Storage.
+Create the `artifacts` bucket in Supabase Storage or confirm that it already exists.
 
-Suggested configuration:
+Recommended configuration:
 
 - Bucket name: `artifacts`
 - Access: private
-- Upload path convention: `workspace_id/artifact_id/...`
+- Upload path convention for files: `workspace_id/artifact_id/...`
+- Upload path convention for generated images: `workspace_id/images/run_id/...`
 
-Recommended follow-up:
+Then:
 
-- Execute `backend/sql-related-files/008_storage_setup.sql`.
-- Confirm storage object paths follow `workspace_id/artifact_id/file-name.ext`.
-- Add storage RLS/policies so only workspace members can access their own files.
-- Confirm the backend `SUPABASE_STORAGE_BUCKET` value matches the bucket name.
+1. Execute `backend/sql-related-files/008_storage_setup.sql`
+2. Confirm the bucket name matches `SUPABASE_STORAGE_BUCKET`
+3. Confirm signed URL generation works for paths inside the active workspace
 
-## 5.5. Backend Runtime for Validation
+## 6. Local Runtime Validation
 
-Use Python 3.11 for local backend validation to match the dependency graph used by the repo:
+Backend:
 
 ```powershell
 cd backend
-$env:UV_PROJECT_ENVIRONMENT=".uv311-test-env"
-uv sync --python 3.11 --link-mode copy
-uv run --python 3.11 uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
+$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')
+uv sync
+uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## 6. Google Calendar OAuth
+Frontend:
+
+```powershell
+cd frontend
+bun install
+bun run dev --host 127.0.0.1 --port 5173
+```
+
+## 7. Google Calendar OAuth
+
+This integration is still partial, but if you want the connect flow to open correctly you still need Google OAuth credentials.
 
 In Google Cloud Console:
 
-1. Create a project or use an existing one.
-2. Enable the Google Calendar API.
-3. Create OAuth credentials.
-4. Add the backend redirect URI:
+1. Create or choose a project
+2. Enable the Google Calendar API
+3. Create OAuth credentials
+4. Add backend redirect URIs:
    - `http://127.0.0.1:8000/api/integrations/google-calendar/callback`
-   - production backend callback if applicable
+   - your deployed backend callback URL
 5. Copy:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
 
-## 7. OpenRouter and Tavily
+## 8. OpenRouter and Tavily
 
 Generate and add:
 
@@ -117,32 +151,34 @@ Generate and add:
 
 Verify by:
 
-- testing chat/compare against OpenRouter
-- testing research/finance search against Tavily
+- testing chat or compare against OpenRouter
+- testing research/finance runs with Tavily enabled
 
-## 8. Production Deployment Checks
+## 9. Production Deployment Checks
 
 Before production:
 
-1. Disable local auth bypass on frontend and backend.
-2. Verify JWT-protected backend routes with a real Supabase session.
-3. Confirm `public.ensure_workspace_for_user(...)` and the `auth.users` trigger insert rows into:
+1. Disable local bypass on frontend and backend
+2. Verify JWT-protected backend routes with a real Supabase session
+3. Confirm `public.ensure_workspace_for_user(...)` and the `auth.users` trigger create rows in:
    - `user_profiles`
    - `workspaces`
    - `workspace_members`
-4. Confirm artifact export works behind auth.
-5. Confirm storage uploads work against the created bucket.
+4. Confirm new authenticated users can enter the dashboard with an empty workspace
+5. Confirm chat, artifacts, runs, and reminders are persisting in Supabase/Postgres
+6. Confirm artifact export works behind auth
+7. Confirm storage uploads work against the `artifacts` bucket
 
-## 9. Recommended Verification Flow
+## 10. Recommended Verification Flow
 
-After manual setup is complete:
+After setup is complete:
 
-1. Sign up a new user.
-2. Confirm a workspace and workspace member row are created.
-3. Log in again and verify session persistence.
-4. Save an artifact and confirm it appears in the library.
-5. Export the artifact as Markdown and PDF.
-6. Upload a file and confirm it lands under `workspace_id/artifact_id/...`.
-7. Run compare mode with real model credentials.
-8. Run research and finance with Tavily enabled.
-9. Verify Google Calendar connect flow opens correctly.
+1. Sign up a new user
+2. Confirm a workspace and workspace member row are created
+3. Log in again and verify session persistence
+4. Create a chat thread and send a message
+5. Create a writing document, save it, reopen it, and confirm rich content loads back
+6. Run research or finance and save the output as an artifact
+7. Run compare mode and save one result as an artifact
+8. Export an artifact as Markdown and PDF
+9. Generate an image if provider/storage credentials are configured

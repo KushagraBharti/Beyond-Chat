@@ -1,4 +1,4 @@
-# System Architecture Diagram
+# System Architecture
 
 ```mermaid
 flowchart LR
@@ -6,25 +6,31 @@ flowchart LR
     FE --> Auth["Supabase Auth Client"]
     FE --> API["FastAPI Backend"]
 
-    API --> Local["Local SQLite Store"]
+    API --> Runtime["Runtime Store Router"]
+    Runtime --> PG["Supabase Postgres"]
+    Runtime --> Local["Legacy SQLite Fallback (local bypass only)"]
+
     API --> OR["OpenRouter"]
     API --> Tavily["Tavily Search"]
-    API --> Google["Google Calendar OAuth / Events"]
-    API --> SB["Supabase Postgres + Storage"]
+    API --> Google["Google Calendar Connect Scaffolding"]
+    API --> Storage["Supabase Storage"]
 
-    SB --> AuthUsers["auth.users"]
-    SB --> PublicTables["public.workspaces / workspace_members / artifacts / runs / run_steps / chat_*"]
+    PG --> Workspace["workspaces / workspace_members / user_profiles"]
+    PG --> Chat["chat_collections / chat_threads / chat_messages"]
+    PG --> Work["artifacts / runs / run_steps / reminders"]
 
-    FE --> Studios["Home / Chat / Writing / Research / Image / Data / Finance / Artifacts / Settings"]
+    FE --> Studios["Dashboard / Chat / Writing / Research / Image / Data / Finance / Artifacts / Settings"]
     Studios --> Context["Context Builder"]
-    Studios --> Runs["Runs + Run Steps"]
-    Studios --> Artifacts["Artifact Library"]
+    Studios --> Runs["Run timelines + saved outputs"]
+    Studios --> Library["Artifact Library"]
 ```
 
 ## Notes
 
-- The frontend is the primary workspace shell and studio UI.
-- Supabase Auth is the intended production session source.
-- FastAPI owns orchestration, exports, provider status, runs, compare, and workspace bootstrap logic.
-- Local SQLite keeps development unblocked before Supabase setup is fully complete.
-- Supabase Postgres and Storage remain the intended production persistence layer.
+- The frontend is the main workspace shell and studio UI.
+- Supabase Auth is the primary hosted session source.
+- FastAPI owns orchestration, compare, exports, provider status, run execution, and workspace bootstrap.
+- `src/runtime_store.py` now routes authenticated hosted requests to Supabase/Postgres.
+- The legacy SQLite store remains only for local bypass and local test-style fallback flows.
+- Supabase Storage is used for artifact uploads and generated image files.
+- Google Calendar remains scaffolded; the hosted deployment path does not depend on it.
