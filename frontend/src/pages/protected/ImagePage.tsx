@@ -41,6 +41,7 @@ export default function ImagePage() {
   const [freshImages, setFreshImages] = useState<FreshImage[]>([]);
   const [status, setStatus] = useState("Ready");
   const [loading, setLoading] = useState(false);
+  const [modalUrl, setModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -199,7 +200,14 @@ export default function ImagePage() {
                   <div className="image-gallery-grid">
                     {freshImages.map((item) => (
                       <div key={item.id} className="image-gallery-card">
-                        <div className="image-gallery-preview">
+                        <div
+                          className="image-gallery-preview image-gallery-preview--clickable"
+                          onClick={() => setModalUrl(item.url)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => e.key === "Enter" && setModalUrl(item.url)}
+                          aria-label="View full size"
+                        >
                           <img
                             src={item.url}
                             alt={item.prompt}
@@ -241,7 +249,14 @@ export default function ImagePage() {
                   <div className="image-gallery-grid">
                     {gallery.map((item) => (
                       <div key={item.id} className="image-gallery-card">
-                        <div className="image-gallery-preview">
+                        <div
+                          className={`image-gallery-preview${item.previewImage ? " image-gallery-preview--clickable" : ""}`}
+                          onClick={() => item.previewImage && setModalUrl(item.previewImage)}
+                          role={item.previewImage ? "button" : undefined}
+                          tabIndex={item.previewImage ? 0 : undefined}
+                          onKeyDown={(e) => e.key === "Enter" && item.previewImage && setModalUrl(item.previewImage)}
+                          aria-label={item.previewImage ? "View full size" : undefined}
+                        >
                           {item.previewImage ? (
                             <img
                               src={item.previewImage}
@@ -266,6 +281,23 @@ export default function ImagePage() {
           )}
         </MotionCard>
       </div>
+
+      {modalUrl ? (
+        <div
+          className="image-lightbox-overlay"
+          onClick={() => setModalUrl(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Full-size image"
+        >
+          <img
+            src={modalUrl}
+            alt="Full size preview"
+            className="image-lightbox-img"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

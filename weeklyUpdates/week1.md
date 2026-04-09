@@ -68,6 +68,37 @@
 
 ## Hours Worked
 - Total estimated time: 7 hours
+# NISHANT
+
+## Weekly Summary
+- Week 1 focused on translating the product concept into a concrete technical plan and beginning early preparation work for the implementation phase.
+- I spent time thinking through the frontend architecture — specifically how routing, protected access, and the studio page structure would be organized — so that implementation could move quickly once the team was ready to build.
+- This was also the week where I started getting more clarity on how the backend would need to support frontend actions, including how runs and artifacts would flow between the two layers.
+
+## Work Completed
+- Participated in architecture planning discussions to help define how the frontend and backend would interact.
+- Began thinking through the React Router structure for the app, including public pages, the login/signup flow, and the protected dashboard and studio routes.
+- Helped define what the protected route layer should do — redirecting unauthenticated users while preserving session state across navigation.
+- Contributed to thinking through how studio pages would be structured so each one could have its own layout and interaction model while sharing common infrastructure.
+- Evaluated how Supabase auth tokens would be passed to the backend so API endpoints could validate requests without redundant auth logic.
+- Assisted with early development environment setup to make sure the local stack could be tested end-to-end once implementation started.
+
+## Research / Technical Findings
+- React Router v6 introduces a cleaner nested routing model that is well-suited for a multi-studio app with shared layout components.
+- Protected routes work best when they are wrappers at the router level rather than checks scattered inside individual pages.
+- Passing Supabase JWT tokens via Authorization headers on API requests is the cleanest way to validate user access on the backend without duplicating session logic.
+
+## Blockers / Risks
+- The exact shape of the auth flow still depended on finalizing the Supabase project setup, which had not been completed yet.
+- The backend schema for users, workspaces, and artifacts was still evolving, which meant some frontend assumptions might need adjustment later.
+
+## Startup / Execution Notes
+- This week was mostly planning and setup, but the decisions made here shaped how the routing and auth layers would be built in the next phase.
+- Getting the protected route and session management structure right early would reduce the chance of auth-related regressions as more pages were added.
+
+## Hours Worked
+- Total estimated time: 7 hours
+
 # Harsh Kothari
 
   ## Week 1 — Environment Setup & Backend Foundation

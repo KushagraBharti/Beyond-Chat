@@ -69,6 +69,39 @@
 
 
 
+# NISHANT
+
+## Weekly Summary
+- Week 0 was focused on ideation and evaluating which product direction would actually be buildable and valuable within the semester timeline.
+- I participated in team discussions around different project concepts and helped push toward a direction that had real technical substance rather than just surface-level AI features.
+- By the end of the week, the team had aligned on the studio-based workspace concept, and I had a clearer sense of what the frontend routing structure and data flow would eventually need to look like.
+
+## Work Completed
+- Participated in project ideation discussions and helped evaluate different concepts before the team committed to Beyond Chat.
+- Contributed to thinking through how a studio-based architecture would differ from a standard chat interface.
+- Helped frame what the data model might look like at a high level, including the relationship between users, workspaces, and saved outputs.
+- Discussed how artifacts could be structured to be reusable across different studio types rather than locked to a single workflow.
+- Contributed to defining the scope of the project and identifying which features would be feasible within the semester timeline.
+
+## Research / Technical Findings
+- Standard AI chat interfaces do not preserve outputs well across sessions, which creates real friction for users trying to do multi-step work.
+- A studio-based model with explicit artifact saving makes outputs more organized and usable over time.
+- The project would need a clear separation between frontend studio surfaces and backend AI workflows to stay maintainable as it grew.
+
+## Blockers / Risks
+- The project scope was still wide open at the end of the week, so the risk of overbuilding or underscoping was real.
+- No technical direction had been committed to yet, so early architectural assumptions might need to change once the stack was chosen.
+
+## Startup / Execution Notes
+- This week was primarily about alignment and direction-setting before any implementation started.
+- Getting team consensus on the product concept early was important for making the development phase more focused.
+
+## Hours Worked
+- Total estimated time: 5 hours
+
+
+
+
 HARSH KOTHARI   
   Weekly Summary                                                                
   This week focused on researching and finalizing the technology stack for the

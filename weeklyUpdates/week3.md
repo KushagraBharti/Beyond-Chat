@@ -1,25 +1,36 @@
-Diya: Created frontend framework for the diff. studios, added ImageStudio.tsx + FinanceStudio.tsx, did not push to main yet 
+Diya: Created frontend framework for the diff. studios, added ImageStudio.tsx + FinanceStudio.tsx, did not push to main yet
 
-Nishant: 
-Frontend Work:
+# NISHANT
 
-    Setting up React Router v6 for all planned pages (Landing, Pricing, Studios, etc.).
+## Weekly Summary
+- Week 3 was the first week where planning turned into real implementation work across both the frontend and backend.
+- On the frontend, I focused on setting up React Router v6 and building the Protected Route wrapper so the app could reliably redirect unauthenticated users and enforce access control across all studio pages.
+- On the backend, I began enabling Row Level Security on the core database tables and drafting the policies that would ensure users could only access data within their own workspace.
 
-    Building the "Protected Route" wrapper to redirect unauthenticated users to /login.
+## Work Completed
+- Set up React Router v6 for all planned app pages including the landing page, pricing page, auth pages, and all studio routes.
+- Built the Protected Route wrapper component that checks for an active Supabase session and redirects unauthenticated users to the login page.
+- Configured the routing structure so the protected dashboard and studio pages were wrapped inside the auth guard without duplicating layout logic.
+- Enabled Row Level Security on all core database tables including workspaces, artifacts, runs, and run steps.
+- Drafted initial RLS policies scoped to workspace membership so users could only read and write data associated with their own workspace.
+- Began testing session persistence behavior across the new protected routes to ensure auth state was correctly restored after page refreshes.
 
-Backend Work:
+## Research / Technical Findings
+- React Router v6 nested routing with `<Outlet>` makes it straightforward to apply shared layout components to all protected pages without wrapping each one individually.
+- Supabase RLS policies work best when written against a workspace membership join table rather than user IDs directly, which makes the access rules more flexible and easier to extend.
+- Testing session persistence requires simulating real browser behaviors like page reload and direct URL navigation, not just in-app route transitions.
 
-    Enabling Row Level Security (RLS) on all core tables (workspaces, artifacts, runs, etc.).
+## Blockers / Risks
+- Finalizing the workspace membership check logic for RLS policies required additional review to ensure legitimate access was not accidentally blocked.
+- Session persistence across the new protected routes still needed further testing before changes could be pushed to main.
+- Changes were local and had not been pushed to main yet by the end of the week.
 
-    Implementing draft policies so users can only access data within their own workspaces.
+## Startup / Execution Notes
+- This week marked the transition from planning to actual implementation on both ends of the stack.
+- Getting the routing scaffold and RLS policies right early is important because both affect how every subsequent feature is built and accessed.
 
-Blockers:
-
-    Finalizing the logic for workspace membership checks to ensure RLS doesn't block legitimate access.
-
-    Testing session persistence across the new protected routes before pushing the scaffold.
-
-Status: Currently in progress; changes are local and have not been pushed to main yet.
+## Hours Worked
+- Total estimated time: 10 hours
 
 # KUSHAGRA
 

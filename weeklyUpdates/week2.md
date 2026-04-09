@@ -65,6 +65,38 @@
 
 ## Hours Worked
 - Total estimated time: 13 hours
+# NISHANT
+
+## Weekly Summary
+- Week 2 was focused on deepening the frontend architecture plan and beginning to map out the implementation work that would be needed for the routing, auth, and studio scaffold.
+- While the UI direction was being explored through mock work, I was thinking through how the technical layer underneath those interfaces would actually be built.
+- By the end of the week, I had a clearer picture of the React Router structure, the protected route setup, and how Row Level Security on the backend would work once the database was ready.
+
+## Work Completed
+- Continued planning the React Router v6 structure for the full app, mapping out all planned routes including the landing page, auth pages, and each protected studio.
+- Worked through the logic for the Protected Route wrapper component and how it should interact with the Supabase auth session.
+- Contributed to thinking through how the database schema should handle workspace membership so RLS policies could correctly scope access.
+- Helped evaluate different approaches for passing auth context from Supabase to the backend so the API layer could enforce workspace-level isolation.
+- Reviewed the UI mock work from a frontend implementation standpoint to assess which components and patterns would be needed in the real app.
+- Helped refine the overall component structure for studio pages so each studio would share a consistent layout while still supporting its own interaction model.
+
+## Research / Technical Findings
+- Supabase Row Level Security works best when policies are written against a stable workspace membership table rather than user IDs directly, because it allows group-based access control.
+- React Router v6's `<Outlet>` pattern enables shared layout wrappers like a sidebar and header to be applied to all protected routes without duplicating code.
+- Keeping auth state in a single React context and reading it inside protected route wrappers is more reliable than checking session state on each individual page.
+
+## Blockers / Risks
+- RLS policy design depended on the final database schema, which was still in progress.
+- Session handling across page refreshes required further testing to ensure Supabase tokens were being correctly restored on the client side.
+- Some of the UI mock decisions affected what the frontend component structure would eventually need to look like, so there was still some uncertainty about the final layout patterns.
+
+## Startup / Execution Notes
+- This week was still largely planning and design, but the router and auth thinking done here directly shaped the implementation that would follow in week 3.
+- Having a clear plan for protected routing and workspace-scoped access before writing code helped reduce the number of refactors needed during the build phase.
+
+## Hours Worked
+- Total estimated time: 8 hours
+
 # Harsh Kothari
 
   ## Week 2 — Supabase Auth & Session Management
