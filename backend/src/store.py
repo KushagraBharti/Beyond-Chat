@@ -10,6 +10,9 @@ from typing import Any, Iterator
 
 from .config import settings
 
+# Legacy local fallback only.
+# The hosted runtime path now uses Supabase/Postgres through runtime_store.py.
+
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
