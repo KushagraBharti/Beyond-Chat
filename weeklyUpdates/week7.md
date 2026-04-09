@@ -76,3 +76,51 @@ In addition to resolving UI inconsistencies in the navigation layer, I also work
 ## Hours Worked
 
 **Total estimated time:** 8 hours
+ HARSH KOTHARI
+                                                                                
+  Weekly Summary                                            
+                                                                                
+  - Focused on building and shipping the Model Compare Studio — the side-by-side
+   LLM comparison feature that lets users send the same prompt to multiple
+  models and see responses together.                                            
+  - Resolved merge conflicts and integration issues to get the feature merged
+  into main and deployed to Vercel.                                             
+  - Fixed backend auth flow for local development and configured environment
+  secrets (Supabase JWT, OpenRouter).                                           
+                                                            
+  Work Completed                                                                
+                                                            
+  - Built ComparePage.tsx — full UI with prompt input, toggleable model selector
+   (GPT-4o, Claude Sonnet, Gemini Flash), compare button, and side-by-side
+  results panel with loading animations and latency metadata.                   
+  - Wired the Compare Studio into the existing app routing as a lazy-loaded
+  /compare route and added it to the sidebar navigation.                        
+  - Resolved merge conflicts between the feature branch and main (which had
+  evolved significantly with new routing, API layer, and lazy loading patterns).
+  - Adapted the Compare page to use main's existing comparePrompt() API and
+  theme tokens instead of standalone implementations.                           
+  - Configured backend .env with Supabase JWT secret and OpenRouter API key.
+  - Fixed backend auth middleware to prioritize local dev bypass over JWT       
+  verification, unblocking local testing.                                       
+  - Deployed frontend changes to Vercel via push to main.                       
+                                                                                
+  Research / Technical Findings                                                 
+   
+  - Main branch already had a /api/chat/compare backend endpoint and            
+  comparePrompt() API helper — only the frontend UI was missing.
+  - Supabase JWT secret (from Dashboard > API > JWT Settings) is different from 
+  the secret API key — needed the correct one for backend token verification.   
+  - Backend auth middleware was blocking local dev when a Supabase session token
+   was present but JWT verification wasn't configured — moving the dev bypass   
+  check earlier in the flow fixed this.                     
+                                                                                
+  Blockers / Risks                                                              
+   
+  - OpenRouter API key has no credits — need to purchase credits before the     
+  Compare Studio can be fully tested end-to-end.            
+  - Backend is not deployed yet (only frontend on Vercel), so the Compare Studio
+   only works locally for now.                                                  
+   
+  Hours Worked                                                                  
+                                                            
+  - Total estimated time: ~5 hours  
