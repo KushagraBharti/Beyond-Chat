@@ -9,7 +9,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -26,7 +26,7 @@ from .providers import (
     google_calendar_events,
     provider_statuses,
 )
-from .store import store
+from .runtime_store import RuntimeStoreError, get_runtime_store
 from .supabase_service import supabase_service
 from .workflows import run_studio_workflow
 
@@ -45,6 +45,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RuntimeStoreError)
+async def runtime_store_error_handler(_request: Request, exc: RuntimeStoreError):
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
 @app.middleware("http")
@@ -120,6 +125,9 @@ class ArtifactRequest(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     tags: list[str] = Field(default_factory=list)
     preview_image: str | None = None
+    content_json: Any | None = None
+    source_run_id: str | None = None
+    storage_path: str | None = None
 
 
 class SaveRunArtifactRequest(BaseModel):
@@ -135,10 +143,6 @@ class ExportRequest(BaseModel):
 
 
 class LegacyExportRequest(ExportRequest):
-    artifact_id: str
-
-
-class DirectExportRequest(ExportRequest):
     artifact_id: str
 
 
@@ -171,22 +175,53 @@ def build_pdf(title: str, content: str) -> bytes:
 
 
 def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
-    if context.source == "supabase_jwt" and bootstrap:
-        bootstrapped = supabase_service.ensure_workspace_for_user(
+    data_store = get_runtime_store(context)
+
+    if context.source == "supabase_jwt":
+        if bootstrap:
+            bootstrapped = supabase_service.ensure_workspace_for_user(
+                context.user_id,
+                context.email,
+                context.access_token,
+            )
+            if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
+                workspace = data_store.get_workspace(bootstrapped["workspace"]["id"])
+                if workspace is None:
+                    raise RuntimeStoreError("Workspace bootstrap succeeded but the workspace could not be reloaded.")
+                bootstrapped["workspace"] = workspace
+                bootstrapped["source"] = context.source
+                return bootstrapped
+
+        resolved = supabase_service.resolve_workspace_for_user(
+            context.user_id,
+            requested_workspace_id=context.workspace_id,
+            access_token=context.access_token,
+        )
+        if resolved and isinstance(resolved.get("workspace"), dict):
+            return {
+                "workspace": resolved["workspace"],
+                "role": resolved.get("role", "admin"),
+                "created": False,
+                "source": context.source,
+            }
+
+        recovered = supabase_service.ensure_workspace_for_user(
             context.user_id,
             context.email,
             context.access_token,
         )
-        if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
-            workspace = bootstrapped["workspace"]
-            workspace_id = workspace.get("id") or context.workspace_id
-            workspace_name = workspace.get("name") or settings.local_workspace_name
-            store.ensure_workspace(workspace_id, workspace_name)
-            bootstrapped["workspace"] = store.get_workspace(workspace_id)
-            bootstrapped["source"] = context.source
-            return bootstrapped
+        if recovered and isinstance(recovered.get("workspace"), dict):
+            workspace = data_store.get_workspace(recovered["workspace"]["id"])
+            if workspace is None:
+                raise RuntimeStoreError("Workspace recovery succeeded but the workspace could not be reloaded.")
+            return {
+                "workspace": workspace,
+                "role": recovered.get("role", "admin"),
+                "created": bool(recovered.get("created")),
+                "source": context.source,
+            }
 
-    local_workspace = store.ensure_workspace(context.workspace_id, settings.local_workspace_name)
+    local_workspace = data_store.ensure_workspace(context.workspace_id, settings.local_workspace_name)
     return {
         "workspace": local_workspace,
         "role": "admin",
@@ -213,28 +248,56 @@ def resolve_content_type(filename: str, provided_content_type: str | None) -> st
     return inferred or "application/octet-stream"
 
 
+def resolve_storage_path_from_payload(payload: ArtifactRequest | dict[str, Any]) -> str | None:
+    if isinstance(payload, ArtifactRequest):
+        if payload.storage_path:
+            return payload.storage_path
+        metadata = payload.metadata
+    else:
+        if isinstance(payload.get("storage_path"), str) and payload["storage_path"].strip():
+            return payload["storage_path"]
+        metadata = payload.get("metadata")
+
+    if isinstance(metadata, dict):
+        storage_path = metadata.get("storage_path")
+        if isinstance(storage_path, str) and storage_path.strip():
+            return storage_path
+    return None
+
+
 async def execute_run(
+    data_store,
     payload: RunRequest,
     run_id: str,
     workspace_id: str,
     access_token: str | None = None,
 ) -> dict[str, Any]:
-    context_artifacts = resolve_context_artifacts(workspace_id, payload.context_ids)
+    context_artifacts = resolve_context_artifacts(data_store, workspace_id, payload.context_ids)
     effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
-    store.add_run_step(run_id, "prepare", "system", "completed", payload.prompt, "Run accepted")
+    data_store.add_run_step(
+        workspace_id,
+        run_id,
+        step_name="prepare",
+        tool_used="system",
+        status="completed",
+        input_payload=payload.prompt,
+        output_payload="Run accepted",
+    )
     if context_artifacts:
-        store.add_run_step(
+        data_store.add_run_step(
+            workspace_id,
             run_id,
-            "context",
-            "artifact-library",
-            "completed",
-            {"contextIds": payload.context_ids},
-            {
+            step_name="context",
+            tool_used="artifact-library",
+            status="completed",
+            input_payload={"contextIds": payload.context_ids},
+            output_payload={
                 "artifactIds": [artifact["id"] for artifact in context_artifacts],
                 "count": len(context_artifacts),
             },
         )
     return await run_studio_workflow(
+        data_store=data_store,
         studio=payload.studio,
         run_id=run_id,
         workspace_id=workspace_id,
@@ -277,7 +340,8 @@ def workspace(context: RequestContext = Depends(require_request_context)) -> dic
 
 @app.get("/api/reminders")
 def reminders(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    return {"items": store.list_reminders(context.workspace_id)}
+    data_store = get_runtime_store(context)
+    return {"items": data_store.list_reminders(context.workspace_id)}
 
 
 @app.post("/api/openrouter/chat", response_model=OpenRouterChatResponse)
@@ -305,9 +369,10 @@ async def openrouter_chat(
 
 @app.get("/api/chat/threads")
 def list_threads(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
+    data_store = get_runtime_store(context)
     return {
-        "collections": store.list_collections(context.workspace_id),
-        "threads": store.list_threads(context.workspace_id),
+        "collections": data_store.list_collections(context.workspace_id),
+        "threads": data_store.list_threads(context.workspace_id),
     }
 
 
@@ -316,7 +381,8 @@ def create_thread(
     payload: CreateThreadRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    thread = store.create_thread(
+    data_store = get_runtime_store(context)
+    thread = data_store.create_thread(
         context.workspace_id,
         title=payload.title,
         collection_id=payload.collection_id,
@@ -330,7 +396,8 @@ def create_thread(
 
 @app.get("/api/chat/threads/{thread_id}")
 def get_thread(thread_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    thread = store.get_thread(context.workspace_id, thread_id)
+    data_store = get_runtime_store(context)
+    thread = data_store.get_thread(context.workspace_id, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
     return {"thread": thread}
@@ -342,11 +409,12 @@ async def add_message(
     payload: CreateMessageRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    thread = store.get_thread(context.workspace_id, thread_id)
+    data_store = get_runtime_store(context)
+    thread = data_store.get_thread(context.workspace_id, thread_id)
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    user_message = store.add_message(thread_id, "user", payload.content)
+    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content)
     assistant_content = (
         "OpenRouter is not configured yet. Add `OPENROUTER_API_KEY` to enable live chat responses."
     )
@@ -366,7 +434,7 @@ async def add_message(
         except RuntimeError as exc:
             assistant_content = str(exc)
 
-    assistant_message = store.add_message(thread_id, "assistant", assistant_content)
+    assistant_message = data_store.add_message(context.workspace_id, thread_id, "assistant", assistant_content)
     return {"userMessage": user_message, "assistantMessage": assistant_message}
 
 
@@ -376,8 +444,9 @@ async def compare(
     payload: CompareRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
+    data_store = get_runtime_store(context)
     try:
-        context_artifacts = resolve_context_artifacts(context.workspace_id, payload.context_ids)
+        context_artifacts = resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
         effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
         results = await compare_models(effective_prompt, payload.models)
     except RuntimeError as exc:
@@ -395,34 +464,49 @@ async def create_run(
 ) -> dict[str, Any]:
     if payload.studio not in SUPPORTED_STUDIOS:
         raise HTTPException(status_code=400, detail=f"Unsupported studio '{payload.studio}'.")
+    data_store = get_runtime_store(context)
     try:
-        resolve_context_artifacts(context.workspace_id, payload.context_ids)
+        resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    run = store.create_run(
+    run = data_store.create_run(
         context.workspace_id,
-        payload.studio,
-        payload.title,
-        payload.prompt,
-        payload.model,
-        payload.options,
+        studio=payload.studio,
+        title=payload.title,
+        prompt=payload.prompt,
+        model=payload.model,
+        options=payload.options,
     )
 
     try:
         output = await execute_run(
+            data_store,
             payload,
             run["id"],
             context.workspace_id,
             context.access_token,
         )
-        completed = store.complete_run(context.workspace_id, run["id"], "completed", output=output)
-    except RuntimeError as exc:
-        store.add_run_step(run["id"], "failed", "system", "failed", payload.prompt, {"error": str(exc)})
-        completed = store.complete_run(
+        completed = data_store.complete_run(
             context.workspace_id,
             run["id"],
-            "failed",
+            status="completed",
+            output=output,
+        )
+    except RuntimeError as exc:
+        data_store.add_run_step(
+            context.workspace_id,
+            run["id"],
+            step_name="failed",
+            tool_used="system",
+            status="failed",
+            input_payload=payload.prompt,
+            output_payload={"error": str(exc)},
+        )
+        completed = data_store.complete_run(
+            context.workspace_id,
+            run["id"],
+            status="failed",
             error=str(exc),
             output={"error": str(exc)},
         )
@@ -431,7 +515,8 @@ async def create_run(
 
 @app.get("/api/runs/{run_id}")
 def get_run(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    run = store.get_run(context.workspace_id, run_id)
+    data_store = get_runtime_store(context)
+    run = data_store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"run": run}
@@ -439,7 +524,8 @@ def get_run(run_id: str, context: RequestContext = Depends(require_request_conte
 
 @app.get("/api/runs/{run_id}/steps")
 def get_run_steps(run_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    run = store.get_run(context.workspace_id, run_id)
+    data_store = get_runtime_store(context)
+    run = data_store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return {"steps": run["steps"]}
@@ -451,7 +537,8 @@ def create_artifact(
     payload: ArtifactRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    artifact = store.upsert_artifact(
+    data_store = get_runtime_store(context)
+    artifact = data_store.upsert_artifact(
         context.workspace_id,
         title=payload.title,
         artifact_type=payload.artifact_type,
@@ -462,6 +549,9 @@ def create_artifact(
         metadata=payload.metadata,
         tags=payload.tags,
         preview_image=payload.preview_image,
+        content_json=payload.content_json,
+        source_run_id=payload.source_run_id,
+        storage_path=resolve_storage_path_from_payload(payload),
     )
     return api_success(artifact)
 
@@ -472,7 +562,8 @@ def save_run_as_artifact(
     payload: SaveRunArtifactRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    run = store.get_run(context.workspace_id, run_id)
+    data_store = get_runtime_store(context)
+    run = data_store.get_run(context.workspace_id, run_id)
     if run is None:
         raise HTTPException(status_code=404, detail="Run not found")
 
@@ -487,7 +578,7 @@ def save_run_as_artifact(
     if artifact_payload is None:
         raise HTTPException(status_code=400, detail="Run output cannot be saved as an artifact.")
 
-    artifact = store.upsert_artifact(
+    artifact = data_store.upsert_artifact(
         context.workspace_id,
         title=artifact_payload["title"],
         artifact_type=artifact_payload["type"],
@@ -499,6 +590,8 @@ def save_run_as_artifact(
         tags=artifact_payload["tags"],
         preview_image=artifact_payload["preview_image"],
         content_json=artifact_payload["content_json"],
+        source_run_id=run["id"],
+        storage_path=resolve_storage_path_from_payload(artifact_payload),
     )
     return api_success(artifact)
 
@@ -514,7 +607,8 @@ def search_artifacts(
     limit: int = Query(default=24, ge=1, le=100),
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    items = store.list_artifacts(
+    data_store = get_runtime_store(context)
+    items = data_store.list_artifacts(
         context.workspace_id,
         query=q,
         studio=studio,
@@ -538,7 +632,8 @@ def list_artifacts(
     limit: int = Query(default=24, ge=1, le=100),
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    items = store.list_artifacts(
+    data_store = get_runtime_store(context)
+    items = data_store.list_artifacts(
         context.workspace_id,
         query=q,
         studio=studio,
@@ -554,7 +649,8 @@ def list_artifacts(
 @app.get("/api/artifact/{artifact_id}")
 @app.get("/api/artifacts/{artifact_id}")
 def get_artifact(artifact_id: str, context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    artifact = store.get_artifact(context.workspace_id, artifact_id)
+    data_store = get_runtime_store(context)
+    artifact = data_store.get_artifact(context.workspace_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
     return api_success(artifact)
@@ -567,7 +663,8 @@ def export_artifact(
     payload: ExportRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> Response:
-    artifact = store.get_artifact(context.workspace_id, artifact_id)
+    data_store = get_runtime_store(context)
+    artifact = data_store.get_artifact(context.workspace_id, artifact_id)
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
 
@@ -594,14 +691,6 @@ def export_artifact_legacy(
     return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
 
 
-@app.post("/api/export")
-def direct_export(
-    payload: DirectExportRequest,
-    context: RequestContext = Depends(require_request_context),
-) -> Response:
-    return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
-
-
 @app.post("/api/storage/artifacts/upload")
 async def upload_artifact_file(
     file: UploadFile = File(...),
@@ -612,7 +701,8 @@ async def upload_artifact_file(
         raise HTTPException(status_code=503, detail="Supabase storage is not configured.")
 
     if artifact_id:
-        artifact = store.get_artifact(context.workspace_id, artifact_id)
+        data_store = get_runtime_store(context)
+        artifact = data_store.get_artifact(context.workspace_id, artifact_id)
         if artifact is None:
             raise HTTPException(status_code=404, detail="Artifact not found")
         target_artifact_id = artifact_id
