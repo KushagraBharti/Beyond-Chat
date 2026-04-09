@@ -224,6 +224,7 @@ export default function HomePage() {
               ["Image", studioColors.image],
               ["Data", studioColors.data],
               ["Finance", studioColors.finance],
+              ["Compare", "#8B5CF6"]
             ].map(([label, color]) => (
               <div key={label} className="shortcut-card">
                 <div className="shortcut-swatch" style={{ background: `${color}18`, color }} />
