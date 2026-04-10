@@ -1,119 +1,125 @@
-import { useEffect, useMemo, useState } from "react";
-import ContextBuilder from "../../components/ContextBuilder";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import {
   createThread,
   getThread,
   listChatThreads,
   sendThreadMessage,
+  setStoredWorkspaceId,
   type ChatThread,
 } from "../../lib/api";
-import {
-  EmptyState,
-  FieldLabel,
-  MotionCard,
-  PageSection,
-  PrimaryButton,
-  SecondaryButton,
-  Select,
-  StatusBadge,
-  TextArea,
-  TextInput,
-} from "../../components/protectedUi";
+import { supabase } from "../../lib/supabaseClient";
+import { AppBrand } from "../../components/protectedUi";
 import { useComparePanel } from "../../features/compare/ComparePanelProvider";
 
 const availableModels = [
-  "openai/gpt-4o-mini",
-  "anthropic/claude-3.5-sonnet",
-  "google/gemini-2.0-flash-001",
+  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
+  { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
+  { id: "google/gemini-2.0-flash-001", label: "Gemini 2.0 Flash" },
 ];
 
 export default function ChatPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { openComparePanel } = useComparePanel();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThread, setActiveThread] = useState<ChatThread | null>(null);
   const [message, setMessage] = useState("");
-  const [selectedContextIds, setSelectedContextIds] = useState<string[]>([]);
-  const [model, setModel] = useState(availableModels[0]);
+  const [model, setModel] = useState(availableModels[0].id);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [newThreadTitle, setNewThreadTitle] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     void refreshThreads();
   }, []);
 
-  async function refreshThreads(selectedId?: string) {
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activeThread?.messages]);
+
+  async function refreshThreads(selectId?: string) {
     try {
       const response = await listChatThreads();
       setThreads(response.threads);
-      const firstThread = response.threads[0];
-      const targetId = selectedId ?? activeThread?.id ?? firstThread?.id;
-      if (targetId) {
-        const threadResponse = await getThread(targetId);
+      if (selectId) {
+        const threadResponse = await getThread(selectId);
         setActiveThread(threadResponse.thread);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load chat threads.");
+      setError(err instanceof Error ? err.message : "Failed to load threads.");
     }
   }
 
-  const groupedThreads = useMemo(() => {
-    return {
-      project: threads.filter((thread) => thread.collection_type === "project"),
-      group: threads.filter((thread) => thread.collection_type === "group"),
-      chat: threads.filter((thread) => thread.collection_type === "chat"),
-    };
-  }, [threads]);
+  const filteredThreads = useMemo(() => {
+    if (!searchQuery.trim()) return threads;
+    const q = searchQuery.toLowerCase();
+    return threads.filter((t) => t.title.toLowerCase().includes(q));
+  }, [threads, searchQuery]);
 
-  const handleCreateThread = async () => {
-    if (!newThreadTitle.trim()) {
-      return;
-    }
-    try {
-      const response = await createThread({
-        title: newThreadTitle,
-        collection_type: "chat",
-        studio: "chat",
-        model,
-      });
-      setNewThreadTitle("");
-      await refreshThreads(response.thread.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create thread.");
-    }
+  const handleNewChat = () => {
+    setActiveThread(null);
+    setMessage("");
+    setError(null);
   };
 
-  const handleOpenThread = async (threadId: string) => {
+  const handleSelectThread = async (threadId: string) => {
     try {
       const response = await getThread(threadId);
       setActiveThread(response.thread);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to open thread.");
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!activeThread || !message.trim()) {
-      return;
-    }
+  const handleSend = async () => {
+    if (!message.trim() || loading) return;
 
     setLoading(true);
     setError(null);
+
     try {
-      const response = await sendThreadMessage(activeThread.id, {
+      let thread = activeThread;
+
+      if (!thread) {
+        const threadTitle = message.trim().replace(/\s+/g, " ").slice(0, 60) || "New chat";
+        const response = await createThread({
+          title: threadTitle,
+          collection_type: "chat",
+          studio: "chat",
+          model,
+        });
+        thread = response.thread;
+        thread.messages = [];
+        setActiveThread(thread);
+      }
+
+      const response = await sendThreadMessage(thread.id, {
         content: message,
         model,
       });
+
       setActiveThread((current) =>
         current
           ? {
               ...current,
-              messages: [...(current.messages ?? []), response.userMessage, response.assistantMessage],
+              messages: [
+                ...(current.messages ?? []),
+                response.userMessage,
+                response.assistantMessage,
+              ],
             }
           : current,
       );
       setMessage("");
-      await refreshThreads(activeThread.id);
+      resetTextareaHeight();
+      await refreshThreads(thread.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message.");
     } finally {
@@ -121,162 +127,227 @@ export default function ChatPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    setStoredWorkspaceId(null);
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    navigate("/login");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void handleSend();
+    }
+  };
+
+  const handleTextareaInput = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 200) + "px";
+    }
+  };
+
+  const resetTextareaHeight = () => {
+    const el = textareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+    }
+  };
+
+  const activeModelLabel =
+    availableModels.find((m) => m.id === model)?.label ?? model;
+
   return (
-    <div className="page-wrap">
-      <PageSection
-        eyebrow="Chat Workspace"
-        title="Chat, projects, and shared compare"
-        description="The chat surface keeps projects, group chats, and single chats organized while model comparison lives in a reusable side panel."
-        actions={
-          <div className="inline-actions">
-            <PrimaryButton
-              type="button"
-              onClick={() =>
-                openComparePanel({
-                  prompt: message || activeThread?.prompt || "",
-                  contextIds: selectedContextIds,
-                  studio: "chat",
-                })
-              }
-            >
-              Open Compare Panel
-            </PrimaryButton>
-          </div>
-        }
-      />
+    <div className="cs">
+      {/* Sidebar */}
+      <aside className={`cs-sidebar ${sidebarOpen ? "" : "cs-sidebar-hidden"}`}>
+        <div className="cs-sidebar-top">
+          <Link to="/dashboard" className="cs-brand-link">
+            <AppBrand compact={false} />
+          </Link>
+          <button
+            className="cs-sidebar-toggle"
+            onClick={() => setSidebarOpen(false)}
+            type="button"
+            title="Close sidebar"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
+          </button>
+        </div>
 
-      {error ? <div className="error-copy">{error}</div> : null}
+        <button className="cs-new-chat" onClick={handleNewChat} type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+          New chat
+        </button>
 
-      <div className="chat-layout">
-        <MotionCard className="chat-sidebar-card">
-          <div className="context-builder-head">
-            <div>
-              <h3>Conversation Library</h3>
-              <p>Projects, group chats, and standalone chats.</p>
-            </div>
-            <StatusBadge status="connected" label={`${threads.length} threads`} />
-          </div>
+        <div className="cs-search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <input
+            className="cs-search"
+            type="text"
+            placeholder="Search chats..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
-          <div className="stack-sm">
-            <FieldLabel>Start new chat</FieldLabel>
-            <div className="inline-actions inline-actions-stretch">
-              <TextInput
-                value={newThreadTitle}
-                onChange={(event) => setNewThreadTitle(event.target.value)}
-                placeholder="Name the thread..."
-              />
-              <PrimaryButton type="button" onClick={handleCreateThread}>
-                Create
-              </PrimaryButton>
-            </div>
-          </div>
-
-          {threads.length ? (
-            <div className="collection-list">
-              <ThreadSection title="Projects" items={groupedThreads.project} activeId={activeThread?.id} onOpen={handleOpenThread} />
-              <ThreadSection title="Group Chats" items={groupedThreads.group} activeId={activeThread?.id} onOpen={handleOpenThread} />
-              <ThreadSection title="Chats" items={groupedThreads.chat} activeId={activeThread?.id} onOpen={handleOpenThread} />
-            </div>
-          ) : (
-            <EmptyState title="No chat groups yet" body="Create your first thread and the conversation rail will populate." />
+        <div className="cs-threads">
+          {filteredThreads.length > 0 && (
+            <div className="cs-threads-label">Recents</div>
           )}
-        </MotionCard>
-
-        <MotionCard className="chat-main-card">
-          <div className="chat-main-header">
-            <div>
-              <h3>{activeThread?.title ?? "Select a thread"}</h3>
-              <p>Use the same visual language as ChatGPT, but keep work grouped by projects and teams.</p>
-            </div>
-            <div className="inline-actions">
-              <Select value={model} onChange={(event) => setModel(event.target.value)}>
-                {availableModels.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          <div className="chat-messages">
-            {activeThread?.messages?.length ? (
-              activeThread.messages.map((entry) => (
-                <div key={entry.id} className={`chat-message chat-${entry.role}`}>
-                  <div className="chat-bubble-role">{entry.role}</div>
-                  <div className="chat-bubble-copy">{entry.content}</div>
-                </div>
-              ))
-            ) : (
-              <EmptyState
-                title="No active thread selected"
-                body="Pick a project, group chat, or standalone thread from the rail to start working."
-              />
+          <div className="cs-threads-list">
+            {filteredThreads.map((thread) => (
+              <button
+                key={thread.id}
+                className={`cs-thread-item ${thread.id === activeThread?.id ? "is-active" : ""}`}
+                onClick={() => void handleSelectThread(thread.id)}
+                type="button"
+                title={thread.title}
+              >
+                {thread.title}
+              </button>
+            ))}
+            {!filteredThreads.length && (
+              <div className="cs-threads-empty">
+                {searchQuery ? "No matching chats" : "No conversations yet"}
+              </div>
             )}
           </div>
+        </div>
 
-          <div className="chat-composer">
-            <TextArea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder="Send a message, attach context, or prepare a prompt for compare..."
-            />
-            <div className="chat-composer-row">
-              <StatusBadge status="disconnected" label={`${selectedContextIds.length} context items`} />
-              <div className="inline-actions">
-                <SecondaryButton
-                  onClick={() =>
-                    openComparePanel({
-                      prompt: message || activeThread?.prompt || "",
-                      contextIds: selectedContextIds,
-                      studio: "chat",
-                    })
-                  }
-                  type="button"
-                >
-                  Compare Prompt
-                </SecondaryButton>
-                <PrimaryButton disabled={!activeThread || loading} onClick={handleSendMessage} type="button">
-                  {loading ? "Sending..." : "Send"}
-                </PrimaryButton>
+        <div className="cs-sidebar-footer">
+          <div className="cs-user-row">
+            <div className="cs-user-avatar">
+              {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
+            </div>
+            <div className="cs-user-info">
+              <span className="cs-user-name">
+                {user?.email ?? "Workspace user"}
+              </span>
+            </div>
+            <button
+              className="cs-signout-btn"
+              onClick={() => void handleSignOut()}
+              type="button"
+              title="Sign out"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main area */}
+      <main className="cs-main">
+        {/* Top bar */}
+        <div className="cs-topbar">
+          {!sidebarOpen && (
+            <button
+              className="cs-sidebar-open"
+              onClick={() => setSidebarOpen(true)}
+              type="button"
+              title="Open sidebar"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
+            </button>
+          )}
+          <div className="cs-topbar-title">
+            {activeThread ? activeThread.title : "New chat"}
+          </div>
+          <button
+            className="cs-compare-btn"
+            onClick={() =>
+              openComparePanel({
+                prompt: message || activeThread?.prompt || "",
+                contextIds: [],
+                studio: "chat",
+              })
+            }
+            type="button"
+            title="Compare models"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 3h5v5" /><path d="M8 3H3v5" /><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" /><path d="m15 9 6-6" /></svg>
+          </button>
+        </div>
+
+        {error && <div className="cs-error">{error}</div>}
+
+        {/* Messages or welcome */}
+        {!activeThread || !activeThread.messages?.length ? (
+          <div className="cs-welcome">
+            <h1 className="cs-welcome-title">
+              Hello{user?.email ? `, ${user.email.split("@")[0]}` : ""}
+            </h1>
+            <p className="cs-welcome-sub">How can I help you today?</p>
+          </div>
+        ) : (
+          <div className="cs-messages">
+            {activeThread.messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`cs-msg cs-msg-${msg.role}`}
+              >
+                <div className="cs-msg-label">{msg.role}</div>
+                <div className="cs-msg-body">{msg.content}</div>
               </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+
+        {/* Composer */}
+        <div className="cs-composer-wrap">
+          <div className="cs-composer">
+            <textarea
+              ref={textareaRef}
+              className="cs-composer-input"
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                handleTextareaInput();
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Send a message..."
+              rows={1}
+              disabled={loading}
+            />
+            <div className="cs-composer-bar">
+              <div className="cs-composer-left">
+                <select
+                  className="cs-model-picker"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                >
+                  {availableModels.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="cs-send-btn"
+                onClick={() => void handleSend()}
+                disabled={loading || !message.trim()}
+                type="button"
+                title="Send message"
+              >
+                {loading ? (
+                  <span className="cs-send-loading" />
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                )}
+              </button>
             </div>
           </div>
-        </MotionCard>
-
-        <ContextBuilder selectedIds={selectedContextIds} onChange={setSelectedContextIds} />
-      </div>
-    </div>
-  );
-}
-
-function ThreadSection({
-  title,
-  items,
-  activeId,
-  onOpen,
-}: {
-  title: string;
-  items: ChatThread[];
-  activeId?: string;
-  onOpen: (threadId: string) => void;
-}) {
-  return (
-    <div className="thread-section">
-      <div className="thread-section-title">{title}</div>
-      <div className="stack-sm">
-        {items.map((thread) => (
-          <button
-            key={thread.id}
-            className={`thread-card ${thread.id === activeId ? "is-active" : ""}`}
-            onClick={() => onOpen(thread.id)}
-            type="button"
-          >
-            <strong>{thread.title}</strong>
-            <span>{thread.model}</span>
-          </button>
-        ))}
-      </div>
+          <div className="cs-composer-hint">
+            {activeModelLabel} &middot; Enter to send, Shift+Enter for new line
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

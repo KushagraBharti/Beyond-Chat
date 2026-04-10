@@ -1,5 +1,4 @@
 import { supabase } from "./supabaseClient";
-import { isMvpBypassActive } from "./mvpBypass";
 
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
 
@@ -148,13 +147,11 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const session = supabase ? await supabase.auth.getSession() : null;
   const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
-  const bypassActive = isMvpBypassActive();
   const response = await fetch(`${apiBaseUrl}${path}`, {
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
-      ...(bypassActive ? { "X-MVP-Bypass": "true" } : {}),
       ...(init?.headers ?? {}),
     },
     ...init,
@@ -313,14 +310,12 @@ export async function exportArtifact(artifactId: string, format: "markdown" | "p
   const session = supabase ? await supabase.auth.getSession() : null;
   const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
-  const bypassActive = isMvpBypassActive();
   const response = await fetch(`${apiBaseUrl}/api/artifact/${artifactId}/export`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
-      ...(bypassActive ? { "X-MVP-Bypass": "true" } : {}),
     },
     body: JSON.stringify({ format }),
   });

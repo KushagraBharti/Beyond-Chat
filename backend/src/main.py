@@ -59,7 +59,6 @@ async def attach_request_context(request: Request, call_next):
             request.state.request_context = resolve_request_context(
                 request.headers.get("authorization"),
                 request.headers.get("x-workspace-id"),
-                request.headers.get("x-mvp-bypass"),
             )
         except HTTPException as exc:
             request.state.request_context_error = exc
@@ -176,15 +175,6 @@ def build_pdf(title: str, content: str) -> bytes:
 
 def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
     data_store = get_runtime_store(context)
-    if context.source == "local_bypass":
-        workspace = data_store.ensure_workspace(settings.local_workspace_id, settings.local_workspace_name)
-        return {
-            "workspace": workspace,
-            "role": "admin",
-            "created": bootstrap,
-            "source": context.source,
-        }
-
     if bootstrap:
         bootstrapped = supabase_service.ensure_workspace_for_user(
             context.user_id,
@@ -493,7 +483,7 @@ async def create_run(
             status="completed",
             output=output,
         )
-    except RuntimeError as exc:
+    except Exception as exc:
         data_store.add_run_step(
             context.workspace_id,
             run["id"],

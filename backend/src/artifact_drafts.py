@@ -146,7 +146,6 @@ def build_image_artifact_payload(
     prompt: str,
     model: str,
     ratio: str,
-    style: str,
     quality: str,
     url: str,
     storage_path: str | None = None,
@@ -164,11 +163,10 @@ def build_image_artifact_payload(
         "metadata": {
             "model": model,
             "ratio": ratio,
-            "style": style,
             "quality": quality,
             "storage_path": storage_path or "",
         },
-        "tags": unique_tags(["image", "generated", style]),
+        "tags": unique_tags(["image", "generated"]),
         "preview_image": url,
         "content_json": None,
     }

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from typing import Any
 
 from .config import settings
@@ -14,13 +15,13 @@ from .runtime_store import RuntimeDataStore
 from .supabase_service import supabase_service
 
 
-def _ratio_to_size(ratio: str) -> str:
+def _quality_to_image_size(quality: str) -> str:
+    """Map the frontend quality label to an OpenRouter image_size value."""
     return {
-        "1:1": "1024x1024",
-        "16:9": "1792x1024",
-        "9:16": "1024x1792",
-        "4:5": "1024x1280",
-    }.get(ratio, "1024x1024")
+        "Draft": "1K",
+        "High": "2K",
+        "Ultra": "4K",
+    }.get(quality, "1K")
 
 
 def _record_step(
@@ -228,12 +229,10 @@ async def run_image_workflow(
     access_token: str | None,
 ) -> dict[str, Any]:
     image_model = model if model and model != settings.openrouter_default_model else settings.openrouter_image_default_model
-    style = str(options.get("style", ""))
     quality = str(options.get("quality", "High"))
     ratio = str(options.get("ratio", "1:1"))
 
     constraints = {
-        "style": style,
         "quality": quality,
         "ratio": ratio,
         "model": image_model,
@@ -248,10 +247,10 @@ async def run_image_workflow(
                 "role": "system",
                 "content": (
                     "You rewrite prompts for AI image generation. Make the prompt vivid, concrete, and production-ready. "
-                    "Incorporate style and quality constraints naturally. Return only the rewritten prompt."
+                    "Return only the rewritten prompt, no preamble."
                 ),
             },
-            {"role": "user", "content": f"Prompt: {prompt}\nStyle: {style}\nQuality: {quality}\nAspect ratio: {ratio}"},
+            {"role": "user", "content": f"Prompt: {prompt}\nAspect ratio: {ratio}"},
         ],
         temperature=0.5,
         max_tokens=320,
@@ -262,8 +261,8 @@ async def run_image_workflow(
     generated_images = await call_openrouter_image(
         model=image_model,
         prompt=enhanced_prompt,
-        size=_ratio_to_size(ratio),
-        n=1,
+        aspect_ratio=ratio,
+        image_size=_quality_to_image_size(quality),
     )
     _record_step(
         data_store,
@@ -292,6 +291,11 @@ async def run_image_workflow(
         if uploaded and uploaded.get("signed_url"):
             urls.append(uploaded["signed_url"])
             paths.append(uploaded["path"])
+        else:
+            # Fallback: serve as base64 data URL when storage is unavailable
+            b64 = base64.b64encode(image_bytes).decode()
+            urls.append(f"data:{content_type};base64,{b64}")
+            paths.append("")
     _record_step(data_store, workspace_id, run_id, "upload", "supabase", "completed", run_id, {"count": len(urls), "paths": paths})
 
     return {

@@ -29,13 +29,8 @@ class Settings:
     supabase_url: str | None = os.getenv("SUPABASE_URL")
     supabase_anon_key: str | None = os.getenv("SUPABASE_ANON_KEY")
     supabase_service_role_key: str | None = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-    supabase_jwt_secret: str | None = os.getenv("SUPABASE_JWT_SECRET")
-    supabase_jwks_url: str | None = os.getenv("SUPABASE_JWKS_URL")
     supabase_storage_bucket: str = os.getenv("SUPABASE_STORAGE_BUCKET", "artifacts")
-    openrouter_image_default_model: str = os.getenv("OPENROUTER_IMAGE_DEFAULT_MODEL", "openai/dall-e-3")
-    allow_local_auth_bypass: bool = os.getenv("ALLOW_LOCAL_AUTH_BYPASS", "false").lower() == "true"
-    local_workspace_id: str = os.getenv("LOCAL_WORKSPACE_ID", "local-workspace")
-    local_workspace_name: str = os.getenv("LOCAL_WORKSPACE_NAME", "Beyond Chat Local Workspace")
+    openrouter_image_default_model: str = os.getenv("OPENROUTER_IMAGE_DEFAULT_MODEL", "google/gemini-2.5-flash-image")
 
 
 settings = Settings()

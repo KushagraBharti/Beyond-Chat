@@ -147,7 +147,6 @@ export function buildImageArtifactInput({
   prompt,
   model,
   ratio,
-  style,
   quality,
   url,
   storagePath,
@@ -155,7 +154,6 @@ export function buildImageArtifactInput({
   prompt: string;
   model: string;
   ratio: string;
-  style: string;
   quality: string;
   url: string;
   storagePath?: string;
@@ -175,10 +173,9 @@ export function buildImageArtifactInput({
     metadata: {
       model,
       ratio,
-      style,
       quality,
       storage_path: storagePath ?? "",
     },
-    tags: uniqueTags(["image", "generated", style]),
+    tags: uniqueTags(["image", "generated"]),
   };
 }

@@ -3,12 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-import jwt
 from fastapi import Header, HTTPException, Request, status
-from jwt import InvalidTokenError, PyJWKClient
-from jwt.exceptions import PyJWKClientError
 
-from .config import settings
 from .supabase_service import supabase_service
 
 
@@ -33,50 +29,42 @@ def _extract_token(authorization: str | None) -> str | None:
     return token
 
 
-def _decode_supabase_claims(token: str) -> dict[str, Any]:
-    try:
-        header = jwt.get_unverified_header(token)
-    except InvalidTokenError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Supabase JWT header could not be parsed.",
-        ) from exc
-
-    algorithm = header.get("alg")
-
-    if settings.supabase_jwt_secret and algorithm == "HS256":
-        try:
-            return jwt.decode(
-                token,
-                settings.supabase_jwt_secret,
-                algorithms=["HS256"],
-                options={"verify_aud": False},
-            )
-        except InvalidTokenError as exc:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Supabase JWT could not be verified.",
-            ) from exc
-
-    if not settings.supabase_jwks_url:
+def _load_supabase_user(token: str) -> dict[str, Any]:
+    client = supabase_service.client(token)
+    if client is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Supabase JWT verification is not configured on the backend.",
+            detail="Supabase authentication is not configured on the backend.",
         )
 
     try:
-        signing_key = PyJWKClient(settings.supabase_jwks_url).get_signing_key_from_jwt(token)
-        return jwt.decode(
-            token,
-            signing_key.key,
-            algorithms=[algorithm] if isinstance(algorithm, str) else None,
-            options={"verify_aud": False},
-        )
-    except (InvalidTokenError, PyJWKClientError) as exc:
+        response = client.auth.get_user(token)
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Supabase JWT could not be verified.",
         ) from exc
+
+    user = getattr(response, "user", None)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Supabase JWT could not be verified.",
+        )
+
+    if hasattr(user, "model_dump"):
+        payload = user.model_dump()
+    elif hasattr(user, "dict"):
+        payload = user.dict()
+    elif isinstance(user, dict):
+        payload = user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Supabase JWT could not be verified.",
+        )
+
+    return payload
 
 
 def _workspace_from_claims(claims: dict[str, Any], requested_workspace_id: str | None) -> str | None:
@@ -102,7 +90,6 @@ async def require_request_context(
     request: Request,
     authorization: str | None = Header(default=None),
     x_workspace_id: str | None = Header(default=None),
-    x_mvp_bypass: str | None = Header(default=None),
 ) -> RequestContext:
     cached_context = getattr(request.state, "request_context", None)
     if isinstance(cached_context, RequestContext):
@@ -112,23 +99,13 @@ async def require_request_context(
     if isinstance(cached_error, HTTPException):
         raise cached_error
 
-    return resolve_request_context(authorization, x_workspace_id, x_mvp_bypass)
+    return resolve_request_context(authorization, x_workspace_id)
 
 
 def resolve_request_context(
     authorization: str | None,
     x_workspace_id: str | None,
-    x_mvp_bypass: str | None = None,
 ) -> RequestContext:
-    if settings.allow_local_auth_bypass and (x_mvp_bypass or "").lower() == "true":
-        return RequestContext(
-            user_id="local-dev-user",
-            workspace_id=x_workspace_id or settings.local_workspace_id,
-            email="local@beyond-chat.dev",
-            source="local_bypass",
-            access_token=None,
-        )
-
     token = _extract_token(authorization)
     if not token:
         raise HTTPException(
@@ -136,12 +113,12 @@ def resolve_request_context(
             detail="Authentication is required for this endpoint.",
         )
 
-    claims = _decode_supabase_claims(token)
-    user_id = claims.get("sub")
+    claims = _load_supabase_user(token)
+    user_id = claims.get("id") or claims.get("sub")
     if not isinstance(user_id, str) or not user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Supabase JWT is missing the user identifier.",
+            detail="Supabase user data is missing the user identifier.",
         )
     email = claims.get("email")
     workspace_id = _workspace_from_claims(claims, x_workspace_id)

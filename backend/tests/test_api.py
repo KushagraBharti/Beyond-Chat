@@ -4,7 +4,6 @@ from fastapi.testclient import TestClient
 
 from src.artifact_drafts import build_run_artifact_payload
 from src.providers import TAVILY_NOT_CONFIGURED
-from src.store import get_local_store
 
 
 def test_health_endpoint(client: TestClient):
@@ -78,7 +77,7 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
 
 def test_storage_signed_url_requires_supabase_configuration(client: TestClient, monkeypatch):
     monkeypatch.setattr("src.main.supabase_service.create_signed_artifact_url", lambda *args, **kwargs: None)
-    workspace_id = get_local_store().get_workspace()["id"]
+    workspace_id = client.app.state.test_workspace_id
 
     response = client.post(
         "/api/storage/artifacts/signed-url",
@@ -418,7 +417,7 @@ def test_image_workflow_records_enhance_generate_and_upload_steps(client: TestCl
     async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
         return "Enhanced futuristic city prompt"
 
-    async def fake_call_openrouter_image(*, model, prompt, size, n):
+    async def fake_call_openrouter_image(*, model, prompt, aspect_ratio, image_size):
         return [(b"image-bytes", "image/png")]
 
     def fake_upload_image_file(*, workspace_id, run_id, filename, content_type, image_bytes, access_token):
@@ -541,7 +540,7 @@ def test_save_run_as_artifact_for_image_run_uses_preview_image(client: TestClien
     async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
         return "Enhanced futuristic city prompt"
 
-    async def fake_call_openrouter_image(*, model, prompt, size, n):
+    async def fake_call_openrouter_image(*, model, prompt, aspect_ratio, image_size):
         return [(b"image-bytes", "image/png")]
 
     def fake_upload_image_file(*, workspace_id, run_id, filename, content_type, image_bytes, access_token):

@@ -1,12 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { bootstrapAuth } from "../../lib/api";
-import { isMvpBypassEnabled, setMvpBypassActive } from "../../lib/mvpBypass";
 import { isSupabaseEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
-  const { session, loading: authLoading, mvpBypassActive } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -22,52 +21,14 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading || (!session && !mvpBypassActive)) {
+    if (authLoading || !session) {
       return;
     }
     navigate("/dashboard", { replace: true });
-  }, [authLoading, mvpBypassActive, navigate, session]);
+  }, [authLoading, navigate, session]);
 
-  useEffect(() => {
-    if (!isMvpBypassEnabled()) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setMvpBypassActive(true);
-        void bootstrapAuth()
-          .then(() => navigate("/dashboard", { replace: true }))
-          .catch((error: unknown) =>
-            setError(error instanceof Error ? error.message : "Bypass bootstrap failed."),
-          );
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate]);
-
-  if (authLoading || session || mvpBypassActive) {
+  if (authLoading || session) {
     return null;
-  }
-
-  async function handleBypass() {
-    setLoading(true);
-    setMessage(null);
-    setError(null);
-
-    try {
-      setMvpBypassActive(true);
-      await bootstrapAuth();
-      navigate("/dashboard", { replace: true });
-    } catch (e: unknown) {
-      setMvpBypassActive(false);
-      setError(e instanceof Error ? e.message : "Bypass bootstrap failed.");
-    } finally {
-      setLoading(false);
-    }
   }
 
   async function handleSubmit() {
@@ -181,11 +142,6 @@ export default function LoginPage() {
                   Supabase is required for this app. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to continue.
                 </p>
               ) : null}
-              {isMvpBypassEnabled() ? (
-                <p className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
-                  Development bypass is enabled. Press <span className="font-semibold">Ctrl + K</span> or use the bypass button.
-                </p>
-              ) : null}
             </div>
 
             <form
@@ -231,16 +187,6 @@ export default function LoginPage() {
               >
                 {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
               </button>
-              {isMvpBypassEnabled() ? (
-                <button
-                  type="button"
-                  onClick={() => void handleBypass()}
-                  disabled={loading}
-                  className="w-full rounded-2xl border border-stone-200 bg-stone-100 px-4 py-3 text-sm font-semibold text-stone-900 transition hover:-translate-y-0.5 hover:bg-stone-200 disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  Continue with local bypass
-                </button>
-              ) : null}
             </form>
 
             <p className="mt-6 text-center text-sm text-stone-600">

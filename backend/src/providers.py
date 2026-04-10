@@ -92,40 +92,80 @@ async def call_openrouter(
     return content if isinstance(content, str) else ""
 
 
+def _image_modalities(model: str) -> list[str]:
+    """Return the correct modalities list per OpenRouter docs.
+
+    Models that output both text and images (e.g. Gemini, GPT) use
+    ``["image", "text"]``.  Image-only models (Sourceful, Flux,
+    ByteDance Seedream, etc.) use ``["image"]``.
+    """
+    text_and_image_prefixes = ("google/", "openai/")
+    if model.startswith(text_and_image_prefixes):
+        return ["image", "text"]
+    return ["image"]
+
+
 async def call_openrouter_image(
     model: str,
     prompt: str,
-    size: str = "1024x1024",
-    n: int = 1,
+    *,
+    aspect_ratio: str = "1:1",
+    image_size: str = "1K",
 ) -> list[tuple[bytes, str]]:
-    """Call OpenRouter image generation. Returns list of (image_bytes, content_type)."""
+    """Call OpenRouter image generation via chat completions endpoint.
+
+    Uses the ``modalities`` and ``image_config`` parameters as documented at
+    https://openrouter.ai/docs/guides/overview/multimodal/image-generation.
+    Returns list of ``(image_bytes, content_type)`` tuples.
+    """
     if not settings.openrouter_api_key:
         raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
 
+    body: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "modalities": _image_modalities(model),
+    }
+    if aspect_ratio or image_size:
+        image_config: dict[str, str] = {}
+        if aspect_ratio:
+            image_config["aspect_ratio"] = aspect_ratio
+        if image_size:
+            image_config["image_size"] = image_size
+        body["image_config"] = image_config
+
     payload = await _post_openrouter_json(
-        url="https://openrouter.ai/api/v1/images/generations",
-        payload={
-            "model": model,
-            "prompt": prompt,
-            "n": n,
-            "size": size,
-        },
-        timeout=120.0,
+        url="https://openrouter.ai/api/v1/chat/completions",
+        payload=body,
+        timeout=180.0,
         error_provider="OpenRouter images",
     )
 
     results: list[tuple[bytes, str]] = []
-    for item in payload.get("data", []):
-        if not isinstance(item, dict):
+    choices = payload.get("choices") or []
+    for choice in choices:
+        if not isinstance(choice, dict):
             continue
-        if item.get("b64_json"):
-            results.append((base64.b64decode(item["b64_json"]), "image/png"))
-        elif item.get("url"):
-            async with httpx.AsyncClient(timeout=60.0) as dl:
-                img_resp = await dl.get(item["url"])
-                img_resp.raise_for_status()
-                ct = img_resp.headers.get("content-type", "image/png").split(";")[0].strip()
-                results.append((img_resp.content, ct))
+        message = choice.get("message") or {}
+        if not isinstance(message, dict):
+            continue
+        images = message.get("images") or []
+        for img_entry in images:
+            if not isinstance(img_entry, dict):
+                continue
+            image_url_obj = img_entry.get("image_url") or {}
+            data_url = image_url_obj.get("url", "") if isinstance(image_url_obj, dict) else ""
+            if data_url.startswith("data:"):
+                # Parse data URL: data:image/png;base64,<data>
+                header, _, b64_data = data_url.partition(",")
+                content_type = header.split(";")[0].replace("data:", "") or "image/png"
+                results.append((base64.b64decode(b64_data), content_type))
+            elif data_url.startswith("http"):
+                async with httpx.AsyncClient(timeout=60.0) as dl:
+                    img_resp = await dl.get(data_url)
+                    img_resp.raise_for_status()
+                    ct = img_resp.headers.get("content-type", "image/png").split(";")[0].strip()
+                    results.append((img_resp.content, ct))
 
     return results
 
@@ -232,9 +272,9 @@ def provider_statuses() -> dict[str, Any]:
             "details": "Read-only agenda and upcoming events",
         },
         "openrouterImages": {
-            "status": "disconnected" if settings.openrouter_api_key else "not_configured",
+            "status": "connected" if settings.openrouter_api_key else "not_configured",
             "label": "OpenRouter Images",
-            "details": "Image generation provider",
+            "details": "Image generation via chat completions endpoint",
         },
         "supabase": {
             "status": "connected" if settings.supabase_url and settings.supabase_anon_key else "not_configured",

@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 from postgrest.exceptions import APIError
 
-from .store import get_local_store
 from .supabase_service import supabase_service
 
 if TYPE_CHECKING:
@@ -652,8 +651,6 @@ class SupabaseDataStore:
 def get_runtime_store(context: "RequestContext | None" = None) -> RuntimeDataStore:
     if context is None:
         raise RuntimeStoreError("Authentication context is required.")
-    if context.source == "local_bypass":
-        return get_local_store()
     if context.source != "supabase_jwt":
         raise RuntimeStoreError("Supabase authentication context is required.")
     if not supabase_service.runtime_database_enabled:

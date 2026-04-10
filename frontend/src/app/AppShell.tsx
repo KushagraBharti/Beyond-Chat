@@ -41,6 +41,10 @@ export default function AppShell() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
 
+              {/* Chat and Image have their own dedicated layouts */}
+              <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+              <Route path="/image" element={<ProtectedRoute><ImagePage /></ProtectedRoute>} />
+
               <Route
                 element={
                   <ProtectedRoute>
@@ -50,11 +54,9 @@ export default function AppShell() {
               >
                 <Route path="/home" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<HomePage />} />
-                <Route path="/chat" element={<ChatPage />} />
                 <Route path="/writing" element={<WritingHomePage />} />
                 <Route path="/writing/:documentId" element={<WritingEditorPage />} />
                 <Route path="/research" element={<ResearchPage />} />
-                <Route path="/image" element={<ImagePage />} />
                 <Route path="/data" element={<DataPage />} />
                 <Route path="/finance" element={<FinancePage />} />
                 <Route path="/artifacts" element={<ArtifactsPage />} />

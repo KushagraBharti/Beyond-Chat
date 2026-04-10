@@ -2,7 +2,6 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { setStoredWorkspaceId } from "../lib/api";
-import { setMvpBypassActive } from "../lib/mvpBypass";
 import { supabase } from "../lib/supabaseClient";
 import { AppBrand } from "./protectedUi";
 
@@ -23,12 +22,11 @@ const secondaryNav = [
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
-  const { user, mvpBypassActive } = useAuth();
+  const { user } = useAuth();
   const [expanded, setExpanded] = useState(true);
 
   const handleSignOut = async () => {
     setStoredWorkspaceId(null);
-    setMvpBypassActive(false);
     if (supabase) {
       await supabase.auth.signOut();
     }
@@ -104,9 +102,7 @@ export default function DashboardLayout() {
               {expanded ? (
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-stone-900">{user?.email ?? "Workspace user"}</div>
-                  <div className="truncate text-xs text-stone-500">
-                    {mvpBypassActive ? "Local bypass workspace access" : "Supabase workspace access"}
-                  </div>
+                  <div className="truncate text-xs text-stone-500">Supabase workspace access</div>
                 </div>
               ) : null}
             </div>

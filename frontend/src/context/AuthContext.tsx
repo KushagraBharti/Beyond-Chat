@@ -1,40 +1,28 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { bootstrapAuth } from "../lib/api";
-import { getMvpBypassEventName, isMvpBypassActive } from "../lib/mvpBypass";
 import { supabase } from "../lib/supabaseClient";
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   loading: boolean;
-  mvpBypassActive: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
   loading: true,
-  mvpBypassActive: false,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mvpBypassActive, setMvpBypassActive] = useState(isMvpBypassActive());
 
   useEffect(() => {
-    setMvpBypassActive(isMvpBypassActive());
-    const syncBypassState = () => setMvpBypassActive(isMvpBypassActive());
-    window.addEventListener("storage", syncBypassState);
-    window.addEventListener(getMvpBypassEventName(), syncBypassState);
-
     if (!supabase) {
       setLoading(false);
-      return () => {
-        window.removeEventListener("storage", syncBypassState);
-        window.removeEventListener(getMvpBypassEventName(), syncBypassState);
-      };
+      return;
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -57,19 +45,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener("storage", syncBypassState);
-      window.removeEventListener(getMvpBypassEventName(), syncBypassState);
     };
   }, []);
 
   useEffect(() => {
-    if (mvpBypassActive || !session || !supabase) {
+    if (!session || !supabase) {
       return;
     }
     void bootstrapAuth().catch(() => {
       // Session bootstrap failures are surfaced by the protected pages that depend on workspace data.
     });
-  }, [mvpBypassActive, session]);
+  }, [session]);
 
   return (
     <AuthContext.Provider
@@ -77,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         user: session?.user ?? null,
         loading,
-        mvpBypassActive,
       }}
     >
       {children}

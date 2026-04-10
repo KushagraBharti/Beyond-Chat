@@ -3,8 +3,7 @@
 ## Contract Principles
 
 - Health remains publicly reachable.
-- Most product routes require authenticated context in production.
-- Local-first development may use a controlled bypass mode.
+- All product routes except health require authenticated context.
 - Provider-backed routes must fail gracefully with explicit status and error information.
 
 ## Core Endpoints
