@@ -18,7 +18,7 @@ class Settings:
     openrouter_api_key: str | None = os.getenv("OPENROUTER_API_KEY")
     openrouter_http_referer: str = os.getenv("OPENROUTER_HTTP_REFERER", "http://127.0.0.1:5173")
     openrouter_timeout_seconds: float = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "45"))
-    openrouter_default_model: str = os.getenv("OPENROUTER_DEFAULT_MODEL", "openai/gpt-5.4")
+    openrouter_default_model: str = os.getenv("OPENROUTER_DEFAULT_MODEL", "openai/gpt-5.4-nano")
     tavily_api_key: str | None = os.getenv("TAVILY_API_KEY")
     google_client_id: str | None = os.getenv("GOOGLE_CLIENT_ID")
     google_client_secret: str | None = os.getenv("GOOGLE_CLIENT_SECRET")

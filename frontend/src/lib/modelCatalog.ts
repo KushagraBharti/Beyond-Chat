@@ -16,6 +16,21 @@ export type ModelCatalogEntry = {
 
 export const curatedCatalog: ModelCatalogEntry[] = [
   {
+    id: "gpt-5.4-nano",
+    openRouterId: "openai/gpt-5.4-nano",
+    name: "GPT-5.4 Nano",
+    provider: "OpenRouter",
+    lab: "OpenAI",
+    tier: "nano",
+    tags: ["fast", "budget", "high-volume"],
+    description: "Most lightweight GPT-5.4 variant optimized for speed-critical and high-volume tasks.",
+    personality: "The courier. Minimal overhead, maximum throughput.",
+    color: "#6f89a0",
+    initial: "Gn",
+    defaultEnabled: true,
+    active: true,
+  },
+  {
     id: "gpt-5.4",
     openRouterId: "openai/gpt-5.4",
     name: "GPT-5.4",
@@ -219,4 +234,4 @@ export const defaultCompareModels = activeModelCatalog
   .map((entry) => entry.openRouterId)
   .slice(0, 4);
 
-export const defaultChatModel = activeModelCatalog[0]?.openRouterId ?? "openai/gpt-5.4";
+export const defaultChatModel = activeModelCatalog[0]?.openRouterId ?? "openai/gpt-5.4-nano";
