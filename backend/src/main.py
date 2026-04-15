@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import mimetypes
 from io import BytesIO
 from pathlib import Path
@@ -9,7 +10,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -22,6 +23,7 @@ from .providers import (
     OPENROUTER_NOT_CONFIGURED,
     build_google_connect_url,
     call_openrouter,
+    call_openrouter_stream,
     compare_models,
     google_calendar_events,
     provider_statuses,
@@ -432,6 +434,63 @@ async def add_message(
 
     assistant_message = data_store.add_message(context.workspace_id, thread_id, "assistant", assistant_content)
     return {"userMessage": user_message, "assistantMessage": assistant_message}
+
+
+@app.post("/api/chat/threads/{thread_id}/messages/stream")
+async def add_message_stream(
+    thread_id: str,
+    payload: CreateMessageRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> StreamingResponse:
+    data_store = get_runtime_store(context)
+    thread = data_store.get_thread(context.workspace_id, thread_id)
+    if thread is None:
+        raise HTTPException(status_code=404, detail="Thread not found")
+
+    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content)
+
+    def sse(event: str, data: dict[str, Any]) -> str:
+        return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=True)}\n\n"
+
+    async def event_stream():
+        assistant_content = ""
+
+        if settings.openrouter_api_key:
+            messages = [
+                {"role": message["role"], "content": message["content"]}
+                for message in thread["messages"] + [user_message]
+            ]
+            try:
+                async for chunk in call_openrouter_stream(
+                    model=payload.model,
+                    messages=messages,
+                    temperature=0.4,
+                    max_tokens=700,
+                ):
+                    assistant_content += chunk
+                    yield sse("delta", {"content": chunk})
+            except RuntimeError as exc:
+                assistant_content = str(exc)
+                yield sse("delta", {"content": assistant_content})
+            except Exception as exc:
+                assistant_content = f"Streaming failed: {exc}"
+                yield sse("delta", {"content": assistant_content})
+        else:
+            assistant_content = "OpenRouter is not configured yet. Add `OPENROUTER_API_KEY` to enable live chat responses."
+            yield sse("delta", {"content": assistant_content})
+
+        assistant_message = data_store.add_message(context.workspace_id, thread_id, "assistant", assistant_content)
+        yield sse("done", {"userMessage": user_message, "assistantMessage": assistant_message})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.post("/api/chat/compare")

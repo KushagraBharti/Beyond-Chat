@@ -266,6 +266,106 @@ export async function sendThreadMessage(threadId: string, payload: { content: st
   });
 }
 
+export async function streamThreadMessage(
+  threadId: string,
+  payload: { content: string; model: string },
+  handlers: { onDelta?: (chunk: string, fullText: string) => void } = {},
+) {
+  const session = supabase ? await supabase.auth.getSession() : null;
+  const accessToken = session?.data.session?.access_token;
+  const workspaceId = getStoredWorkspaceId();
+
+  const response = await fetch(`${apiBaseUrl}/api/chat/threads/${threadId}/messages/stream`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    const detail = maybeJson?.detail ?? maybeJson?.error ?? response.statusText;
+    throw new Error(typeof detail === "string" ? detail : "Streaming request failed.");
+  }
+
+  if (!response.body) {
+    throw new Error("Streaming response body is not available.");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullText = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+
+    let boundary = buffer.indexOf("\n\n");
+    while (boundary !== -1) {
+      const rawEvent = buffer.slice(0, boundary).trim();
+      buffer = buffer.slice(boundary + 2);
+
+      let eventType = "message";
+      const dataLines: string[] = [];
+
+      for (const line of rawEvent.split("\n")) {
+        if (line.startsWith("event:")) {
+          eventType = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          dataLines.push(line.slice(5).trimStart());
+        }
+      }
+
+      if (!dataLines.length) {
+        boundary = buffer.indexOf("\n\n");
+        continue;
+      }
+
+      const dataText = dataLines.join("\n");
+      let data: {
+        content?: string;
+        userMessage?: ChatMessage;
+        assistantMessage?: ChatMessage;
+      };
+      try {
+        data = JSON.parse(dataText) as {
+          content?: string;
+          userMessage?: ChatMessage;
+          assistantMessage?: ChatMessage;
+        };
+      } catch {
+        boundary = buffer.indexOf("\n\n");
+        continue;
+      }
+
+      if (eventType === "delta") {
+        const chunk = typeof data.content === "string" ? data.content : "";
+        fullText += chunk;
+        handlers.onDelta?.(chunk, fullText);
+      }
+
+      if (eventType === "done" && data.userMessage && data.assistantMessage) {
+        return {
+          userMessage: data.userMessage,
+          assistantMessage: data.assistantMessage,
+        };
+      }
+
+      boundary = buffer.indexOf("\n\n");
+    }
+  }
+
+  throw new Error("Chat stream ended before a final response was received.");
+}
+
 export async function comparePrompt(payload: { prompt: string; models: string[]; context_ids?: string[] }) {
   return api<{ results: CompareResult[] }>("/api/chat/compare", {
     method: "POST",

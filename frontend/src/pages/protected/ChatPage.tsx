@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
+  type ChatMessage,
   createThread,
   getThread,
   listChatThreads,
-  sendThreadMessage,
+  streamThreadMessage,
   setStoredWorkspaceId,
   type ChatThread,
 } from "../../lib/api";
@@ -87,10 +90,14 @@ export default function ChatPage() {
     setError(null);
 
     try {
+      const outboundMessage = message.trim();
+      setMessage("");
+      resetTextareaHeight();
+
       let thread = activeThread;
 
       if (!thread) {
-        const threadTitle = message.trim().replace(/\s+/g, " ").slice(0, 60) || "New chat";
+        const threadTitle = outboundMessage.replace(/\s+/g, " ").slice(0, 60) || "New chat";
         const response = await createThread({
           title: threadTitle,
           collection_type: "chat",
@@ -102,10 +109,27 @@ export default function ChatPage() {
         setActiveThread(thread);
       }
 
-      const response = await sendThreadMessage(thread.id, {
-        content: message,
-        model,
-      });
+      const optimisticUserId = `user-pending-${Date.now()}`;
+      const optimisticAssistantId = `assistant-pending-${Date.now()}`;
+      const optimisticTimestamp = new Date().toISOString();
+
+      const optimisticUserMessage: ChatMessage = {
+        id: optimisticUserId,
+        thread_id: thread.id,
+        role: "user",
+        content: outboundMessage,
+        created_at: optimisticTimestamp,
+        metadata: {},
+      };
+
+      const optimisticAssistantMessage: ChatMessage = {
+        id: optimisticAssistantId,
+        thread_id: thread.id,
+        role: "assistant",
+        content: "",
+        created_at: optimisticTimestamp,
+        metadata: { streaming: true },
+      };
 
       setActiveThread((current) =>
         current
@@ -113,16 +137,72 @@ export default function ChatPage() {
               ...current,
               messages: [
                 ...(current.messages ?? []),
-                response.userMessage,
-                response.assistantMessage,
+                optimisticUserMessage,
+                optimisticAssistantMessage,
               ],
             }
           : current,
       );
-      setMessage("");
-      resetTextareaHeight();
+
+      const response = await streamThreadMessage(thread.id, {
+        content: outboundMessage,
+        model,
+      }, {
+        onDelta: (_chunk, fullText) => {
+          setActiveThread((current) =>
+            current
+              ? {
+                  ...current,
+                  messages: (current.messages ?? []).map((item) =>
+                    item.id === optimisticAssistantId
+                      ? {
+                          ...item,
+                          content: fullText,
+                          metadata: { ...item.metadata, streaming: true },
+                        }
+                      : item,
+                  ),
+                }
+              : current,
+          );
+        },
+      });
+
+      setActiveThread((current) =>
+        current
+          ? {
+              ...current,
+              messages: (current.messages ?? []).map((item) => {
+                if (item.id === optimisticUserId) {
+                  return response.userMessage;
+                }
+                if (item.id === optimisticAssistantId) {
+                  return response.assistantMessage;
+                }
+                return item;
+              }),
+            }
+          : current,
+      );
       await refreshThreads(thread.id);
     } catch (err) {
+      const messageText = err instanceof Error ? err.message : "Failed to send message.";
+      setActiveThread((current) =>
+        current
+          ? {
+              ...current,
+              messages: (current.messages ?? []).map((item) =>
+                item.id.startsWith("assistant-pending-")
+                  ? {
+                      ...item,
+                      content: messageText,
+                      metadata: { ...item.metadata, streaming: false },
+                    }
+                  : item,
+              ),
+            }
+          : current,
+      );
       setError(err instanceof Error ? err.message : "Failed to send message.");
     } finally {
       setLoading(false);
@@ -293,7 +373,11 @@ export default function ChatPage() {
                 className={`cs-msg cs-msg-${msg.role}`}
               >
                 <div className="cs-msg-label">{msg.role}</div>
-                <div className="cs-msg-body">{msg.content}</div>
+                <div className="cs-msg-body">
+                  <div className="cs-markdown">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                  </div>
+                </div>
               </div>
             ))}
             <div ref={messagesEndRef} />

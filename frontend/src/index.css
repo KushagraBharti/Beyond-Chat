@@ -1547,6 +1547,48 @@ a {
   color: var(--ink);
 }
 
+.cs-markdown {
+  font-size: 0.96rem;
+}
+
+.cs-markdown > * + * {
+  margin-top: 0.65rem;
+}
+
+.cs-markdown p {
+  margin: 0;
+}
+
+.cs-markdown ul,
+.cs-markdown ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.cs-markdown code {
+  font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.86em;
+  background: rgba(13, 13, 13, 0.08);
+  border-radius: 0.45rem;
+  padding: 0.1rem 0.35rem;
+}
+
+.cs-markdown pre {
+  margin: 0;
+  overflow-x: auto;
+  background: rgba(13, 13, 13, 0.92);
+  color: #f6f7fb;
+  border-radius: 0.8rem;
+  padding: 0.85rem 0.95rem;
+}
+
+.cs-markdown pre code {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  color: inherit;
+}
+
 /* Composer */
 
 .cs-composer-wrap {

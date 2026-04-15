@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, AsyncIterator
 
 import httpx
 
@@ -90,6 +91,74 @@ async def call_openrouter(
         return ""
     content = message.get("content", "")
     return content if isinstance(content, str) else ""
+
+
+async def call_openrouter_stream(
+    model: str,
+    messages: list[dict[str, str]],
+    temperature: float = 0.4,
+    max_tokens: int = 900,
+) -> AsyncIterator[str]:
+    if not settings.openrouter_api_key:
+        raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
+
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": True,
+    }
+
+    timeout = httpx.Timeout(connect=10.0, write=30.0, read=None, pool=30.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        try:
+            async with client.stream(
+                "POST",
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers=_openrouter_headers(),
+                json=payload,
+            ) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    raw_line = line.strip()
+                    if not raw_line or not raw_line.startswith("data:"):
+                        continue
+
+                    data = raw_line[5:].strip()
+                    if data == "[DONE]":
+                        break
+
+                    try:
+                        chunk_payload = json.loads(data)
+                    except json.JSONDecodeError:
+                        continue
+
+                    choices = chunk_payload.get("choices") or []
+                    if not choices or not isinstance(choices[0], dict):
+                        continue
+
+                    delta = choices[0].get("delta") or {}
+                    if not isinstance(delta, dict):
+                        continue
+
+                    content = delta.get("content")
+                    if isinstance(content, str) and content:
+                        yield content
+                        continue
+
+                    if isinstance(content, list):
+                        text_parts = [
+                            part.get("text", "")
+                            for part in content
+                            if isinstance(part, dict) and isinstance(part.get("text"), str)
+                        ]
+                        merged = "".join(text_parts)
+                        if merged:
+                            yield merged
+        except httpx.HTTPError as exc:
+            response = exc.response if isinstance(exc, httpx.HTTPStatusError) else None
+            raise RuntimeError(_provider_error_message("OpenRouter chat", exc, response)) from exc
 
 
 def _image_modalities(model: str) -> list[str]:
