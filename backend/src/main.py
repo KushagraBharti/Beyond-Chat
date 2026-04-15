@@ -41,6 +41,7 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         settings.app_url,
     ],
+    allow_origin_regex=settings.cors_allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

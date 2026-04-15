@@ -82,6 +82,45 @@ cd backend
 uv run pytest
 ```
 
+## Deploy To Vercel
+
+Deploy as two Vercel projects from the same repository.
+
+1. Backend project
+
+- Import this repository in Vercel.
+- Set Root Directory to `backend`.
+- Framework Preset: `Other`.
+- Use [backend/vercel.json](backend/vercel.json) and [backend/api/index.py](backend/api/index.py) as-is.
+- Add backend env vars from [backend/env.example](backend/env.example).
+
+Recommended backend env vars on Vercel:
+
+- `ENVIRONMENT=production`
+- `APP_URL=https://<your-frontend-domain>.vercel.app`
+- `API_BASE_URL=https://<your-backend-domain>.vercel.app`
+- `OPENROUTER_HTTP_REFERER=https://<your-frontend-domain>.vercel.app`
+- Optional preview support: `CORS_ALLOW_ORIGIN_REGEX=^https://.*\.vercel\.app$`
+
+2. Frontend project
+
+- Import this repository in Vercel.
+- Set Root Directory to `frontend`.
+- Framework Preset: `Vite`.
+- Keep [frontend/vercel.json](frontend/vercel.json) for SPA routing.
+- Add frontend env vars from [frontend/env.example](frontend/env.example).
+
+Required frontend env on Vercel:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_API_BASE_URL=https://<your-backend-domain>.vercel.app`
+
+3. Verify deployed integration
+
+- Open `https://<your-backend-domain>.vercel.app/api/health`
+- Open frontend and confirm auth + API-backed pages load without CORS errors.
+
 ## Runtime Rules
 
 - Hosted requests must use a valid Supabase-authenticated session

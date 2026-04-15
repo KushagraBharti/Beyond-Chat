@@ -14,6 +14,7 @@ class Settings:
     environment: str = os.getenv("ENVIRONMENT", "development")
     app_title: str = os.getenv("OPENROUTER_APP_TITLE", "Beyond Chat")
     app_url: str = os.getenv("APP_URL", "http://127.0.0.1:5173")
+    cors_allow_origin_regex: str | None = os.getenv("CORS_ALLOW_ORIGIN_REGEX") or None
     api_base_url: str = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
     openrouter_api_key: str | None = os.getenv("OPENROUTER_API_KEY")
     openrouter_http_referer: str = os.getenv("OPENROUTER_HTTP_REFERER", "http://127.0.0.1:5173")
