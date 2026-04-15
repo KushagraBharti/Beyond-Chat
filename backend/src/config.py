@@ -9,13 +9,24 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _split_csv_env(name: str) -> tuple[str, ...]:
+    raw_value = os.getenv(name, "")
+    if not raw_value:
+        return ()
+    return tuple(item.strip() for item in raw_value.split(",") if item.strip())
+
+
+_DEFAULT_API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+
+
 @dataclass(frozen=True)
 class Settings:
     environment: str = os.getenv("ENVIRONMENT", "development")
     app_title: str = os.getenv("OPENROUTER_APP_TITLE", "Beyond Chat")
     app_url: str = os.getenv("APP_URL", "http://127.0.0.1:5173")
+    cors_allow_origins: tuple[str, ...] = _split_csv_env("CORS_ALLOW_ORIGINS")
     cors_allow_origin_regex: str | None = os.getenv("CORS_ALLOW_ORIGIN_REGEX") or None
-    api_base_url: str = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
+    api_base_url: str = _DEFAULT_API_BASE_URL
     openrouter_api_key: str | None = os.getenv("OPENROUTER_API_KEY")
     openrouter_http_referer: str = os.getenv("OPENROUTER_HTTP_REFERER", "http://127.0.0.1:5173")
     openrouter_timeout_seconds: float = float(os.getenv("OPENROUTER_TIMEOUT_SECONDS", "45"))
@@ -25,7 +36,7 @@ class Settings:
     google_client_secret: str | None = os.getenv("GOOGLE_CLIENT_SECRET")
     google_redirect_uri: str = os.getenv(
         "GOOGLE_REDIRECT_URI",
-        "http://127.0.0.1:8000/api/integrations/google-calendar/callback",
+        f"{_DEFAULT_API_BASE_URL}/api/integrations/google-calendar/callback",
     )
     supabase_url: str | None = os.getenv("SUPABASE_URL")
     supabase_anon_key: str | None = os.getenv("SUPABASE_ANON_KEY")

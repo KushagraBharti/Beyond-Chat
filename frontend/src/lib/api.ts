@@ -2,7 +2,9 @@ import { supabase } from "./supabaseClient";
 
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "");
+const defaultProductionApiBaseUrl = import.meta.env.DEV ? "" : "https://beyond-chat-backend.vercel.app";
+const apiBaseUrl = configuredApiBaseUrl ?? defaultProductionApiBaseUrl;
 const workspaceStorageKey = "bc.workspace_id";
 
 export interface Workspace {
