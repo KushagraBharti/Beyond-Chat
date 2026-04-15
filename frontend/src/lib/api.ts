@@ -3,8 +3,30 @@ import { supabase } from "./supabaseClient";
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
 
 const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "");
-const defaultProductionApiBaseUrl = import.meta.env.DEV ? "" : "https://beyond-chat-backend.vercel.app";
-const apiBaseUrl = configuredApiBaseUrl ?? defaultProductionApiBaseUrl;
+const defaultProductionApiBaseUrl = "";
+
+function isLocalhostApiUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1" || parsed.hostname === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function resolveApiBaseUrl(): string {
+  if (import.meta.env.DEV) {
+    return configuredApiBaseUrl ?? "";
+  }
+
+  if (configuredApiBaseUrl && !isLocalhostApiUrl(configuredApiBaseUrl)) {
+    return configuredApiBaseUrl;
+  }
+
+  return defaultProductionApiBaseUrl;
+}
+
+const apiBaseUrl = resolveApiBaseUrl();
 const workspaceStorageKey = "bc.workspace_id";
 
 export interface Workspace {

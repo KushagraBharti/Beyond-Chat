@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://beyond-chat-backend.vercel.app/api/$1"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
