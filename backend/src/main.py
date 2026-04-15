@@ -38,14 +38,14 @@ cors_allow_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     settings.app_url,
-    *settings.cors_allow_origins,
+    "https://beyond-chat-ivory.vercel.app",
 ]
 deduped_cors_allow_origins: list[str] = list(dict.fromkeys(origin for origin in cors_allow_origins if origin))
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=deduped_cors_allow_origins,
-    allow_origin_regex=settings.cors_allow_origin_regex,
+    allow_origin_regex=r"^https://.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
