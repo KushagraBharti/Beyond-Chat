@@ -9,6 +9,7 @@ import ArtifactSaveButton from "../../components/ArtifactSaveButton";
 import { createRun, getArtifact } from "../../lib/api";
 import { buildWritingArtifactInput } from "../../lib/artifactDrafts";
 import { markdownToHtml } from "../../lib/editor";
+import { activeModelCatalog, defaultChatModel } from "../../lib/modelCatalog";
 import {
   EmptyState,
   FieldLabel,
@@ -22,11 +23,7 @@ import {
   TextInput,
 } from "../../components/protectedUi";
 
-const modelOptions = [
-  "openai/gpt-4o-mini",
-  "anthropic/claude-3.5-sonnet",
-  "google/gemini-2.0-flash-001",
-];
+const modelOptions = activeModelCatalog;
 
 const colorOptions = ["#0D0D0D", "#4F3FE8", "#E55613", "#0E7AE6", "#30A46C"];
 
@@ -36,7 +33,7 @@ export default function WritingEditorPage() {
   const [title, setTitle] = useState("Untitled Document");
   const [assistantPrompt, setAssistantPrompt] = useState("");
   const [assistantScope, setAssistantScope] = useState<"selection" | "document" | "insert">("selection");
-  const [assistantModel, setAssistantModel] = useState(modelOptions[0]);
+  const [assistantModel, setAssistantModel] = useState(defaultChatModel);
   const [assistantDraft, setAssistantDraft] = useState("");
   const [statusMessage, setStatusMessage] = useState("Ready");
   const [loading, setLoading] = useState(false);
@@ -262,8 +259,8 @@ export default function WritingEditorPage() {
             <FieldLabel>Model</FieldLabel>
             <Select value={assistantModel} onChange={(event) => setAssistantModel(event.target.value)}>
               {modelOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
+                <option key={option.id} value={option.openRouterId}>
+                  {option.name} ({option.openRouterId})
                 </option>
               ))}
             </Select>

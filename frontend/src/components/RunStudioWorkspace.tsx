@@ -4,6 +4,7 @@ import ContextBuilder from "./ContextBuilder";
 import StepTimeline from "./StepTimeline";
 import { createRun, type RunRecord } from "../lib/api";
 import { buildRunArtifactInput } from "../lib/artifactDrafts";
+import { activeModelCatalog, defaultChatModel } from "../lib/modelCatalog";
 import {
   EmptyState,
   FieldLabel,
@@ -17,11 +18,7 @@ import {
 } from "./protectedUi";
 import { useComparePanel } from "../features/compare/ComparePanelProvider";
 
-const models = [
-  "openai/gpt-4o-mini",
-  "anthropic/claude-3.5-sonnet",
-  "google/gemini-2.0-flash-001",
-];
+const models = activeModelCatalog;
 
 export default function RunStudioWorkspace({
   studio,
@@ -38,7 +35,7 @@ export default function RunStudioWorkspace({
 }) {
   const { openComparePanel } = useComparePanel();
   const [prompt, setPrompt] = useState(promptPlaceholder);
-  const [model, setModel] = useState(models[0]);
+  const [model, setModel] = useState(defaultChatModel);
   const [contextIds, setContextIds] = useState<string[]>([]);
   const [run, setRun] = useState<RunRecord | null>(null);
   const [loading, setLoading] = useState(false);
@@ -132,8 +129,8 @@ export default function RunStudioWorkspace({
               <FieldLabel>Model</FieldLabel>
               <Select value={model} onChange={(event) => setModel(event.target.value)}>
                 {models.map((entry) => (
-                  <option key={entry} value={entry}>
-                    {entry}
+                  <option key={entry.id} value={entry.openRouterId}>
+                    {entry.name} ({entry.openRouterId})
                   </option>
                 ))}
               </Select>

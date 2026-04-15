@@ -3,12 +3,9 @@ import ArtifactSaveButton from "../../components/ArtifactSaveButton";
 import ContextBuilder from "../../components/ContextBuilder";
 import { comparePrompt, type CompareResult } from "../../lib/api";
 import { buildCompareArtifactInput } from "../../lib/artifactDrafts";
+import { activeModelCatalog, defaultCompareModels } from "../../lib/modelCatalog";
 
-const availableModels = [
-  "openai/gpt-4o-mini",
-  "anthropic/claude-3.5-sonnet",
-  "google/gemini-2.0-flash-001",
-];
+const availableModels = activeModelCatalog;
 
 type ComparePanelLaunch = {
   prompt?: string;
@@ -30,7 +27,7 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
   const [isOpen, setIsOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [contextIds, setContextIds] = useState<string[]>([]);
-  const [selectedModels, setSelectedModels] = useState<string[]>(availableModels);
+  const [selectedModels, setSelectedModels] = useState<string[]>(defaultCompareModels);
   const [results, setResults] = useState<CompareResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +41,7 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
         setStudio(launch?.studio ?? "chat");
         setResults([]);
         setError(null);
-        setSelectedModels(availableModels);
+        setSelectedModels(defaultCompareModels);
         setIsOpen(true);
       },
       closeComparePanel: () => setIsOpen(false),
@@ -52,10 +49,17 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
     [],
   );
 
-  const toggleModel = (model: string) => {
-    setSelectedModels((current) =>
-      current.includes(model) ? current.filter((item) => item !== model) : [...current, model],
-    );
+  const toggleModel = (modelId: string) => {
+    setSelectedModels((current) => {
+      if (current.includes(modelId)) {
+        return current.filter((item) => item !== modelId);
+      }
+      if (current.length >= 4) {
+        setError("You can compare up to 4 models at once.");
+        return current;
+      }
+      return [...current, modelId];
+    });
   };
 
   const runCompare = async () => {
@@ -132,19 +136,22 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     {availableModels.map((model) => {
-                      const active = selectedModels.includes(model);
+                      const active = selectedModels.includes(model.openRouterId);
                       return (
                         <button
-                          key={model}
+                          key={model.id}
                           type="button"
-                          onClick={() => toggleModel(model)}
+                          onClick={() => toggleModel(model.openRouterId)}
                           className={`rounded-[1.25rem] border px-4 py-4 text-left text-sm transition ${
                             active
                               ? "border-stone-950 bg-stone-950 text-white shadow-lg"
                               : "border-stone-200 bg-stone-50 text-stone-800 hover:border-stone-300 hover:bg-white"
                           }`}
                         >
-                          <div className="font-semibold">{model}</div>
+                          <div className="font-semibold">{model.name}</div>
+                          <div className={`mt-1 text-xs ${active ? "text-stone-300" : "text-stone-500"}`}>
+                            {model.openRouterId}
+                          </div>
                           <div className={`mt-1 text-xs ${active ? "text-stone-300" : "text-stone-500"}`}>
                             {active ? "Included in this compare run" : "Click to include"}
                           </div>
@@ -152,6 +159,7 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
                       );
                     })}
                   </div>
+                  <p className="mt-3 text-xs text-stone-500">{selectedModels.length}/4 selected</p>
                 </section>
 
                 <ContextBuilder selectedIds={contextIds} onChange={setContextIds} title="Attached Context" />

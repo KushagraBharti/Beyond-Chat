@@ -12,11 +12,13 @@ import {
 import { supabase } from "../../lib/supabaseClient";
 import { AppBrand } from "../../components/protectedUi";
 import { useComparePanel } from "../../features/compare/ComparePanelProvider";
+import { activeModelCatalog, defaultChatModel } from "../../lib/modelCatalog";
 
 const availableModels = [
-  { id: "openai/gpt-4o-mini", label: "GPT-4o Mini" },
-  { id: "anthropic/claude-3.5-sonnet", label: "Claude 3.5 Sonnet" },
-  { id: "google/gemini-2.0-flash-001", label: "Gemini 2.0 Flash" },
+  ...activeModelCatalog.map((entry) => ({
+    id: entry.openRouterId,
+    label: entry.name,
+  })),
 ];
 
 export default function ChatPage() {
@@ -29,7 +31,7 @@ export default function ChatPage() {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [activeThread, setActiveThread] = useState<ChatThread | null>(null);
   const [message, setMessage] = useState("");
-  const [model, setModel] = useState(availableModels[0].id);
+  const [model, setModel] = useState(defaultChatModel);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
