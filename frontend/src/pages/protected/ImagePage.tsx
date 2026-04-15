@@ -71,7 +71,7 @@ export default function ImagePage() {
   const { user } = useAuth();
 
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(imageModels[0].value);
+  const [selectedModels, setSelectedModels] = useState<string[]>([imageModels[0].value]);
   const [ratio, setRatio] = useState("4:3");
   const [quality, setQuality] = useState("High");
   const [gallery, setGallery] = useState<ArtifactRecord[]>([]);
@@ -116,6 +116,10 @@ export default function ImagePage() {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+    if (!selectedModels.length) {
+      setStatus("Pick at least one model.");
+      return;
+    }
     setLoading(true);
     setStatus("Generating...");
     setFreshImages([]);
@@ -124,8 +128,8 @@ export default function ImagePage() {
         studio: "image",
         title: prompt.slice(0, 60) || "Image generation",
         prompt,
-        model,
-        options: { ratio, quality },
+        model: selectedModels[0],
+        options: { ratio, quality, models: selectedModels },
       });
 
       const run = response.run;
@@ -137,7 +141,47 @@ export default function ImagePage() {
       const urls = (run.output?.urls as string[] | undefined) ?? [];
       const enhancedPrompt = (run.output?.enhanced_prompt as string | undefined) ?? prompt;
       const paths = (run.output?.paths as string[] | undefined) ?? [];
-      const modelLabel = imageModels.find((m) => m.value === model)?.label ?? model;
+      const variants =
+        (run.output?.variants as Array<{
+          model: string;
+          urls: string[];
+          paths: string[];
+          count: number;
+          error?: string;
+        }> | undefined) ?? [];
+
+      if (variants.length) {
+        const generated = variants.flatMap((variant, variantIndex) => {
+          const modelLabel = imageModels.find((m) => m.value === variant.model)?.label ?? variant.model;
+          return (variant.urls ?? []).map((url, imageIndex) => ({
+            id: `${run.id}-${variantIndex}-${imageIndex}`,
+            url,
+            prompt: enhancedPrompt,
+            storagePath: variant.paths?.[imageIndex] ?? "",
+            model: variant.model,
+            modelLabel,
+            ratio,
+            quality,
+            createdAt: new Date().toISOString(),
+          }));
+        });
+
+        const failedModels = variants.filter((variant) => variant.error).map((variant) => variant.model);
+        setFreshImages(generated);
+        if (generated.length && failedModels.length) {
+          setStatus(`${generated.length} image(s) generated. ${failedModels.length} model(s) failed.`);
+        } else if (generated.length) {
+          setStatus(`${generated.length} image(s) generated across ${selectedModels.length} model(s).`);
+        } else if (failedModels.length) {
+          setStatus(`Generation failed for all selected models (${failedModels.join(", ")}).`);
+        } else {
+          setStatus("No images returned.");
+        }
+        return;
+      }
+
+      const firstModel = selectedModels[0] ?? imageModels[0].value;
+      const modelLabel = imageModels.find((m) => m.value === firstModel)?.label ?? firstModel;
 
       setFreshImages(
         urls.map((url, index) => ({
@@ -145,7 +189,7 @@ export default function ImagePage() {
           url,
           prompt: enhancedPrompt,
           storagePath: paths[index] ?? "",
-          model,
+          model: firstModel,
           modelLabel,
           ratio,
           quality,
@@ -210,6 +254,18 @@ export default function ImagePage() {
     }
   };
 
+  const toggleModel = (modelValue: string) => {
+    setSelectedModels((current) => {
+      if (current.includes(modelValue)) {
+        if (current.length === 1) {
+          return current;
+        }
+        return current.filter((entry) => entry !== modelValue);
+      }
+      return [...current, modelValue];
+    });
+  };
+
   return (
     <div className="is">
       {/* Sidebar */}
@@ -248,20 +304,20 @@ export default function ImagePage() {
           <div className="is-section">
             <div className="is-section-label">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z" /><path d="m2 17 10 5 10-5" /><path d="m2 12 10 5 10-5" /></svg>
-              Models
+              Models ({selectedModels.length} selected)
             </div>
             <div className="is-model-list">
               {imageModels.map((m) => (
                 <button
                   key={m.value}
-                  className={`is-model-card ${model === m.value ? "is-active" : ""}`}
-                  onClick={() => setModel(m.value)}
+                  className={`is-model-card ${selectedModels.includes(m.value) ? "is-active" : ""}`}
+                  onClick={() => toggleModel(m.value)}
                   type="button"
                 >
                   <div className="is-model-card-top">
                     <strong>{m.label}</strong>
                     <div
-                      className={`is-model-radio ${model === m.value ? "is-checked" : ""}`}
+                      className={`is-model-radio ${selectedModels.includes(m.value) ? "is-checked" : ""}`}
                     />
                   </div>
                   <span>{m.desc}</span>

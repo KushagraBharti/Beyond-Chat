@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 from typing import Any
 
@@ -228,14 +229,28 @@ async def run_image_workflow(
     options: dict[str, Any],
     access_token: str | None,
 ) -> dict[str, Any]:
-    image_model = model if model and model != settings.openrouter_default_model else settings.openrouter_image_default_model
+    fallback_model = model if model and model != settings.openrouter_default_model else settings.openrouter_image_default_model
+    requested_models = options.get("models")
+    selected_models: list[str] = []
+    if isinstance(requested_models, list):
+        for item in requested_models:
+            if isinstance(item, str) and item.strip():
+                selected_models.append(item.strip())
+
+    if not selected_models:
+        selected_models = [fallback_model]
+
+    # Keep model order stable while removing duplicates.
+    selected_models = list(dict.fromkeys(selected_models))
+
     quality = str(options.get("quality", "High"))
     ratio = str(options.get("ratio", "1:1"))
 
     constraints = {
         "quality": quality,
         "ratio": ratio,
-        "model": image_model,
+        "models": selected_models,
+        "modelCount": len(selected_models),
     }
     _record_step(data_store, workspace_id, run_id, "collect_constraints", "system", "completed", options, constraints)
 
@@ -257,13 +272,57 @@ async def run_image_workflow(
     )
     _record_step(data_store, workspace_id, run_id, "enhance_prompt", "openrouter", "completed", prompt, {"enhancedPrompt": enhanced_prompt})
 
-    _record_step(data_store, workspace_id, run_id, "generate", "openrouter-images", "running", enhanced_prompt, "Generating image")
-    generated_images = await call_openrouter_image(
-        model=image_model,
-        prompt=enhanced_prompt,
-        aspect_ratio=ratio,
-        image_size=_quality_to_image_size(quality),
+    _record_step(
+        data_store,
+        workspace_id,
+        run_id,
+        "generate",
+        "openrouter-images",
+        "running",
+        enhanced_prompt,
+        {
+            "models": selected_models,
+            "quality": quality,
+            "ratio": ratio,
+        },
     )
+
+    async def generate_for_model(image_model: str) -> dict[str, Any]:
+        try:
+            generated_images = await call_openrouter_image(
+                model=image_model,
+                prompt=enhanced_prompt,
+                aspect_ratio=ratio,
+                image_size=_quality_to_image_size(quality),
+            )
+            return {
+                "model": image_model,
+                "images": generated_images,
+                "error": None,
+            }
+        except Exception as exc:
+            return {
+                "model": image_model,
+                "images": [],
+                "error": str(exc),
+            }
+
+    generated_results = await asyncio.gather(*(generate_for_model(image_model) for image_model in selected_models))
+
+    generated_counts = {
+        result["model"]: len(result["images"])
+        for result in generated_results
+    }
+    generated_errors = {
+        result["model"]: result["error"]
+        for result in generated_results
+        if result["error"]
+    }
+
+    total_generated = sum(generated_counts.values())
+    if total_generated == 0 and generated_errors:
+        raise RuntimeError(f"Image generation failed for all selected models: {generated_errors}")
+
     _record_step(
         data_store,
         workspace_id,
@@ -272,38 +331,80 @@ async def run_image_workflow(
         "openrouter-images",
         "completed",
         enhanced_prompt,
-        {"count": len(generated_images), "model": image_model},
+        {
+            "count": total_generated,
+            "models": selected_models,
+            "countsByModel": generated_counts,
+            "errorsByModel": generated_errors,
+        },
     )
 
     _record_step(data_store, workspace_id, run_id, "upload", "supabase", "running", run_id, "Uploading generated images")
     urls: list[str] = []
     paths: list[str] = []
-    for index, (image_bytes, content_type) in enumerate(generated_images):
-        extension = "jpg" if "jpeg" in content_type else "png"
-        uploaded = supabase_service.upload_image_file(
-            workspace_id=workspace_id,
-            run_id=run_id,
-            filename=f"image_{index + 1}.{extension}",
-            content_type=content_type,
-            image_bytes=image_bytes,
-            access_token=access_token,
-        )
-        if uploaded and uploaded.get("signed_url"):
-            urls.append(uploaded["signed_url"])
-            paths.append(uploaded["path"])
-        else:
-            # Fallback: serve as base64 data URL when storage is unavailable
-            b64 = base64.b64encode(image_bytes).decode()
-            urls.append(f"data:{content_type};base64,{b64}")
-            paths.append("")
-    _record_step(data_store, workspace_id, run_id, "upload", "supabase", "completed", run_id, {"count": len(urls), "paths": paths})
+    variants: list[dict[str, Any]] = []
+    for result in generated_results:
+        image_model = str(result["model"])
+        model_images = result["images"]
+        model_error = result["error"]
+        model_urls: list[str] = []
+        model_paths: list[str] = []
+        model_slug = image_model.replace("/", "-").replace(":", "-")
+
+        for index, (image_bytes, content_type) in enumerate(model_images):
+            extension = "jpg" if "jpeg" in content_type else "png"
+            uploaded = supabase_service.upload_image_file(
+                workspace_id=workspace_id,
+                run_id=run_id,
+                filename=f"{model_slug}_{index + 1}.{extension}",
+                content_type=content_type,
+                image_bytes=image_bytes,
+                access_token=access_token,
+            )
+            if uploaded and uploaded.get("signed_url"):
+                model_urls.append(uploaded["signed_url"])
+                model_paths.append(uploaded["path"])
+            else:
+                # Fallback: serve as base64 data URL when storage is unavailable
+                b64 = base64.b64encode(image_bytes).decode()
+                model_urls.append(f"data:{content_type};base64,{b64}")
+                model_paths.append("")
+
+        urls.extend(model_urls)
+        paths.extend(model_paths)
+        variant = {
+            "model": image_model,
+            "urls": model_urls,
+            "paths": model_paths,
+            "count": len(model_urls),
+        }
+        if model_error:
+            variant["error"] = model_error
+        variants.append(variant)
+
+    _record_step(
+        data_store,
+        workspace_id,
+        run_id,
+        "upload",
+        "supabase",
+        "completed",
+        run_id,
+        {
+            "count": len(urls),
+            "paths": paths,
+            "variants": [{"model": item["model"], "count": item["count"]} for item in variants],
+        },
+    )
 
     return {
         "format": "image",
         "workflow": "image",
         "prompt": prompt,
         "enhanced_prompt": enhanced_prompt,
-        "model": image_model,
+        "model": selected_models[0],
+        "models": selected_models,
+        "variants": variants,
         "urls": urls,
         "paths": paths,
         "count": len(urls),
