@@ -56,7 +56,7 @@ export default function WritingHomePage() {
     const load = async () => {
       try {
         setLoading(writingDocumentsCache === null);
-        const response = await listArtifacts({ studio: "writing", limit: 120 });
+        const response = await listArtifacts({ studio: "writing", limit: 100 });
         if (active) {
           writingDocumentsCache = response.items;
           setDocuments(response.items);

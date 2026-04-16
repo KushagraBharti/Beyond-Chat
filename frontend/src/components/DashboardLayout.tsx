@@ -181,76 +181,78 @@ export default function DashboardLayout() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.10),transparent_34%),#f5f5f4] text-stone-950">
       <div className="flex min-h-screen w-full gap-4 px-3 py-3 md:px-4">
         <aside
-          className={`sticky top-3 hidden h-[calc(100vh-1.5rem)] flex-col rounded-[2rem] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(28,25,23,0.08)] backdrop-blur xl:flex ${
+          className={`sticky top-3 hidden h-[calc(100vh-1.5rem)] flex-col rounded-[2rem] border border-white/70 bg-white/80 px-4 pt-4 pb-7 shadow-[0_24px_80px_rgba(28,25,23,0.08)] backdrop-blur xl:flex ${
             expanded ? "w-64" : "w-24"
           }`}
         >
-          <div className="mb-6 flex items-center justify-between gap-3">
-            <NavLink to="/dashboard" className="overflow-hidden">
-              <AppBrand compact={collapsed} />
-            </NavLink>
-            <button
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
-              onClick={() => setExpanded((value) => !value)}
-              type="button"
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <CollapseGlyph collapsed={collapsed} />
-            </button>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <NavLink to="/dashboard" className="overflow-hidden">
+                <AppBrand compact={collapsed} />
+              </NavLink>
+              <button
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 transition hover:border-stone-300 hover:text-stone-900"
+                onClick={() => setExpanded((value) => !value)}
+                type="button"
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                <CollapseGlyph collapsed={collapsed} />
+              </button>
+            </div>
+
+            {expanded ? <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Workspace</div> : null}
+            <nav className="flex flex-col gap-1.5">
+              {primaryNav.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
+                      collapsed ? "justify-center" : "gap-3"
+                    } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <SidebarIcon active={isActive} accent={item.accent}>
+                        {item.icon}
+                      </SidebarIcon>
+                      {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
+
+            {expanded ? <div className="mt-6 px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
+            <nav className="flex flex-col gap-1.5">
+              {secondaryNav.map((item) => (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  title={collapsed ? item.label : undefined}
+                  className={({ isActive }) =>
+                    `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
+                      collapsed ? "justify-center" : "gap-3"
+                    } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <SidebarIcon active={isActive} accent={item.accent}>
+                        {item.icon}
+                      </SidebarIcon>
+                      {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </nav>
           </div>
 
-          {expanded ? <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Workspace</div> : null}
-          <nav className="flex flex-col gap-1.5">
-            {primaryNav.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                title={collapsed ? item.label : undefined}
-                className={({ isActive }) =>
-                  `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
-                    collapsed ? "justify-center" : "gap-3"
-                  } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <SidebarIcon active={isActive} accent={item.accent}>
-                      {item.icon}
-                    </SidebarIcon>
-                    {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-
-          {expanded ? <div className="mt-6 px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
-          <nav className="flex flex-col gap-1.5">
-            {secondaryNav.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                title={collapsed ? item.label : undefined}
-                className={({ isActive }) =>
-                  `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
-                    collapsed ? "justify-center" : "gap-3"
-                  } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <SidebarIcon active={isActive} accent={item.accent}>
-                      {item.icon}
-                    </SidebarIcon>
-                    {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className={`mt-auto ${expanded ? "flex items-center justify-start gap-3 pl-3 pr-2" : "flex flex-col items-center gap-3"}`}>
+          <div className={`${expanded ? "flex items-end justify-start gap-3 pl-3 pr-2" : "flex flex-col items-center gap-3"}`}>
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-rose-500 text-sm font-bold text-white">
               {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
             </div>
