@@ -139,6 +139,7 @@ export interface ArtifactRecord {
 }
 
 export interface CreateArtifactInput {
+  artifact_id?: string;
   title: string;
   type: string;
   studio: string;
@@ -270,6 +271,19 @@ export async function createThread(payload: {
 
 export async function getThread(threadId: string) {
   return api<{ thread: ChatThread }>(`/api/chat/threads/${threadId}`);
+}
+
+export async function renameThread(threadId: string, payload: { title: string }) {
+  return api<{ thread: ChatThread }>(`/api/chat/threads/${threadId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteThread(threadId: string) {
+  return api<string>(`/api/chat/threads/${threadId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function sendThreadMessage(threadId: string, payload: { content: string; model: string }) {
@@ -441,6 +455,20 @@ export async function listArtifacts(params?: {
 export async function getArtifact(artifactId: string) {
   const artifact = await api<ArtifactRecord>(`/api/artifact/${artifactId}`);
   return { artifact };
+}
+
+export async function renameArtifact(artifactId: string, payload: { title: string }) {
+  const artifact = await api<ArtifactRecord>(`/api/artifact/${artifactId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+  return { artifact };
+}
+
+export async function deleteArtifact(artifactId: string) {
+  return api<string>(`/api/artifact/${artifactId}`, {
+    method: "DELETE",
+  });
 }
 
 export async function exportArtifact(artifactId: string, format: "markdown" | "pdf") {
