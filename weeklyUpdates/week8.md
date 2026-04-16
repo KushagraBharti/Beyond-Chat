@@ -189,3 +189,45 @@
 
 ## Hours Worked
 - Total estimated time: 23 hours
+
+
+## Hours Worked  
+- Total estimated time: 14 hours  
+
+---
+
+# DIYA  
+
+## Weekly Summary  
+- Week 8 focused on refining the user experience in the Studio and improving overall UI consistency across the application.  
+- I spent most of my time enhancing frontend components, polishing layout behavior, and assisting with smaller debugging tasks to improve usability.  
+- The goal was to make the interface more intuitive and visually consistent while ensuring core features worked smoothly for users.  
+
+## Work Completed  
+- Improved the Studio UI by refining layout structure, spacing, and component alignment to create a more cohesive user experience.  
+- Enhanced reusable UI components to better support flexibility across different pages (e.g., improved props handling and styling consistency).  
+- Assisted in polishing the Compare Studio interface to ensure outputs display clearly and consistently across different models.  
+- Fixed minor frontend bugs related to rendering issues, incorrect component states, and UI inconsistencies.  
+- Helped debug issues where certain UI elements were not updating properly after user interactions.  
+- Improved navigation flow between pages to make transitions smoother and more intuitive.  
+- Collaborated with teammates to identify UI pain points and implemented small fixes to improve usability.  
+- Tested various user flows (Studio usage, model comparison, login navigation) to ensure a smooth and predictable experience.  
+
+## Research / Technical Findings  
+- Consistent component design significantly reduces UI bugs and improves maintainability across the application.  
+- Small UI inconsistencies (spacing, alignment, state updates) can have a large impact on perceived product quality.  
+- Proper state handling in React components is critical for ensuring UI updates correctly after user actions.  
+- Iterative UI testing helps catch edge cases that are not obvious during initial development.  
+
+## Blockers / Risks  
+- UI inconsistencies may reappear if shared components are modified without maintaining design standards.  
+- As new features are added, maintaining a consistent design system will become increasingly important.  
+- Some frontend bugs are tied to backend response timing, which can make debugging more complex.  
+
+## Startup / Execution Notes  
+- This week emphasized improving usability and polish rather than introducing new functionality.  
+- UI refinements and small bug fixes helped make the product feel more stable and user-friendly.  
+- These improvements will make future feature development easier by building on a more consistent frontend foundation.
+
+## Time worked: 
+- 6 hours 
