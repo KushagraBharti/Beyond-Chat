@@ -107,6 +107,14 @@ class CreateMessageRequest(BaseModel):
     model: str = settings.openrouter_default_model
 
 
+class RenameThreadRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+
+
+class RenameArtifactRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+
+
 class CompareRequest(BaseModel):
     prompt: str
     models: list[str] = Field(min_length=1, max_length=4)
@@ -123,6 +131,7 @@ class RunRequest(BaseModel):
 
 
 class ArtifactRequest(BaseModel):
+    artifact_id: str | None = None
     title: str
     artifact_type: str = Field(alias="type")
     studio: str
@@ -443,6 +452,32 @@ def get_thread(thread_id: str, context: RequestContext = Depends(require_request
     return {"thread": thread}
 
 
+@app.patch("/api/chat/threads/{thread_id}")
+def rename_thread(
+    thread_id: str,
+    payload: RenameThreadRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    data_store = get_runtime_store(context)
+    thread = data_store.get_thread(context.workspace_id, thread_id)
+    if thread is None:
+        raise HTTPException(status_code=404, detail="Thread not found")
+    updated = data_store.rename_thread(context.workspace_id, thread_id, title=payload.title.strip())
+    return {"thread": updated}
+
+
+@app.delete("/api/chat/threads/{thread_id}")
+def delete_thread(thread_id: str, context: RequestContext = Depends(require_request_context)) -> Response:
+    data_store = get_runtime_store(context)
+    try:
+        data_store.delete_thread(context.workspace_id, thread_id)
+    except RuntimeStoreError as exc:
+        if "not found" in str(exc).lower():
+            raise HTTPException(status_code=404, detail="Thread not found.") from exc
+        raise
+    return Response(status_code=204)
+
+
 @app.post("/api/chat/threads/{thread_id}/messages")
 async def add_message(
     thread_id: str,
@@ -646,6 +681,7 @@ def create_artifact(
         metadata=payload.metadata,
         tags=payload.tags,
         preview_image=payload.preview_image,
+        artifact_id=payload.artifact_id,
         content_json=payload.content_json,
         source_run_id=payload.source_run_id,
         storage_path=resolve_storage_path_from_payload(payload),
@@ -751,6 +787,34 @@ def get_artifact(artifact_id: str, context: RequestContext = Depends(require_req
     if artifact is None:
         raise HTTPException(status_code=404, detail="Artifact not found")
     return api_success(artifact)
+
+
+@app.patch("/api/artifact/{artifact_id}")
+@app.patch("/api/artifacts/{artifact_id}")
+def rename_artifact(
+    artifact_id: str,
+    payload: RenameArtifactRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    data_store = get_runtime_store(context)
+    artifact = data_store.get_artifact(context.workspace_id, artifact_id)
+    if artifact is None:
+        raise HTTPException(status_code=404, detail="Artifact not found")
+    updated = data_store.rename_artifact(context.workspace_id, artifact_id, title=payload.title.strip())
+    return api_success(updated)
+
+
+@app.delete("/api/artifact/{artifact_id}")
+@app.delete("/api/artifacts/{artifact_id}")
+def delete_artifact(artifact_id: str, context: RequestContext = Depends(require_request_context)) -> Response:
+    data_store = get_runtime_store(context)
+    try:
+        data_store.delete_artifact(context.workspace_id, artifact_id)
+    except RuntimeStoreError as exc:
+        if "not found" in str(exc).lower():
+            raise HTTPException(status_code=404, detail="Artifact not found.") from exc
+        raise
+    return Response(status_code=204)
 
 
 @app.post("/api/artifact/{artifact_id}/export")

@@ -55,6 +55,10 @@ class RuntimeDataStore(Protocol):
 
     def get_thread(self, workspace_id: str, thread_id: str) -> dict[str, Any] | None: ...
 
+    def rename_thread(self, workspace_id: str, thread_id: str, *, title: str) -> dict[str, Any]: ...
+
+    def delete_thread(self, workspace_id: str, thread_id: str) -> None: ...
+
     def add_message(
         self,
         workspace_id: str,
@@ -78,6 +82,10 @@ class RuntimeDataStore(Protocol):
     ) -> list[dict[str, Any]]: ...
 
     def get_artifact(self, workspace_id: str, artifact_id: str) -> dict[str, Any] | None: ...
+
+    def rename_artifact(self, workspace_id: str, artifact_id: str, *, title: str) -> dict[str, Any]: ...
+
+    def delete_artifact(self, workspace_id: str, artifact_id: str) -> None: ...
 
     def upsert_artifact(
         self,
@@ -436,6 +444,34 @@ class SupabaseDataStore:
         thread["messages"] = [self._normalize_message(item) for item in message_response.data or []]
         return thread
 
+    def rename_thread(self, workspace_id: str, thread_id: str, *, title: str) -> dict[str, Any]:
+        try:
+            self.client.table("chat_threads").update({"title": title, "updated_at": utc_now()}).eq("id", thread_id).eq(
+                "workspace_id", workspace_id
+            ).execute()
+        except APIError as exc:
+            raise self._handle_api_error("Chat thread rename", exc) from exc
+
+        thread = self.get_thread(workspace_id, thread_id)
+        if thread is None:
+            raise RuntimeStoreError("Chat thread rename succeeded but the thread could not be reloaded.")
+        return thread
+
+    def delete_thread(self, workspace_id: str, thread_id: str) -> None:
+        try:
+            response = (
+                self.client.table("chat_threads")
+                .delete()
+                .eq("workspace_id", workspace_id)
+                .eq("id", thread_id)
+                .execute()
+            )
+        except APIError as exc:
+            raise self._handle_api_error("Chat thread deletion", exc) from exc
+
+        if response.data is not None and len(response.data) == 0:
+            raise RuntimeStoreError("Chat thread not found.")
+
     def add_message(
         self,
         workspace_id: str,
@@ -581,6 +617,34 @@ class SupabaseDataStore:
         if artifact is None:
             raise RuntimeStoreError("Artifact save succeeded but the artifact could not be reloaded.")
         return artifact
+
+    def rename_artifact(self, workspace_id: str, artifact_id: str, *, title: str) -> dict[str, Any]:
+        try:
+            self.client.table("artifacts").update({"title": title, "updated_at": utc_now()}).eq("id", artifact_id).eq(
+                "workspace_id", workspace_id
+            ).execute()
+        except APIError as exc:
+            raise self._handle_api_error("Artifact rename", exc) from exc
+
+        artifact = self.get_artifact(workspace_id, artifact_id)
+        if artifact is None:
+            raise RuntimeStoreError("Artifact rename succeeded but the artifact could not be reloaded.")
+        return artifact
+
+    def delete_artifact(self, workspace_id: str, artifact_id: str) -> None:
+        try:
+            response = (
+                self.client.table("artifacts")
+                .delete()
+                .eq("workspace_id", workspace_id)
+                .eq("id", artifact_id)
+                .execute()
+            )
+        except APIError as exc:
+            raise self._handle_api_error("Artifact deletion", exc) from exc
+
+        if response.data is not None and len(response.data) == 0:
+            raise RuntimeStoreError("Artifact not found.")
 
     def create_run(
         self,
