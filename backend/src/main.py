@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import Any
@@ -150,6 +151,12 @@ class ExportRequest(BaseModel):
 
 class LegacyExportRequest(ExportRequest):
     artifact_id: str
+
+
+class CreateReminderRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=160)
+    note: str = ""
+    due_at: str
 
 
 class SignedUrlRequest(BaseModel):
@@ -340,6 +347,41 @@ def workspace(context: RequestContext = Depends(require_request_context)) -> dic
 def reminders(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
     data_store = get_runtime_store(context)
     return {"items": data_store.list_reminders(context.workspace_id)}
+
+
+@app.post("/api/reminders")
+def create_reminder(
+    payload: CreateReminderRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    data_store = get_runtime_store(context)
+    try:
+        due_at = datetime.fromisoformat(payload.due_at.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="Reminder due date is invalid.") from exc
+
+    reminder = data_store.create_reminder(
+        context.workspace_id,
+        title=payload.title.strip(),
+        note=payload.note.strip(),
+        due_at=due_at.astimezone(timezone.utc).isoformat(),
+    )
+    return {"item": reminder}
+
+
+@app.delete("/api/reminders/{reminder_id}")
+def delete_reminder(
+    reminder_id: str,
+    context: RequestContext = Depends(require_request_context),
+) -> Response:
+    data_store = get_runtime_store(context)
+    try:
+        data_store.delete_reminder(context.workspace_id, reminder_id)
+    except RuntimeStoreError as exc:
+        if "not found" in str(exc).lower():
+            raise HTTPException(status_code=404, detail="Reminder not found.") from exc
+        raise
+    return Response(status_code=204)
 
 
 @app.post("/api/openrouter/chat", response_model=OpenRouterChatResponse)

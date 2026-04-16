@@ -2,17 +2,18 @@ import { motion } from "framer-motion";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  createReminder,
+  deleteReminder,
   getCalendarEvents,
   getProviderStatuses,
   getReminders,
-  getWorkspace,
   startGoogleCalendarConnect,
   type ProviderRecord,
   type ProviderStatus,
   type Reminder,
 } from "../../lib/api";
-import { fadeUp, stagger, studioColors, theme } from "../../lib/theme";
-import { EmptyState, MotionCard, PageSection, PrimaryButton, SecondaryButton, StatusBadge } from "../../components/protectedUi";
+import { fadeUp, stagger, studioColors } from "../../lib/theme";
+import { MotionCard, PageSection, StatusBadge } from "../../components/protectedUi";
 import { useAuth } from "../../context/AuthContext";
 
 type CalendarEvent = { id: string; title: string; startsAt: string; location: string };
@@ -25,17 +26,6 @@ type IntegrationItem = {
   actionable: boolean;
   onAction?: () => void;
 };
-
-function OverviewGlyph() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 19.5h16" />
-      <path d="M6.5 19.5v-6" />
-      <path d="M12 19.5v-11" />
-      <path d="M17.5 19.5v-3.5" />
-    </svg>
-  );
-}
 
 function ChatGlyph() {
   return (
@@ -90,8 +80,8 @@ function DataGlyph() {
 function FinanceGlyph() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v18" />
-      <path d="M16.5 7.5c0-1.7-2-3-4.5-3S7.5 5.8 7.5 7.5 9.5 10.5 12 10.5s4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3" />
+      <path d="M5 18 10 12.5l3.2 3.2L19 9.5" />
+      <path d="M19 14V9.5h-4.5" />
     </svg>
   );
 }
@@ -138,11 +128,23 @@ function SparkGlyph() {
   );
 }
 
+function TrashGlyph() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 7h16" />
+      <path d="M9.5 3.5h5" />
+      <path d="M7.5 7l.6 11a2 2 0 0 0 2 1.9h3.8a2 2 0 0 0 2-1.9l.6-11" />
+      <path d="M10 11.5v4.5" />
+      <path d="M14 11.5v4.5" />
+    </svg>
+  );
+}
+
 function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
   const palette: Record<ProviderStatus, string> = {
     connected: "bg-emerald-500",
-    disconnected: "bg-amber-500",
-    not_configured: "bg-stone-300",
+    disconnected: "bg-stone-400",
+    not_configured: "bg-stone-400",
     error: "bg-rose-500",
   };
 
@@ -153,7 +155,7 @@ function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
         <span>{status.replaceAll("_", " ")}</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-stone-200">
-        <div className={`h-full rounded-full ${palette[status]}`} style={{ width: status === "connected" ? "100%" : status === "disconnected" ? "72%" : status === "error" ? "100%" : "42%" }} />
+        <div className={`h-full rounded-full ${palette[status]}`} style={{ width: status === "connected" ? "100%" : "100%" }} />
       </div>
     </div>
   );
@@ -161,27 +163,22 @@ function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
 
 function ActionButton({
   label,
-  variant = "secondary",
   disabled = false,
   onClick,
 }: {
   label: string;
-  variant?: "primary" | "secondary";
   disabled?: boolean;
   onClick?: () => void;
 }) {
   const base = "inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold transition";
-  const palette =
-    variant === "primary"
-      ? "bg-stone-950 text-white hover:-translate-y-0.5 hover:bg-[#4F3FE8] hover:shadow-[0_14px_30px_rgba(79,63,232,0.28)]"
-      : "border border-stone-200 bg-white text-stone-900 hover:-translate-y-0.5 hover:border-[#4F3FE8] hover:bg-[#4F3FE8] hover:text-white hover:shadow-[0_14px_30px_rgba(79,63,232,0.24)]";
+  const palette = "bg-stone-950 text-white hover:-translate-y-0.5 hover:bg-[#4F3FE8] hover:shadow-[0_14px_30px_rgba(79,63,232,0.28)]";
 
   return (
     <button
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`${base} ${palette} ${disabled ? "cursor-not-allowed opacity-55 hover:bg-white" : ""}`}
+      className={`${base} ${palette} ${disabled ? "cursor-default" : ""}`}
     >
       {label}
     </button>
@@ -193,7 +190,6 @@ function ToolCard({
   name,
   status,
   actionLabel,
-  actionVariant = "secondary",
   disabled = false,
   onAction,
   onHoverStart,
@@ -203,7 +199,6 @@ function ToolCard({
   name: string;
   status: ProviderStatus;
   actionLabel: string;
-  actionVariant?: "primary" | "secondary";
   disabled?: boolean;
   onAction?: () => void;
   onHoverStart?: () => void;
@@ -222,7 +217,7 @@ function ToolCard({
           </div>
           <strong className="truncate text-[0.98rem] text-stone-950">{name}</strong>
         </div>
-        <ActionButton label={actionLabel} variant={actionVariant} disabled={disabled} onClick={onAction} />
+        <ActionButton label={actionLabel} disabled={disabled} onClick={onAction} />
       </div>
       <IntegrationStatusLine status={status} />
     </div>
@@ -259,19 +254,28 @@ function StudioShortcut({
 export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>({});
   const [error, setError] = useState<string | null>(null);
   const [calendarHover, setCalendarHover] = useState(false);
+  const [newReminderTitle, setNewReminderTitle] = useState("");
+  const [newReminderDueAt, setNewReminderDueAt] = useState(() => {
+    const nextHour = new Date();
+    nextHour.setMinutes(0, 0, 0);
+    nextHour.setHours(nextHour.getHours() + 1);
+    const offset = nextHour.getTimezoneOffset();
+    const localTime = new Date(nextHour.getTime() - offset * 60_000);
+    return localTime.toISOString().slice(0, 16);
+  });
+  const [reminderSaving, setReminderSaving] = useState(false);
+  const [reminderDeletingId, setReminderDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     void (async () => {
       try {
-        const [workspaceResponse, reminderResponse, providerResponse, eventResponse] = await Promise.all([
-          getWorkspace(),
+        const [reminderResponse, providerResponse, eventResponse] = await Promise.all([
           getReminders(),
           getProviderStatuses(),
           getCalendarEvents(),
@@ -279,7 +283,6 @@ export default function HomePage() {
 
         if (!active) return;
 
-        setWorkspaceName(workspaceResponse.workspace.name);
         setReminders(reminderResponse.items ?? []);
         setProviders(providerResponse.providers ?? {});
         setCalendarEvents(eventResponse.items ?? []);
@@ -346,6 +349,47 @@ export default function HomePage() {
     { key: "linear", name: "Linear Sync", status: "not_configured" as ProviderStatus, actionLabel: "Connect", actionable: false, icon: <SparkGlyph /> },
   ];
 
+  async function handleAddReminder() {
+    const title = newReminderTitle.trim();
+    if (!title || !newReminderDueAt || reminderSaving) return;
+
+    setReminderSaving(true);
+    setError(null);
+
+    try {
+      const dueAt = new Date(newReminderDueAt);
+      const payload = await createReminder({
+        title,
+        note: "",
+        due_at: dueAt.toISOString(),
+      });
+
+      setReminders((current) =>
+        [...current, payload.item].sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()),
+      );
+      setNewReminderTitle("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save reminder.");
+    } finally {
+      setReminderSaving(false);
+    }
+  }
+
+  async function handleDeleteReminder(reminderId: string) {
+    if (reminderDeletingId) return;
+    setReminderDeletingId(reminderId);
+    setError(null);
+
+    try {
+      await deleteReminder(reminderId);
+      setReminders((current) => current.filter((item) => item.id !== reminderId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete reminder.");
+    } finally {
+      setReminderDeletingId(null);
+    }
+  }
+
   return (
     <motion.div className="page-wrap" variants={stagger} initial="hidden" animate="visible">
       <PageSection
@@ -356,7 +400,7 @@ export default function HomePage() {
       {error ? <div className="error-copy">{error}</div> : null}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_360px]">
-        <motion.div variants={fadeUp} className="space-y-6">
+        <motion.div variants={fadeUp} className="space-y-12">
           <div className="grid gap-6 2xl:grid-cols-2">
             <MotionCard className="overflow-visible">
               <div className="mb-5 flex items-center justify-between gap-3">
@@ -375,7 +419,6 @@ export default function HomePage() {
                     name={item.key === "googleCalendar" ? "Google Calendar" : item.name}
                     status={item.status}
                     actionLabel={item.actionLabel}
-                    actionVariant={item.status === "connected" ? "secondary" : "primary"}
                     disabled={!item.actionable}
                     onAction={item.onAction}
                     onHoverStart={item.key === "googleCalendar" ? () => setCalendarHover(true) : undefined}
@@ -426,13 +469,14 @@ export default function HomePage() {
                     name={item.name}
                     status={item.status}
                     actionLabel={item.actionLabel}
-                    actionVariant={item.status === "connected" ? "secondary" : "primary"}
                     disabled={!item.actionable}
                   />
                 ))}
               </div>
             </MotionCard>
           </div>
+
+          <div style={{ height: "3.5rem" }} aria-hidden="true" />
 
           <MotionCard>
             <div className="mb-5 flex items-center justify-between gap-3">
@@ -452,25 +496,69 @@ export default function HomePage() {
           </MotionCard>
         </motion.div>
 
-        <motion.div variants={fadeUp}>
-          <MotionCard className="h-full">
+        <motion.div variants={fadeUp} className="xl:justify-self-end xl:w-[320px] 2xl:w-[340px]">
+          <MotionCard>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">Reminders</div>
-                <h3 className="mt-2 text-xl font-black tracking-[-0.03em] text-stone-950">Keep today lightweight.</h3>
+                <h3 className="mt-2 whitespace-nowrap text-lg font-black tracking-[-0.03em] text-stone-950">Keep today lightweight.</h3>
               </div>
-              <StatusBadge status={reminders.length ? "connected" : "not_configured"} label={reminders.length ? `${reminders.length} active` : "empty"} />
+              {reminders.length ? (
+                <div className="flex h-11 min-w-11 items-center justify-center rounded-2xl border border-stone-200 bg-stone-50 px-3 text-sm font-black text-stone-950">
+                  {reminders.length}
+                </div>
+              ) : (
+                <div className="inline-flex h-11 min-w-20 items-center justify-center rounded-2xl border border-[#F59E0B]/35 bg-[#F59E0B]/12 px-3 text-sm font-black uppercase tracking-[0.08em] text-[#B45309]">
+                  Empty
+                </div>
+              )}
+            </div>
+
+            <div className="mb-4" style={{ paddingTop: "2.25rem" }}>
+              <input
+                value={newReminderTitle}
+                onChange={(event) => setNewReminderTitle(event.target.value)}
+                placeholder="Add a reminder"
+                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
+              />
+              <div className="flex items-center gap-2" style={{ marginTop: "1.5rem" }}>
+                <input
+                  type="datetime-local"
+                  value={newReminderDueAt}
+                  onChange={(event) => setNewReminderDueAt(event.target.value)}
+                  className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleAddReminder()}
+                  disabled={!newReminderTitle.trim() || !newReminderDueAt || reminderSaving}
+                  className="inline-flex shrink-0 items-center justify-center rounded-xl bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4F3FE8] hover:shadow-[0_14px_30px_rgba(79,63,232,0.28)] disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:bg-stone-950 disabled:hover:shadow-none"
+                >
+                  Add
+                </button>
+              </div>
             </div>
 
             {reminders.length ? (
-              <div className="space-y-3">
+              <div className="space-y-3" style={{ marginTop: "2.5rem" }}>
                 {reminders.map((reminder) => (
                   <div key={reminder.id} className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <strong className="text-sm text-stone-950">{reminder.title}</strong>
-                      <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
-                        {reminder.status}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                          {reminder.status}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteReminder(reminder.id)}
+                          disabled={reminderDeletingId === reminder.id}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 transition hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
+                          aria-label={`Delete ${reminder.title}`}
+                        >
+                          <TrashGlyph />
+                        </button>
+                      </div>
                     </div>
                     <p className="mt-2 text-sm leading-6 text-stone-600">{reminder.note}</p>
                     <div className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-stone-500">
@@ -479,24 +567,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            ) : (
-              <EmptyState title="No reminders yet" body="This stays compact until you start saving reminders into the workspace." />
-            )}
-
-            <div className="mt-6 rounded-[1.35rem] border border-stone-200 bg-white/80 p-4">
-              <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">Quick links</div>
-              <div className="mt-4 grid gap-3">
-                <SecondaryButton type="button" onClick={() => navigate("/chat")}>
-                  Open chat
-                </SecondaryButton>
-                <SecondaryButton type="button" onClick={() => navigate("/artifacts")}>
-                  Browse artifacts
-                </SecondaryButton>
-                <SecondaryButton type="button" onClick={() => navigate("/settings")}>
-                  Open settings
-                </SecondaryButton>
-              </div>
-            </div>
+            ) : null}
           </MotionCard>
         </motion.div>
       </div>

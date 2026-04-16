@@ -221,6 +221,19 @@ export async function getReminders() {
   return api<{ items: Reminder[] }>("/api/reminders");
 }
 
+export async function createReminder(payload: { title: string; note?: string; due_at: string }) {
+  return api<{ item: Reminder }>("/api/reminders", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteReminder(reminderId: string) {
+  return api<string>(`/api/reminders/${reminderId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function getProviderStatuses() {
   return api<{ providers: Record<string, ProviderRecord> }>("/api/status/providers");
 }
