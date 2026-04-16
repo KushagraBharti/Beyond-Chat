@@ -532,7 +532,7 @@ export default function AtelierPlusLanding() {
       <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "80px", zIndex: 10 }}>
         
         {/* Full-Bleed 3D Overlay */}
-        <div style={{ position: "absolute", top: "7rem", left: 0, right: 0, bottom: "-18vh", zIndex: 20, pointerEvents: "none", overflow: "visible" }}>
+        <div style={{ position: "absolute", top: "0.1rem", left: 0, right: 0, bottom: "-18vh", zIndex: 20, pointerEvents: "none", overflow: "visible" }}>
           <Suspense fallback={<div style={{ width: "100%", height: "100%" }} />}>
             <LandingScene3D />
           </Suspense>
@@ -543,16 +543,16 @@ export default function AtelierPlusLanding() {
           
           <motion.div style={{ y, opacity, position: "relative", textAlign: "center", zIndex: 50 }} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}>
             <h1 className="landing-hero-title" style={{ fontFamily: heading, fontSize: "clamp(2rem, 4.2vw, 3.6rem)", fontWeight: 800, lineHeight: 0.96, letterSpacing: "-0.05em", margin: "0 auto", color: c.ink, maxWidth: "1000px", whiteSpace: "nowrap" }}>
-              Cognitive architecture for professionals.
+              Cognitive <span style={{ color: c.primary }}>architecture</span> for professionals.
             </h1>
 
-            <div style={{ height: "clamp(25rem, 56vh, 41rem)", display: "flex", alignItems: "center", justifyContent: "center" }} />
+            <div style={{ height: "clamp(21.5rem, 48vh, 35rem)", display: "flex", alignItems: "center", justifyContent: "center" }} />
 
             <p style={{ fontFamily: body, fontSize: "clamp(0.95rem, 1.5vw, 1.08rem)", color: c.muted, lineHeight: 1.7, maxWidth: "620px", margin: "0.85rem auto 0", fontWeight: 400 }}>
               Move beyond linear chat. Interact with specialized AI models in a structured environment designed for rigorous knowledge work.
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.45rem", marginTop: "1.25rem", position: "relative", zIndex: 50 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem", marginTop: "1.25rem", position: "relative", zIndex: 50 }}>
               <Link
                 to="/signup"
                 onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 12px 40px ${c.primary}60`; }}
