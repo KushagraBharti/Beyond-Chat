@@ -179,7 +179,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.10),transparent_34%),#f5f5f4] text-stone-950">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1600px] gap-4 px-3 py-3 md:px-4">
+      <div className="flex min-h-screen w-full gap-4 px-3 py-3 md:px-4">
         <aside
           className={`sticky top-3 hidden h-[calc(100vh-1.5rem)] flex-col rounded-[2rem] border border-white/70 bg-white/80 p-4 shadow-[0_24px_80px_rgba(28,25,23,0.08)] backdrop-blur xl:flex ${
             expanded ? "w-64" : "w-24"
@@ -250,7 +250,7 @@ export default function DashboardLayout() {
             ))}
           </nav>
 
-          <div className={`mt-auto pt-12 ${expanded ? "flex items-center justify-start gap-3 pl-3 pr-2" : "flex flex-col items-center gap-3"}`}>
+          <div className={`mt-auto ${expanded ? "flex items-center justify-start gap-3 pl-3 pr-2" : "flex flex-col items-center gap-3"}`}>
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-rose-500 text-sm font-bold text-white">
               {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
             </div>
@@ -270,7 +270,7 @@ export default function DashboardLayout() {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">
+        <main className="flex min-w-0 flex-1 flex-col">
           <div className="mb-4 flex items-center gap-3 rounded-[1.75rem] border border-white/60 bg-white/75 px-4 py-3 shadow-[0_16px_50px_rgba(28,25,23,0.06)] backdrop-blur xl:hidden">
             <AppBrand compact={false} />
             <div className="flex gap-2 overflow-x-auto pb-1">
@@ -290,7 +290,7 @@ export default function DashboardLayout() {
             </div>
           </div>
 
-          <div className="min-h-[calc(100vh-2rem)] rounded-[2rem] border border-white/60 bg-white/45 p-4 shadow-[0_20px_80px_rgba(28,25,23,0.06)] backdrop-blur md:p-6">
+          <div className="flex min-h-[calc(100vh-2rem)] flex-1 flex-col rounded-[2rem] border border-white/60 bg-white/45 p-4 shadow-[0_20px_80px_rgba(28,25,23,0.06)] backdrop-blur md:p-6">
             <Outlet />
           </div>
         </main>

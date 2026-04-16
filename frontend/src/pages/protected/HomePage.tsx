@@ -30,8 +30,9 @@ type IntegrationItem = {
 function ChatGlyph() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 8.5A3.5 3.5 0 0 1 9.5 5h9A3.5 3.5 0 0 1 22 8.5v5a3.5 3.5 0 0 1-3.5 3.5H14l-4.5 3v-3H9.5A3.5 3.5 0 0 1 6 13.5z" />
-      <path d="M2 6.5A3.5 3.5 0 0 1 5.5 3H8" />
+      <path d="M4.5 7.5A3.5 3.5 0 0 1 8 4h8A3.5 3.5 0 0 1 19.5 7.5v4A3.5 3.5 0 0 1 16 15H10.5L6 18v-3H8A3.5 3.5 0 0 1 4.5 11.5z" />
+      <path d="M8 8.75h8" />
+      <path d="M8 11.75h5" />
     </svg>
   );
 }
@@ -149,7 +150,7 @@ function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
   };
 
   return (
-    <div className="mt-3">
+    <div className="mt-5">
       <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
         <span>Status</span>
         <span>{status.replaceAll("_", " ")}</span>
@@ -355,6 +356,22 @@ export default function HomePage() {
 
     setReminderSaving(true);
     setError(null);
+    const tempId = `temp-${Date.now()}`;
+    const optimisticReminder: Reminder = {
+      id: tempId,
+      title,
+      note: "",
+      due_at: new Date(newReminderDueAt).toISOString(),
+      status: "open",
+      source: "internal",
+      workspace_id: "pending",
+      created_at: new Date().toISOString(),
+    };
+
+    setReminders((current) =>
+      [...current, optimisticReminder].sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()),
+    );
+    setNewReminderTitle("");
 
     try {
       const dueAt = new Date(newReminderDueAt);
@@ -365,10 +382,12 @@ export default function HomePage() {
       });
 
       setReminders((current) =>
-        [...current, payload.item].sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()),
+        current
+          .map((item) => (item.id === tempId ? payload.item : item))
+          .sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()),
       );
-      setNewReminderTitle("");
     } catch (err) {
+      setReminders((current) => current.filter((item) => item.id !== tempId));
       setError(err instanceof Error ? err.message : "Failed to save reminder.");
     } finally {
       setReminderSaving(false);
@@ -377,13 +396,23 @@ export default function HomePage() {
 
   async function handleDeleteReminder(reminderId: string) {
     if (reminderDeletingId) return;
+    if (reminderId.startsWith("temp-")) {
+      setReminders((current) => current.filter((item) => item.id !== reminderId));
+      return;
+    }
     setReminderDeletingId(reminderId);
     setError(null);
+    const existingReminder = reminders.find((item) => item.id === reminderId);
+    setReminders((current) => current.filter((item) => item.id !== reminderId));
 
     try {
       await deleteReminder(reminderId);
-      setReminders((current) => current.filter((item) => item.id !== reminderId));
     } catch (err) {
+      if (existingReminder) {
+        setReminders((current) =>
+          [...current, existingReminder].sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime()),
+        );
+      }
       setError(err instanceof Error ? err.message : "Failed to delete reminder.");
     } finally {
       setReminderDeletingId(null);
@@ -391,7 +420,7 @@ export default function HomePage() {
   }
 
   return (
-    <motion.div className="page-wrap" variants={stagger} initial="hidden" animate="visible">
+    <motion.div className="page-wrap min-h-full flex-1" variants={stagger} initial="hidden" animate="visible">
       <PageSection
         eyebrow="Workspace Home"
         title={`Hello, ${String(firstName).charAt(0).toUpperCase()}${String(firstName).slice(1)}`}
@@ -408,7 +437,6 @@ export default function HomePage() {
                   <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">Integrations</div>
                   <h3 className="mt-2 text-xl font-black tracking-[-0.03em] text-stone-950">Connect core product tools.</h3>
                 </div>
-                <StatusBadge status={googleCalendarStatus} />
               </div>
 
               <div className="relative grid gap-4">
@@ -526,7 +554,7 @@ export default function HomePage() {
                   type="datetime-local"
                   value={newReminderDueAt}
                   onChange={(event) => setNewReminderDueAt(event.target.value)}
-                  className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
+                  className="min-w-0 flex-1 rounded-2xl border border-stone-200 bg-white px-3 py-3 text-[13px] text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
                 />
                 <button
                   type="button"
@@ -540,9 +568,13 @@ export default function HomePage() {
             </div>
 
             {reminders.length ? (
-              <div className="space-y-3" style={{ marginTop: "2.5rem" }}>
-                {reminders.map((reminder) => (
-                  <div key={reminder.id} className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4">
+              <div style={{ marginTop: "2.5rem" }}>
+                {reminders.map((reminder, index) => (
+                  <div
+                    key={reminder.id}
+                    className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4"
+                    style={index === 0 ? undefined : { marginTop: "0.75rem" }}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <strong className="text-sm text-stone-950">{reminder.title}</strong>
                       <div className="flex items-center gap-2">
