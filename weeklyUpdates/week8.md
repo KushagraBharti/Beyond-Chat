@@ -33,3 +33,42 @@
 
 ## Hours Worked
 - Total estimated time: 12 hours
+
+- 
+
+# YUVRAJ
+
+## Weekly Summary
+- Week 8 was focused on final debugging, fixing deployment issues, and stabilizing the system so it could reliably run in production.
+- I spent most of the time resolving frontend build failures, backend deployment crashes, and mismatches between local and deployed environments.
+- The goal was to ensure the entire stack — frontend, backend, and database — worked cleanly together in a deployed setting without breaking.
+
+## Work Completed
+- Debugged and fixed frontend TypeScript build errors that were blocking Vercel deployment, including component prop typing issues and unused variables.
+- Updated shared UI components to support proper typing (e.g., adding style support to reusable components) without breaking design consistency.
+- Fixed Compare Page issues that were preventing the frontend from compiling and deploying successfully.
+- Worked through backend deployment errors caused by incorrect runtime behavior and environment differences between local and Vercel.
+- Diagnosed and resolved issues related to SQLite usage in a serverless environment, ensuring the backend no longer crashes on startup.
+- Fixed repository/deployment mismatches by aligning the correct GitHub fork with the Vercel project so the latest code could actually be deployed.
+- Reconfigured deployment pipeline to ensure Vercel was building from the correct branch and commit history.
+- Ran multiple redeploy cycles and validated that fixes were reflected in production builds.
+- Performed end-to-end testing across deployed environments to confirm that authentication, model execution, and artifact flows were functioning correctly.
+- Helped stabilize the development workflow by reducing discrepancies between local builds and production deployments.
+
+## Research / Technical Findings
+- Serverless environments like Vercel impose strict filesystem constraints (read-only), making local database approaches like SQLite unreliable without lazy initialization.
+- Deployment failures are often caused by mismatches between repository state and the version being deployed, not just code bugs.
+- Strict TypeScript enforcement in production builds surfaces issues that may not appear during local development.
+- Properly typed reusable components are critical for maintaining scalability in a growing frontend codebase.
+
+## Blockers / Risks
+- Future deployment issues may arise if environment variables or project configurations drift between team members.
+- Serverless constraints continue to limit certain backend patterns and require careful handling of state and storage.
+- As complexity increases, debugging across frontend, backend, and infra layers can become more time-intensive.
+
+## Startup / Execution Notes
+- This week was heavily focused on making the product stable and deployable rather than adding new features.
+- Fixing deployment and build issues significantly improved the team’s ability to iterate quickly and confidently.
+
+## Hours Worked
+- Total estimated time: 23 hours
