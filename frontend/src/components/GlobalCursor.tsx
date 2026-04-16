@@ -6,8 +6,8 @@ export default function GlobalCursor() {
   const [variant, setVariant] = useState<"default" | "play">("default");
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
-  const smoothX = useSpring(x, { stiffness: 420, damping: 36, mass: 0.35 });
-  const smoothY = useSpring(y, { stiffness: 420, damping: 36, mass: 0.35 });
+  const smoothX = useSpring(x, { stiffness: 1100, damping: 42, mass: 0.12 });
+  const smoothY = useSpring(y, { stiffness: 1100, damping: 42, mass: 0.12 });
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -35,36 +35,29 @@ export default function GlobalCursor() {
       setVariant(interactive ? "play" : "default");
     };
 
-    const handleMouseMove = (event: MouseEvent) => {
+    const handlePointerMove = (event: PointerEvent) => {
       if (!media.matches) {
         return;
       }
 
       resolveVariant(event.target);
-
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
-      }
-
-      rafRef.current = requestAnimationFrame(() => {
-        x.set(event.clientX - 16);
-        y.set(event.clientY - 16);
-      });
+      x.set(event.clientX - 16);
+      y.set(event.clientY - 16);
     };
 
-    const handleMouseOver = (event: MouseEvent) => {
+    const handlePointerOver = (event: PointerEvent) => {
       resolveVariant(event.target);
     };
 
     syncEnabled();
     media.addEventListener("change", syncEnabled);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseover", handleMouseOver);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointerover", handlePointerOver, { passive: true });
 
     return () => {
       media.removeEventListener("change", syncEnabled);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseover", handleMouseOver);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerover", handlePointerOver);
       document.documentElement.classList.remove("global-custom-cursor");
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
@@ -102,7 +95,7 @@ export default function GlobalCursor() {
           x: isPlay ? -8 : 0,
           y: isPlay ? -8 : 0,
         }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.08, ease: "easeOut" }}
         style={{
           borderRadius: "50%",
           display: "flex",
