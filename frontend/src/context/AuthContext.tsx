@@ -48,15 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  useEffect(() => {
-    if (!session || !supabase) {
-      return;
-    }
-    void bootstrapAuth().catch(() => {
-      // Session bootstrap failures are surfaced by the protected pages that depend on workspace data.
-    });
-  }, [session]);
-
   return (
     <AuthContext.Provider
       value={{
