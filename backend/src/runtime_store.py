@@ -26,6 +26,17 @@ class RuntimeDataStore(Protocol):
 
     def list_reminders(self, workspace_id: str) -> list[dict[str, Any]]: ...
 
+    def create_reminder(
+        self,
+        workspace_id: str,
+        *,
+        title: str,
+        note: str,
+        due_at: str,
+    ) -> dict[str, Any]: ...
+
+    def delete_reminder(self, workspace_id: str, reminder_id: str) -> None: ...
+
     def list_collections(self, workspace_id: str) -> list[dict[str, Any]]: ...
 
     def list_threads(self, workspace_id: str) -> list[dict[str, Any]]: ...
@@ -280,6 +291,49 @@ class SupabaseDataStore:
             raise self._handle_api_error("Reminder lookup", exc) from exc
 
         return [self._normalize_reminder(row) for row in response.data or []]
+
+    def create_reminder(
+        self,
+        workspace_id: str,
+        *,
+        title: str,
+        note: str,
+        due_at: str,
+    ) -> dict[str, Any]:
+        payload = {
+            "workspace_id": workspace_id,
+            "created_by": self.user_id,
+            "title": title,
+            "note": note,
+            "due_at": due_at,
+            "status": "open",
+            "source": "internal",
+            "metadata": {},
+        }
+        try:
+            response = self.client.table("reminders").insert(payload).execute()
+        except APIError as exc:
+            raise self._handle_api_error("Reminder creation", exc) from exc
+
+        rows = response.data or []
+        if not rows:
+            raise RuntimeStoreError("Reminder creation did not return a row.")
+        return self._normalize_reminder(rows[0])
+
+    def delete_reminder(self, workspace_id: str, reminder_id: str) -> None:
+        try:
+            response = (
+                self.client.table("reminders")
+                .delete()
+                .eq("workspace_id", workspace_id)
+                .eq("id", reminder_id)
+                .execute()
+            )
+        except APIError as exc:
+            raise self._handle_api_error("Reminder deletion", exc) from exc
+
+        if response.data is not None and len(response.data) == 0:
+            raise RuntimeStoreError("Reminder not found.")
 
     def list_collections(self, workspace_id: str) -> list[dict[str, Any]]:
         try:
