@@ -1,9 +1,8 @@
-import { useRef, useEffect, useState } from "react";
+import { lazy, Suspense, useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Float, MeshTransmissionMaterial, Environment, Sphere, Box, Octahedron } from "@react-three/drei";
-import * as THREE from "three";
+
+const LandingScene3D = lazy(() => import("./LandingScene3D"));
 
 // --- THEME & STYLES ---
 const heading = "'Bricolage Grotesque', sans-serif";
@@ -420,93 +419,6 @@ const BentoItem = ({ s, i }: any) => {
   );
 }
 
-// --- 3D SCENE ---
-function CognitiveCore() {
-  const group = useRef<THREE.Group>(null);
-  const { viewport, camera } = useThree();
-  const mouse = useRef({ x: 0, y: 0 });
-  const targetPos = useRef(new THREE.Vector3());
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
-
-  const isMobile = viewport.width < 8;
-  const xOffset = isMobile ? 0 : viewport.width * 0.22;
-  const yOffset = isMobile ? 2 : 0;
-
-  useFrame((state) => {
-    if (group.current) {
-      const t = state.clock.elapsedTime;
-      targetPos.current.set(xOffset, yOffset, 0);
-      targetPos.current.project(camera);
-      
-      const dx = mouse.current.x - targetPos.current.x;
-      const dy = mouse.current.y - targetPos.current.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      
-      const influence = Math.max(0, 1 - dist / 0.6); 
-      const smoothInfluence = influence * influence; 
-
-      const idleY = t * 0.15;
-      const idleX = Math.sin(t * 0.3) * 0.1;
-
-      const targetRotY = idleY + (dx * Math.PI * 0.5) * smoothInfluence;
-      const targetRotX = idleX + (-dy * Math.PI * 0.5) * smoothInfluence;
-
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, targetRotY, 0.08);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, targetRotX, 0.08);
-    }
-  });
-
-  return (
-    <group position={[xOffset, yOffset, 0]} ref={group} scale={0.6}>
-      <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-        <mesh>
-          <icosahedronGeometry args={[2, 0]} />
-          <MeshTransmissionMaterial backside backsideThickness={0.5} thickness={0.8} roughness={0.02} chromaticAberration={0.3} color="#ffffff" transmission={1} ior={1.3} clearcoat={1} />
-        </mesh>
-        <mesh>
-          <sphereGeometry args={[0.5, 32, 32]} />
-          <meshStandardMaterial color={c.primary} emissive={c.primary} emissiveIntensity={2.5} toneMapped={false} />
-        </mesh>
-        {studios.map((studio, i) => {
-          const angle = (i / studios.length) * Math.PI * 2;
-          const radius = 3.2;
-          const x = Math.cos(angle) * radius;
-          const z = Math.sin(angle) * radius;
-          const y = Math.sin(angle * 3) * 0.6;
-          const NodeGeometry = i % 3 === 0 ? Box : i % 3 === 1 ? Sphere : Octahedron;
-          return (
-            <Float key={studio.name} speed={3 + i * 0.5} rotationIntensity={2} floatIntensity={1} position={[x, y, z]}>
-              <NodeGeometry args={i % 3 === 1 ? [0.25, 32, 32] as any : [0.3] as any}>
-                <meshPhysicalMaterial color={studio.color} emissive={studio.color} emissiveIntensity={0.8} roughness={0.1} metalness={0.9} clearcoat={1} />
-              </NodeGeometry>
-            </Float>
-          );
-        })}
-        <mesh rotation={[Math.PI / 2.1, 0.1, 0]}>
-          <torusGeometry args={[3.2, 0.005, 64, 100]} />
-          <meshStandardMaterial color="#6B6B70" transparent opacity={0.4} />
-        </mesh>
-        <mesh rotation={[-Math.PI / 2.1, -0.1, 0]}>
-          <torusGeometry args={[3.2, 0.005, 64, 100]} />
-          <meshStandardMaterial color="#6B6B70" transparent opacity={0.2} />
-        </mesh>
-        <Environment preset="city" />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1.5} color="#ffffff" />
-        <directionalLight position={[-10, -10, -5]} intensity={1} color={c.primary} />
-      </Float>
-    </group>
-  );
-}
-
 // --- SCROLLYTELLING COMPONENT ---
 const ManifestoScrollytelling = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -548,6 +460,7 @@ export default function AtelierPlusLanding() {
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
@@ -585,7 +498,7 @@ export default function AtelierPlusLanding() {
           background: "rgba(242, 242, 240, 0.8)", backdropFilter: "blur(12px)", borderBottom: `1px solid rgba(226, 226, 224, 0.5)`,
         }}
       >
-        <Link to="/" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <Link to="/" onClick={scrollHome} onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div style={{ position: "relative", width: "28px", height: "28px" }}>
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} style={{ position: "absolute", inset: 0, borderRadius: "6px", background: `linear-gradient(135deg, ${c.primary}, ${c.accent})` }} />
             <div style={{ position: "absolute", inset: "2px", borderRadius: "4px", background: c.surface }} />
@@ -598,13 +511,13 @@ export default function AtelierPlusLanding() {
 
         <div style={{ display: "flex", alignItems: "center", gap: "2.5rem" }}>
           <div style={{ display: "none", gap: "2rem", alignItems: "center" }} className="md-flex">
-            <Link to="/" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.ink, textDecoration: "none" }}>Home</Link>
+            <Link to="/" onClick={scrollHome} onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.ink, textDecoration: "none" }}>Home</Link>
             <Link to="/pricing" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.muted, textDecoration: "none", transition: "color 0.2s" }} onFocus={e => e.currentTarget.style.color = c.ink} onBlur={e => e.currentTarget.style.color = c.muted}>Pricing</Link>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <Link to="/login" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.ink, textDecoration: "none" }}>Log in</Link>
             <Link
-              to="/login"
+              to="/signup"
               onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,0,0,0.15)"; }}
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.1)"; }}
               style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 700, color: "#fff", textDecoration: "none", background: c.ink, padding: "0.6rem 1.4rem", borderRadius: "99px", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 4px 14px rgba(0,0,0,0.1)", position: "relative", overflow: "hidden" }}
@@ -616,42 +529,32 @@ export default function AtelierPlusLanding() {
       </motion.nav>
 
       {/* Hero Section */}
-      <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", paddingTop: "80px", zIndex: 10 }}>
+      <section style={{ position: "relative", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", paddingTop: "80px", zIndex: 10 }}>
         
         {/* Full-Bleed 3D Overlay */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: "-20vh", zIndex: 20, pointerEvents: "none", overflow: "visible" }}>
-          <Canvas camera={{ position: [0, 0, 14], fov: 45 }}>
-            <CognitiveCore />
-          </Canvas>
+        <div style={{ position: "absolute", top: "7rem", left: 0, right: 0, bottom: "-18vh", zIndex: 20, pointerEvents: "none", overflow: "visible" }}>
+          <Suspense fallback={<div style={{ width: "100%", height: "100%" }} />}>
+            <LandingScene3D />
+          </Suspense>
         </div>
-
-        {/* Right Invisible Hover Area for Rotate Cursor */}
-        <div 
-          onMouseEnter={() => setCursorVariant("rotate")} 
-          onMouseLeave={() => setCursorVariant("default")}
-          style={{ position: "absolute", right: 0, top: 0, width: "50%", height: "100%", zIndex: 30 }}
-        />
 
         {/* Content Container */}
         <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "0 2rem", width: "100%", position: "relative", zIndex: 40 }}>
           
-          <motion.div style={{ y, opacity, maxWidth: "680px", position: "relative" }} initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}>
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2, duration: 0.5 }} style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", background: "rgba(255,255,255,0.6)", backdropFilter: "blur(10px)", border: `1px solid rgba(0,0,0,0.05)`, borderRadius: "99px", marginBottom: "2rem", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
-              <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: c.primary, boxShadow: `0 0 10px ${c.primary}` }} />
-              <span style={{ fontFamily: body, fontSize: "0.8rem", fontWeight: 700, color: c.primary, letterSpacing: "0.05em", textTransform: "uppercase" }}>Next-Gen Workspace</span>
-            </motion.div>
-
-            <h1 style={{ fontFamily: heading, fontSize: "clamp(3rem, 6.5vw, 5.5rem)", fontWeight: 800, lineHeight: 0.95, letterSpacing: "-0.04em", marginBottom: "1.5rem", color: c.ink }}>
-              Cognitive architecture for <span style={{ color: c.primary }}>professionals.</span>
+          <motion.div style={{ y, opacity, position: "relative", textAlign: "center", zIndex: 50 }} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}>
+            <h1 className="landing-hero-title" style={{ fontFamily: heading, fontSize: "clamp(2rem, 4.2vw, 3.6rem)", fontWeight: 800, lineHeight: 0.96, letterSpacing: "-0.05em", margin: "0 auto", color: c.ink, maxWidth: "1000px", whiteSpace: "nowrap" }}>
+              Cognitive architecture for professionals.
             </h1>
 
-            <p style={{ fontFamily: body, fontSize: "clamp(1.1rem, 2vw, 1.25rem)", color: c.muted, lineHeight: 1.6, maxWidth: "540px", marginBottom: "3rem", fontWeight: 400 }}>
-              Move beyond linear chat. Interact with specialized AI models in a multi-dimensional, structured environment designed for rigorous knowledge work.
+            <div style={{ height: "clamp(25rem, 56vh, 41rem)", display: "flex", alignItems: "center", justifyContent: "center" }} />
+
+            <p style={{ fontFamily: body, fontSize: "clamp(0.95rem, 1.5vw, 1.08rem)", color: c.muted, lineHeight: 1.7, maxWidth: "620px", margin: "0.85rem auto 0", fontWeight: 400 }}>
+              Move beyond linear chat. Interact with specialized AI models in a structured environment designed for rigorous knowledge work.
             </p>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", position: "relative", zIndex: 50 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.45rem", marginTop: "1.25rem", position: "relative", zIndex: 50 }}>
               <Link
-                to="/login"
+                to="/signup"
                 onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = `0 12px 40px ${c.primary}60`; }}
                 onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 8px 30px ${c.primary}40`; }}
                 style={{ fontFamily: body, fontSize: "1rem", fontWeight: 700, color: "#fff", textDecoration: "none", background: c.primary, padding: "1rem 2.5rem", borderRadius: "12px", display: "inline-flex", alignItems: "center", gap: "0.5rem", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: `0 8px 30px ${c.primary}40` }}
@@ -659,10 +562,7 @@ export default function AtelierPlusLanding() {
                 Start building
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </Link>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
-                <span style={{ fontSize: "0.8rem", fontWeight: 600, color: c.ink }}>Free 14-day trial.</span>
-                <span style={{ fontSize: "0.8rem", color: c.muted }}>No credit card required.</span>
-              </div>
+              <span style={{ fontSize: "0.82rem", color: c.muted }}>Free 14-day trial. No credit card required.</span>
             </div>
           </motion.div>
         </div>
@@ -750,7 +650,7 @@ export default function AtelierPlusLanding() {
               Join forward-thinking professionals organizing their AI interactions into structured, powerful studios.
             </p>
             <Link
-              to="/login"
+              to="/signup"
               onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "scale(1.05)"; }}
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "scale(1)"; }}
               style={{ fontFamily: body, fontSize: "1.1rem", fontWeight: 700, color: c.ink, textDecoration: "none", background: c.surface, padding: "1.2rem 3rem", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "0.5rem", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}
@@ -768,6 +668,11 @@ export default function AtelierPlusLanding() {
         @media (max-width: 1024px) {
           .bento-grid { display: flex !important; flex-direction: column; }
           .bento-item { grid-column: auto !important; }
+        }
+        @media (max-width: 980px) {
+          .landing-hero-title {
+            white-space: normal;
+          }
         }
       `}</style>
     </div>
