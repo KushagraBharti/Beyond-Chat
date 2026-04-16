@@ -154,6 +154,7 @@ const ROICalculator = ({ setCursorVariant }: { setCursorVariant: any }) => {
 
 export default function AtelierPlusPricing() {
   const [cursorVariant, setCursorVariant] = useState<"default" | "play" | "rotate">("default");
+  const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
     <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
@@ -209,7 +210,7 @@ export default function AtelierPlusPricing() {
           zIndex: 10,
         }}
       >
-        <Link to="/" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+        <Link to="/" onClick={scrollHome} onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <div style={{ position: "relative", width: "28px", height: "28px" }}>
             <div style={{ position: "absolute", inset: 0, borderRadius: "6px", background: `linear-gradient(135deg, ${c.primary}, ${c.accent})` }} />
             <div style={{ position: "absolute", inset: "2px", borderRadius: "4px", background: c.surface }} />
@@ -220,7 +221,7 @@ export default function AtelierPlusPricing() {
           </span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
-          <Link to="/" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.muted, textDecoration: "none" }}>Home</Link>
+          <Link to="/" onClick={scrollHome} onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.muted, textDecoration: "none" }}>Home</Link>
           <Link to="/login" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 700, color: "#fff", background: c.ink, padding: "0.6rem 1.4rem", borderRadius: "99px", textDecoration: "none" }}>Log in</Link>
         </div>
       </nav>
@@ -264,7 +265,7 @@ export default function AtelierPlusPricing() {
             <p style={{ color: c.muted, lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>For individuals exploring structured AI workflows.</p>
             
             <Link 
-              to="/login" 
+              to="/signup" 
               onMouseEnter={() => setCursorVariant("play")} 
               onMouseLeave={() => setCursorVariant("default")}
               style={{ display: "block", textAlign: "center", background: c.canvas, border: `1px solid ${c.border}`, color: c.ink, padding: "1rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginBottom: "2.5rem" }}>
@@ -311,7 +312,7 @@ export default function AtelierPlusPricing() {
             <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>For power users who need advanced models and unlimited context.</p>
             
             <Link 
-              to="/login" 
+              to="/signup" 
               onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "scale(1.02)"; }}
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "scale(1)"; }}
               style={{ display: "block", textAlign: "center", background: c.primary, color: "#fff", padding: "1rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginBottom: "2.5rem", boxShadow: `0 8px 20px ${c.primary}40`, transition: "transform 0.2s" }}
