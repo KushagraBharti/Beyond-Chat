@@ -28,6 +28,7 @@ function resolveApiBaseUrl(): string {
 
 const apiBaseUrl = resolveApiBaseUrl();
 const workspaceStorageKey = "bc.workspace_id";
+let providerStatusesCache: Record<string, ProviderRecord> | null = null;
 
 export interface Workspace {
   id: string;
@@ -236,7 +237,13 @@ export async function deleteReminder(reminderId: string) {
 }
 
 export async function getProviderStatuses() {
-  return api<{ providers: Record<string, ProviderRecord> }>("/api/status/providers");
+  const payload = await api<{ providers: Record<string, ProviderRecord> }>("/api/status/providers");
+  providerStatusesCache = payload.providers;
+  return payload;
+}
+
+export function getCachedProviderStatuses() {
+  return providerStatusesCache;
 }
 
 export async function getCalendarEvents() {

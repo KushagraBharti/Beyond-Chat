@@ -7,12 +7,14 @@ interface AuthContextValue {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  updateProfileName: (name: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
   loading: true,
+  updateProfileName: async () => undefined,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -48,12 +50,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const updateProfileName = async (name: string) => {
+    if (!supabase) {
+      throw new Error("Supabase is not configured.");
+    }
+
+    const trimmed = name.trim();
+    if (!trimmed) {
+      throw new Error("Name is required.");
+    }
+
+    const firstName = trimmed.split(/\s+/)[0] ?? trimmed;
+    const { data, error } = await supabase.auth.updateUser({
+      data: {
+        name: trimmed,
+        first_name: firstName,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data.session) {
+      setSession(data.session);
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    setSession(sessionData.session);
+  };
+
   return (
     <AuthContext.Provider
       value={{
         session,
         user: session?.user ?? null,
         loading,
+        updateProfileName,
       }}
     >
       {children}
