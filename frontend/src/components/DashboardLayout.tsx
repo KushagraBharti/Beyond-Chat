@@ -9,22 +9,26 @@ type NavItem = {
   label: string;
   path: string;
   icon: ReactNode;
+  accent: string;
 };
 
 function SidebarIcon({
   children,
   active,
+  accent,
 }: {
   children: ReactNode;
   active: boolean;
+  accent: string;
 }) {
   return (
     <span
       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition ${
         active
           ? "border-white/20 bg-white/10 text-white"
-          : "border-stone-200 bg-stone-100 text-stone-700 group-hover:border-stone-300 group-hover:bg-white"
+          : "border-stone-200 group-hover:border-stone-300 group-hover:bg-white"
       }`}
+      style={active ? undefined : { background: `${accent}14`, color: accent }}
     >
       {children}
     </span>
@@ -145,18 +149,18 @@ function ExitGlyph() {
 }
 
 const primaryNav: NavItem[] = [
-  { label: "Dashboard", path: "/dashboard", icon: <DashboardGlyph /> },
-  { label: "Chat", path: "/chat", icon: <ChatGlyph /> },
-  { label: "Writing", path: "/writing", icon: <PencilGlyph /> },
-  { label: "Research", path: "/research", icon: <NotebookGlyph /> },
-  { label: "Image", path: "/image", icon: <ImageGlyph /> },
-  { label: "Data", path: "/data", icon: <DataGlyph /> },
-  { label: "Finance", path: "/finance", icon: <FinanceGlyph /> },
+  { label: "Dashboard", path: "/dashboard", icon: <DashboardGlyph />, accent: "#0D0D0D" },
+  { label: "Chat", path: "/chat", icon: <ChatGlyph />, accent: "#111827" },
+  { label: "Writing", path: "/writing", icon: <PencilGlyph />, accent: "#4F3FE8" },
+  { label: "Research", path: "/research", icon: <NotebookGlyph />, accent: "#0E7AE6" },
+  { label: "Image", path: "/image", icon: <ImageGlyph />, accent: "#E5484D" },
+  { label: "Data", path: "/data", icon: <DataGlyph />, accent: "#30A46C" },
+  { label: "Finance", path: "/finance", icon: <FinanceGlyph />, accent: "#E55613" },
 ];
 
 const secondaryNav: NavItem[] = [
-  { label: "Artifacts", path: "/artifacts", icon: <ArchiveGlyph /> },
-  { label: "Settings", path: "/settings", icon: <SettingsGlyph /> },
+  { label: "Artifacts", path: "/artifacts", icon: <ArchiveGlyph />, accent: "#A855F7" },
+  { label: "Settings", path: "/settings", icon: <SettingsGlyph />, accent: "#6B6B70" },
 ];
 
 export default function DashboardLayout() {
@@ -211,7 +215,9 @@ export default function DashboardLayout() {
               >
                 {({ isActive }) => (
                   <>
-                    <SidebarIcon active={isActive}>{item.icon}</SidebarIcon>
+                    <SidebarIcon active={isActive} accent={item.accent}>
+                      {item.icon}
+                    </SidebarIcon>
                     {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
                   </>
                 )}
@@ -234,7 +240,9 @@ export default function DashboardLayout() {
               >
                 {({ isActive }) => (
                   <>
-                    <SidebarIcon active={isActive}>{item.icon}</SidebarIcon>
+                    <SidebarIcon active={isActive} accent={item.accent}>
+                      {item.icon}
+                    </SidebarIcon>
                     {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
                   </>
                 )}
