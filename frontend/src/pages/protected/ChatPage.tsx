@@ -6,8 +6,10 @@ import { useAuth } from "../../context/AuthContext";
 import {
   type ChatMessage,
   createThread,
+  deleteThread,
   getThread,
   listChatThreads,
+  renameThread,
   streamThreadMessage,
   setStoredWorkspaceId,
   type ChatThread,
@@ -39,10 +41,24 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [threadMenu, setThreadMenu] = useState<{ threadId: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
     void refreshThreads();
   }, []);
+
+  useEffect(() => {
+    if (!threadMenu) return;
+
+    const closeMenu = () => setThreadMenu(null);
+    window.addEventListener("click", closeMenu);
+    window.addEventListener("keydown", closeMenu);
+
+    return () => {
+      window.removeEventListener("click", closeMenu);
+      window.removeEventListener("keydown", closeMenu);
+    };
+  }, [threadMenu]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,6 +96,48 @@ export default function ChatPage() {
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to open thread.");
+    }
+  };
+
+  const handleThreadContextMenu = (event: React.MouseEvent, threadId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setThreadMenu({ threadId, x: event.clientX, y: event.clientY });
+  };
+
+  const handleRenameThread = async (thread: ChatThread) => {
+    const nextTitle = window.prompt("Rename chat", thread.title)?.trim();
+    setThreadMenu(null);
+    if (!nextTitle || nextTitle === thread.title) return;
+
+    try {
+      const response = await renameThread(thread.id, { title: nextTitle });
+      setThreads((current) => current.map((item) => (item.id === thread.id ? { ...item, title: response.thread.title } : item)));
+      if (activeThread?.id === thread.id) {
+        setActiveThread((current) => (current ? { ...current, title: response.thread.title } : current));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to rename chat.");
+    }
+  };
+
+  const handleDeleteThread = async (thread: ChatThread) => {
+    const confirmed = window.confirm(`Delete "${thread.title}"? This chat will be lost forever.`);
+    setThreadMenu(null);
+    if (!confirmed) return;
+
+    const previousThreads = threads;
+    const nextThreads = threads.filter((item) => item.id !== thread.id);
+    setThreads(nextThreads);
+    if (activeThread?.id === thread.id) {
+      setActiveThread(null);
+    }
+
+    try {
+      await deleteThread(thread.id);
+    } catch (err) {
+      setThreads(previousThreads);
+      setError(err instanceof Error ? err.message : "Failed to delete chat.");
     }
   };
 
@@ -286,6 +344,7 @@ export default function ChatPage() {
                 key={thread.id}
                 className={`cs-thread-item ${thread.id === activeThread?.id ? "is-active" : ""}`}
                 onClick={() => void handleSelectThread(thread.id)}
+                onContextMenu={(event) => handleThreadContextMenu(event, thread.id)}
                 type="button"
                 title={thread.title}
               >
@@ -320,6 +379,7 @@ export default function ChatPage() {
             </button>
           </div>
         </div>
+
       </aside>
 
       {/* Main area */}
@@ -434,6 +494,29 @@ export default function ChatPage() {
           </div>
         </div>
       </main>
+
+      {threadMenu ? (
+        <div
+          className="cs-thread-menu"
+          style={{ left: threadMenu.x, top: threadMenu.y }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {(() => {
+            const thread = threads.find((item) => item.id === threadMenu.threadId);
+            if (!thread) return null;
+            return (
+              <>
+                <button className="cs-thread-menu-item" type="button" onClick={() => void handleRenameThread(thread)}>
+                  Rename
+                </button>
+                <button className="cs-thread-menu-item is-danger" type="button" onClick={() => void handleDeleteThread(thread)}>
+                  Delete
+                </button>
+              </>
+            );
+          })()}
+        </div>
+      ) : null}
     </div>
   );
 }
