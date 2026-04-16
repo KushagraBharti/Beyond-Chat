@@ -73,6 +73,94 @@ export default function HomePage() {
 
       {error ? <div className="error-copy">{error}</div> : null}
 
+      {/* TEMPORARY - dashboard design previews for internal review */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+          padding: "14px 18px",
+          marginBottom: 16,
+          borderRadius: 14,
+          border: "1px solid #0066ff",
+          background: "rgba(0, 102, 255, 0.05)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 10,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#0066ff",
+                fontWeight: 700,
+              }}
+            >
+              Internal · Design Directions
+            </div>
+            <div style={{ fontSize: 13, color: "#1a1c1e", marginTop: 2 }}>
+              Select a concept to preview the new product directions.
+            </div>
+          </div>
+          <span
+            style={{
+              fontFamily: "monospace",
+              fontSize: 10,
+              textTransform: "uppercase",
+              color: "#0066ff",
+              background: "#fff",
+              padding: "2px 6px",
+              border: "1px solid #0066ff",
+              borderRadius: 4,
+            }}
+          >
+            New
+          </span>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {[
+            { n: 1, label: "Operator Console" },
+            { n: 2, label: "Metrics Surface" },
+            { n: 3, label: "Editorial Today" },
+            { n: 4, label: "Minimal Base" },
+          ].map((d) => (
+            <button
+              key={d.n}
+              type="button"
+              onClick={() => navigate(`/designs/${d.n}`)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 14px",
+                borderRadius: 10,
+                border: "1px solid #e1e4e8",
+                background: "#fff",
+                color: "#1a1c1e",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.borderColor = "#0066ff")}
+              onMouseOut={(e) => (e.currentTarget.style.borderColor = "#e1e4e8")}
+            >
+              <span style={{ color: "#0066ff" }}>0{d.n}</span>
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <motion.div variants={fadeUp} className="hero-grid">
         <MotionCard className="hero-card">
           <div className="hero-copy">
