@@ -37,6 +37,13 @@ html, body, #root {
   min-height: 100%;
 }
 
+html.global-custom-cursor,
+html.global-custom-cursor body,
+html.global-custom-cursor #root,
+html.global-custom-cursor * {
+  cursor: none !important;
+}
+
 body {
   background: var(--canvas);
   color: var(--ink);
