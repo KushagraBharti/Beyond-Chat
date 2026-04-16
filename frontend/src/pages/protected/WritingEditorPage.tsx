@@ -167,6 +167,7 @@ export default function WritingEditorPage() {
 
                 return {
                   ...payload,
+                  artifact_id: documentId !== "new" ? documentId : undefined,
                   content_format: "rich_text",
                   content_json: editor.getJSON(),
                   metadata: {
