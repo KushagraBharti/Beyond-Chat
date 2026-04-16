@@ -69,6 +69,14 @@
 ## Startup / Execution Notes
 - This week was heavily focused on making the product stable and deployable rather than adding new features.
 
+
+## Hours Worked
+- Total estimated time: 23 hours
+
+
+
+
+
   # HARSH KOTHARI                                                               
                                                                                 
   ## Weekly Summary                                                             
@@ -187,8 +195,6 @@
   - Total estimated time: ~10 hours
 - Fixing deployment and build issues significantly improved the team’s ability to iterate quickly and confidently.
 
-## Hours Worked
-- Total estimated time: 23 hours
 
 
 ## Hours Worked  
