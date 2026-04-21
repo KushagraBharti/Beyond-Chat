@@ -19,6 +19,7 @@ const DataPage = lazy(() => import("../pages/protected/DataPage"));
 const FinancePage = lazy(() => import("../pages/protected/FinancePage"));
 const ArtifactsPage = lazy(() => import("../pages/protected/ArtifactsPage"));
 const SettingsPage = lazy(() => import("../pages/protected/SettingsPage"));
+const ComparePage = lazy(() => import("../pages/protected/ComparePage"));
 
 const Design1Executive = lazy(() => import("../pages/designs/Design1Executive"));
 const Design2Modular = lazy(() => import("../pages/designs/Design2Modular"));
@@ -98,6 +99,7 @@ export default function AppShell() {
                 <Route path="/research" element={<ResearchPage />} />
                 <Route path="/data" element={<DataPage />} />
                 <Route path="/finance" element={<FinancePage />} />
+                <Route path="/compare" element={<ComparePage />} />
                 <Route path="/artifacts" element={<ArtifactsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Route>
