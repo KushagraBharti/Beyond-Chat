@@ -407,6 +407,18 @@ export async function comparePrompt(payload: { prompt: string; models: string[];
   });
 }
 
+export async function openrouterChat(payload: {
+  model: string;
+  messages: { role: "system" | "user" | "assistant"; content: string }[];
+  temperature?: number;
+  max_tokens?: number;
+}) {
+  return api<{ model: string; content: string }>("/api/openrouter/chat", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function createRun(payload: {
   studio: string;
   title: string;
