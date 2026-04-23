@@ -99,4 +99,71 @@ HARSH KOTHARI
                                                                                 
   Hours Worked                                              
 
-  - Total estimated time: ~8 hours   
+  - Total estimated time: ~8 hours
+
+### DIYA MEHTA  
+
+### Weekly Summary  
+- Focused on researching and planning how to scale the BeyondChat application for higher user load  
+- Analyzed current architecture to identify performance bottlenecks and inefficiencies  
+- Designed potential solutions to improve responsiveness, reliability, and scalability without implementing changes yet  
+
+### Work Completed  
+- Audited current system flow (frontend → backend → database) to identify scaling limitations  
+- Identified key bottlenecks such as repeated CSV processing, synchronous analysis, and redundant API calls  
+- Designed a caching strategy for analysis results and frequently accessed artifact data  
+- Planned approach to store preprocessed dataset summaries to avoid repeated heavy computations  
+
+### Research / Technical Findings  
+- Eliminating redundant computation has a larger impact than micro-optimizations  
+- Caching frequently accessed or expensive results significantly improves performance  
+- Asynchronous processing is important for maintaining responsiveness under heavy workloads  
+- Database query efficiency becomes critical as data and users scale  
+- Frontend request patterns directly influence backend load and overall system performance  
+- Early planning for scalability helps prevent major refactors later  
+
+### Blockers / Risks  
+- No implementation completed yet, so improvements are not validated  
+- Asynchronous architecture introduces additional complexity in state management  
+- Caching strategies need careful design to avoid stale or inconsistent data  
+- Scaling assumptions may change once real user traffic is observed  
+
+### Hours Worked  
+- Total estimated time: ~7–8 hours
+
+### DIYA MEHTA  
+
+### Weekly Summary  
+- Focused on researching scalability improvements for the BeyondChat application  
+- Identified performance bottlenecks across the current system architecture and designed potential solutions  
+- Continued development and planning work on the Image Studio feature  
+- Prioritized long-term system reliability, efficiency, and ability to handle increasing user load  
+
+### Work Completed  
+- Analyzed end-to-end architecture (frontend, backend, database) to identify scaling limitations  
+- Identified major inefficiencies such as repeated CSV processing, synchronous analysis calls, and redundant API requests  
+- Designed a caching approach for storing and reusing expensive analysis results and artifact data  
+- Planned a system to store preprocessed dataset summaries to reduce repeated computation overhead  
+- Explored moving heavy analysis workloads to asynchronous/background processing for better responsiveness  
+- Researched database scaling techniques including indexing, pagination, and query optimization  
+- Evaluated frontend improvements to minimize duplicate API calls and improve request handling efficiency  
+- Reviewed rate-limiting approaches to protect high-cost endpoints from excessive usage  
+- Worked on Image Studio feature improvements, focusing on structure, integration flow, and alignment with existing system architecture  
+- Considered trade-offs between simplicity and scalability in system design decisions  
+
+### Research / Technical Findings  
+- Eliminating redundant computation and API calls has a major impact on system performance  
+- Caching is most effective when applied to expensive and frequently repeated operations  
+- Asynchronous processing is essential for maintaining responsiveness under load  
+- Database performance becomes a key bottleneck as data and user volume increases  
+- Frontend request patterns can significantly amplify backend load if not controlled  
+- Early architectural planning reduces the need for large refactors later  
+
+### Blockers / Risks  
+- No implementation has been done yet, so proposed improvements are unvalidated  
+- Asynchronous workflows introduce additional system complexity and state management challenges  
+- Caching mechanisms must be carefully designed to avoid stale or inconsistent data  
+- Real-world usage patterns may require adjustments to current assumptions  
+
+### Hours Worked  
+- Total estimated time: ~7–8 hours   
