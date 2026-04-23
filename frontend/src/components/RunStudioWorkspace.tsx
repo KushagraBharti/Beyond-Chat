@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ArtifactSaveButton from "./ArtifactSaveButton";
 import ContextBuilder from "./ContextBuilder";
 import StepTimeline from "./StepTimeline";
-import { createRun, type RunRecord } from "../lib/api";
+import { createRun, getRun, type RunRecord } from "../lib/api";
 import { buildRunArtifactInput } from "../lib/artifactDrafts";
 import { activeModelCatalog, defaultChatModel } from "../lib/modelCatalog";
 import {
@@ -34,12 +34,58 @@ export default function RunStudioWorkspace({
   promptPlaceholder: string;
 }) {
   const { openComparePanel } = useComparePanel();
+  const isFinance = studio === "finance";
   const [prompt, setPrompt] = useState(promptPlaceholder);
   const [model, setModel] = useState(defaultChatModel);
   const [contextIds, setContextIds] = useState<string[]>([]);
   const [run, setRun] = useState<RunRecord | null>(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("Ready");
+  const runOutputDetails =
+    run?.output?.details && typeof run.output.details === "object"
+      ? (run.output.details as { message?: unknown; type?: unknown; traceback?: unknown })
+      : null;
+  const runError =
+    run?.status === "failed"
+      ? run.error_message ||
+        (typeof run.output?.error === "string" ? run.output.error : "") ||
+        (typeof runOutputDetails?.message === "string" ? runOutputDetails.message : "") ||
+        "Run failed without an error message."
+      : null;
+  const runTraceback = typeof runOutputDetails?.traceback === "string" ? runOutputDetails.traceback : null;
+
+  useEffect(() => {
+    if (!run?.id || run.status !== "running") {
+      return;
+    }
+
+    let cancelled = false;
+    const interval = window.setInterval(() => {
+      getRun(run.id)
+        .then((response) => {
+          if (cancelled) {
+            return;
+          }
+          setRun(response.run);
+          setStatus(response.run.status);
+          if (response.run.status !== "running") {
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (cancelled) {
+            return;
+          }
+          setStatus(err instanceof Error ? err.message : "Could not refresh run.");
+          setLoading(false);
+        });
+    }, 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [run?.id, run?.status]);
 
   const handleRun = async () => {
     if (!prompt.trim()) {
@@ -58,9 +104,9 @@ export default function RunStudioWorkspace({
       });
       setRun(response.run);
       setStatus(response.run.status);
+      setLoading(response.run.status === "running");
     } catch (err) {
       setStatus(err instanceof Error ? err.message : "Run failed.");
-    } finally {
       setLoading(false);
     }
   };
@@ -114,7 +160,7 @@ export default function RunStudioWorkspace({
             <div className="context-builder-head">
               <div>
                 <h3>Prompt</h3>
-                <p>Structured input and clear long-running status.</p>
+                <p>{isFinance ? "Dexter runs in a sandbox with finance tools." : "Structured input and clear long-running status."}</p>
               </div>
               <StatusBadge
                 status={
@@ -136,30 +182,48 @@ export default function RunStudioWorkspace({
               </Select>
             </div>
             <div className="stack-sm">
-              <FieldLabel>Research brief</FieldLabel>
+              <FieldLabel>{isFinance ? "Dexter finance prompt" : "Research brief"}</FieldLabel>
               <TextArea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={promptPlaceholder} />
             </div>
           </MotionCard>
 
           <ContextBuilder selectedIds={contextIds} onChange={setContextIds} />
 
-          <StepTimeline steps={run?.steps ?? []} />
+          <StepTimeline
+            steps={run?.steps ?? []}
+            title={isFinance ? "Dexter Tools" : "Tool Runner"}
+            description={
+              isFinance
+                ? "Inspect Dexter's sandbox dispatch, tool calls, and finalization."
+                : "Track each stage of the run and inspect the produced output."
+            }
+          />
         </div>
 
         <div className="studio-secondary-column">
           <MotionCard>
             <div className="context-builder-head">
               <div>
-                <h3>Structured Output</h3>
-                <p>Stable report sections, citations, and save flow.</p>
+                <h3>{isFinance ? "Dexter Answer" : "Structured Output"}</h3>
+                <p>{isFinance ? "Final markdown answer returned by Dexter." : "Stable report sections, citations, and save flow."}</p>
               </div>
             </div>
-            {run?.output.content ? (
+            {runError ? (
+              <div className="error-copy run-error">
+                <strong>{isFinance ? "Dexter run failed" : "Run failed"}</strong>
+                <pre>{runError}</pre>
+                {runTraceback ? <pre>{runTraceback}</pre> : null}
+              </div>
+            ) : run?.output.content ? (
               <article className="report-output">{String(run.output.content)}</article>
             ) : (
               <EmptyState
-                title="No report generated yet"
-                body="Run a research or finance task to populate the report, citations, and save action."
+                title={isFinance ? "No Dexter answer yet" : "No report generated yet"}
+                body={
+                  isFinance
+                    ? "Run a finance prompt to populate Dexter's answer, tool trace, and save action."
+                    : "Run a research task to populate the report, citations, and save action."
+                }
               />
             )}
           </MotionCard>
@@ -167,8 +231,8 @@ export default function RunStudioWorkspace({
           <MotionCard>
             <div className="context-builder-head">
               <div>
-                <h3>Sources</h3>
-                <p>Search results and synthesis inputs stay visible next to the report.</p>
+                <h3>{isFinance ? "Dexter Sources" : "Sources"}</h3>
+                <p>{isFinance ? "URLs and citations Dexter surfaced during the run." : "Search results and synthesis inputs stay visible next to the report."}</p>
               </div>
             </div>
             {Array.isArray(run?.output.sources) && run.output.sources.length ? (

@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from src.artifact_drafts import build_run_artifact_payload
-from src.providers import TAVILY_NOT_CONFIGURED
+from src.providers import EXA_NOT_CONFIGURED
 
 
 def test_health_endpoint(client: TestClient):
@@ -139,8 +139,12 @@ def test_run_finance_studio_shape(client: TestClient):
     assert response.status_code == 200
     run = response.json()["run"]
     assert run["studio"] == "finance"
+    assert run["status"] == "running"
+    run = client.get(f"/api/runs/{run['id']}").json()["run"]
     assert run["status"] in ("completed", "failed")
     assert isinstance(run["steps"], list)
+    if run["status"] == "completed":
+        assert run["output"]["engine"] == "dexter"
 
 
 def test_run_data_studio_shape(client: TestClient):
@@ -309,14 +313,14 @@ def test_writing_workflow_records_brief_and_draft_steps(client: TestClient, monk
     assert [step["status"] for step in run["steps"]] == ["completed", "completed", "running", "completed"]
 
 
-def test_research_workflow_records_tool_runner_steps_without_tavily(client: TestClient, monkeypatch):
-    async def fake_tavily_search(_query: str):
-        raise RuntimeError(TAVILY_NOT_CONFIGURED)
+def test_research_workflow_records_tool_runner_steps_without_exa(client: TestClient, monkeypatch):
+    async def fake_exa_search(_query: str):
+        raise RuntimeError(EXA_NOT_CONFIGURED)
 
     async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
         return "## Executive Summary\nFallback report."
 
-    monkeypatch.setattr("src.workflows.tavily_search", fake_tavily_search)
+    monkeypatch.setattr("src.workflows.exa_search", fake_exa_search)
     monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
 
     response = client.post(
@@ -344,20 +348,37 @@ def test_research_workflow_records_tool_runner_steps_without_tavily(client: Test
     ]
 
 
-def test_finance_workflow_records_search_and_synthesis_steps(client: TestClient, monkeypatch):
-    async def fake_tavily_search(_query: str):
+def test_finance_workflow_records_dexter_steps(client: TestClient, monkeypatch):
+    async def fake_run_dexter_finance(*, prompt, model, workspace_id, run_id, options, on_event=None):
+        assert prompt == "Analyze SaaS revenue trends."
+        assert model == "openai/gpt-4o-mini"
+        assert workspace_id
+        assert run_id
+        assert options == {}
+        events = [
+            {"type": "tool_start", "tool": "get_financials", "args": {"query": prompt}, "toolCallId": "tc_1"},
+            {
+                "type": "tool_end",
+                "tool": "get_financials",
+                "args": {"query": prompt},
+                "result": "Revenue grew 18%. https://example.com/report",
+                "duration": 12,
+                "toolCallId": "tc_1",
+            },
+        ]
+        if on_event is not None:
+            for event in events:
+                await on_event(event)
         return {
-            "answer": "Revenue increased.",
-            "results": [
-                {"title": "Q4 report", "url": "https://example.com/report", "snippet": "Revenue grew 18% year over year."}
-            ],
+            "answer": "## Dexter Memo\nRevenue quality is improving.",
+            "events": events,
+            "toolCalls": [{"tool": "get_financials", "args": {"query": prompt}, "result": "Revenue grew 18%."}],
+            "sources": [{"title": "Q4 report", "url": "https://example.com/report", "snippet": "Revenue grew 18%."}],
+            "usage": {"inputTokens": 10, "outputTokens": 20, "totalTokens": 30},
+            "sandbox": {"provider": "vercel", "sandboxId": "sbx_test"},
         }
 
-    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
-        return "## Executive Summary\nFinance memo."
-
-    monkeypatch.setattr("src.workflows.tavily_search", fake_tavily_search)
-    monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
+    monkeypatch.setattr("src.workflows.run_dexter_finance", fake_run_dexter_finance)
 
     response = client.post(
         "/api/runs",
@@ -371,16 +392,19 @@ def test_finance_workflow_records_search_and_synthesis_steps(client: TestClient,
 
     assert response.status_code == 200
     run = response.json()["run"]
+    assert run["status"] == "running"
+    run = client.get(f"/api/runs/{run['id']}").json()["run"]
     assert run["status"] == "completed"
     assert run["output"]["workflow"] == "finance"
+    assert run["output"]["engine"] == "dexter"
     assert run["output"]["sources"][0]["title"] == "Q4 report"
     assert [step["step_name"] for step in run["steps"]] == [
         "prepare",
-        "plan",
-        "search",
-        "search",
-        "synthesize",
-        "synthesize",
+        "dexter_dispatch",
+        "get_financials",
+        "get_financials",
+        "dexter_dispatch",
+        "dexter_complete",
     ]
 
 

@@ -1,13 +1,21 @@
 import type { RunStep } from "../lib/api";
 import { MotionCard, StatusBadge } from "./protectedUi";
 
-export default function StepTimeline({ steps }: { steps: RunStep[] }) {
+export default function StepTimeline({
+  steps,
+  title = "Tool Runner",
+  description = "Track each stage of the run and inspect the produced output.",
+}: {
+  steps: RunStep[];
+  title?: string;
+  description?: string;
+}) {
   return (
     <MotionCard>
       <div className="context-builder-head">
         <div>
-          <h3>Tool Runner</h3>
-          <p>Track each stage of the run and inspect the produced output.</p>
+          <h3>{title}</h3>
+          <p>{description}</p>
         </div>
       </div>
 

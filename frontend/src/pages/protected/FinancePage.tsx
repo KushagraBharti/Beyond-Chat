@@ -4,10 +4,10 @@ export default function FinancePage() {
   return (
     <RunStudioWorkspace
       studio="finance"
-      eyebrow="Finance Studio"
-      title="Finance workflows with agent-style steps"
-      description="Finance uses the same run system as research, but shapes prompts and outputs toward market, company, and investment-style analysis."
-      promptPlaceholder="Research current AI infrastructure companies, compare risks, and produce a concise financial briefing with key catalysts."
+      eyebrow="Dexter Finance Studio"
+      title="Dexter financial research agent"
+      description="Ask Dexter for company, market, filing, valuation, and screening work. Runs execute in a sandbox and return the final memo plus tool trace."
+      promptPlaceholder="Analyze AAPL revenue, margins, valuation risks, and the key catalysts to watch."
     />
   );
 }

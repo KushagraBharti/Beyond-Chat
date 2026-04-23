@@ -11,7 +11,7 @@ import httpx
 from .config import settings
 
 OPENROUTER_NOT_CONFIGURED = "OPENROUTER_NOT_CONFIGURED"
-TAVILY_NOT_CONFIGURED = "TAVILY_NOT_CONFIGURED"
+EXA_NOT_CONFIGURED = "EXA_NOT_CONFIGURED"
 
 
 def _openrouter_headers() -> dict[str, str]:
@@ -286,20 +286,24 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
     return list(await asyncio.gather(*(run_single_model(model) for model in models)))
 
 
-async def tavily_search(query: str) -> dict[str, Any]:
-    if not settings.tavily_api_key:
-        raise RuntimeError(TAVILY_NOT_CONFIGURED)
+async def exa_search(query: str) -> dict[str, Any]:
+    if not settings.exasearch_api_key:
+        raise RuntimeError(EXA_NOT_CONFIGURED)
 
     async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.post(
-            "https://api.tavily.com/search",
+            "https://api.exa.ai/search",
+            headers={
+                "x-api-key": settings.exasearch_api_key,
+                "Content-Type": "application/json",
+            },
             json={
-                "api_key": settings.tavily_api_key,
                 "query": query,
-                "search_depth": "advanced",
-                "include_answer": True,
-                "max_results": 5,
-                "include_images": False,
+                "numResults": 5,
+                "contents": {
+                    "text": True,
+                    "highlights": True,
+                },
             },
         )
         response.raise_for_status()
@@ -313,11 +317,11 @@ async def tavily_search(query: str) -> dict[str, Any]:
             {
                 "title": item.get("title", "Untitled source"),
                 "url": item.get("url", ""),
-                "snippet": item.get("content", ""),
+                "snippet": item.get("text") or " ".join(item.get("highlights") or []),
             }
         )
     return {
-        "answer": payload.get("answer", ""),
+        "answer": "",
         "results": results,
     }
 
@@ -330,10 +334,20 @@ def provider_statuses() -> dict[str, Any]:
             "label": "OpenRouter",
             "details": "LLM and compare provider",
         },
-        "tavily": {
-            "status": "connected" if settings.tavily_api_key else "not_configured",
-            "label": "Tavily",
-            "details": "Research and finance web search",
+        "exa": {
+            "status": "connected" if settings.exasearch_api_key else "not_configured",
+            "label": "Exa",
+            "details": "Web search for research and Dexter",
+        },
+        "dexter": {
+            "status": "connected" if settings.dexter_runner_url else "not_configured",
+            "label": "Dexter Finance",
+            "details": "Sandboxed finance agent runtime",
+        },
+        "financialDatasets": {
+            "status": "connected" if settings.financial_datasets_api_key else "not_configured",
+            "label": "Financial Datasets",
+            "details": "Market data and fundamentals for Dexter",
         },
         "googleCalendar": {
             "status": "disconnected" if google_ready else "not_configured",

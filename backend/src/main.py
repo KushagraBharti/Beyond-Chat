@@ -1,15 +1,18 @@
 from __future__ import annotations
 
 import json
+import logging
 import mimetypes
+import traceback
 from datetime import datetime, timezone
 from io import BytesIO
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
@@ -34,6 +37,16 @@ from .supabase_service import supabase_service
 from .workflows import run_studio_workflow
 
 load_dotenv()
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+LOG_DIR = BACKEND_ROOT / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+logging.basicConfig(level=logging.INFO)
+log_path = LOG_DIR / "backend.log"
+if not any(isinstance(handler, RotatingFileHandler) and handler.baseFilename == str(log_path) for handler in logging.getLogger().handlers):
+    file_handler = RotatingFileHandler(log_path, maxBytes=1_000_000, backupCount=3)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+    logging.getLogger().addHandler(file_handler)
+LOGGER = logging.getLogger("beyond_chat.api")
 
 app = FastAPI(title="Beyond Chat API", version="0.3.0")
 
@@ -178,6 +191,17 @@ def api_success(data: Any) -> dict[str, Any]:
     return {"data": data, "error": None}
 
 
+def describe_exception(exc: BaseException) -> dict[str, str]:
+    message = str(exc).strip()
+    exc_type = type(exc).__name__
+    return {
+        "type": exc_type,
+        "message": message or f"{exc_type}: {exc!r}",
+        "repr": repr(exc),
+        "traceback": "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))[-8000:],
+    }
+
+
 def build_pdf(title: str, content: str) -> bytes:
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=letter)
@@ -286,18 +310,20 @@ async def execute_run(
     run_id: str,
     workspace_id: str,
     access_token: str | None = None,
+    record_prepare_step: bool = True,
 ) -> dict[str, Any]:
     context_artifacts = resolve_context_artifacts(data_store, workspace_id, payload.context_ids)
     effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
-    data_store.add_run_step(
-        workspace_id,
-        run_id,
-        step_name="prepare",
-        tool_used="system",
-        status="completed",
-        input_payload=payload.prompt,
-        output_payload="Run accepted",
-    )
+    if record_prepare_step:
+        data_store.add_run_step(
+            workspace_id,
+            run_id,
+            step_name="prepare",
+            tool_used="system",
+            status="completed",
+            input_payload=payload.prompt,
+            output_payload="Run accepted",
+        )
     if context_artifacts:
         data_store.add_run_step(
             workspace_id,
@@ -321,6 +347,63 @@ async def execute_run(
         options=payload.options,
         access_token=access_token,
     )
+
+
+async def execute_run_to_completion(
+    data_store,
+    payload: RunRequest,
+    run_id: str,
+    workspace_id: str,
+    access_token: str | None = None,
+    record_prepare_step: bool = True,
+) -> None:
+    try:
+        output = await execute_run(
+            data_store,
+            payload,
+            run_id,
+            workspace_id,
+            access_token,
+            record_prepare_step=record_prepare_step,
+        )
+        data_store.complete_run(
+            workspace_id,
+            run_id,
+            status="completed",
+            output=output,
+        )
+        LOGGER.info(
+            "run completed run_id=%s studio=%s output_keys=%s",
+            run_id,
+            payload.studio,
+            sorted(output.keys()) if isinstance(output, dict) else type(output).__name__,
+        )
+    except Exception as exc:
+        error_details = describe_exception(exc)
+        LOGGER.exception(
+            "run failed run_id=%s studio=%s model=%s error_type=%s error_message=%s",
+            run_id,
+            payload.studio,
+            payload.model,
+            error_details["type"],
+            error_details["message"],
+        )
+        data_store.add_run_step(
+            workspace_id,
+            run_id,
+            step_name="failed",
+            tool_used="system",
+            status="failed",
+            input_payload=payload.prompt,
+            output_payload={"error": error_details["message"], "details": error_details},
+        )
+        data_store.complete_run(
+            workspace_id,
+            run_id,
+            status="failed",
+            error=error_details["message"],
+            output={"error": error_details["message"], "details": error_details},
+        )
 
 
 @app.get("/")
@@ -592,6 +675,7 @@ async def compare(
 @app.post("/api/run")
 async def create_run(
     payload: RunRequest,
+    background_tasks: BackgroundTasks,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
     if payload.studio not in SUPPORTED_STUDIOS:
@@ -610,6 +694,37 @@ async def create_run(
         model=payload.model,
         options=payload.options,
     )
+    LOGGER.info(
+        "run created run_id=%s studio=%s model=%s workspace_id=%s prompt_chars=%s context_ids=%s",
+        run["id"],
+        payload.studio,
+        payload.model,
+        context.workspace_id,
+        len(payload.prompt),
+        len(payload.context_ids),
+    )
+
+    if payload.studio == "finance":
+        data_store.add_run_step(
+            context.workspace_id,
+            run["id"],
+            step_name="prepare",
+            tool_used="system",
+            status="completed",
+            input_payload=payload.prompt,
+            output_payload="Run accepted",
+        )
+        background_tasks.add_task(
+            execute_run_to_completion,
+            data_store,
+            payload,
+            run["id"],
+            context.workspace_id,
+            context.access_token,
+            False,
+        )
+        pending = data_store.get_run(context.workspace_id, run["id"]) or run
+        return {"run": pending}
 
     try:
         output = await execute_run(
@@ -625,7 +740,22 @@ async def create_run(
             status="completed",
             output=output,
         )
+        LOGGER.info(
+            "run completed run_id=%s studio=%s output_keys=%s",
+            run["id"],
+            payload.studio,
+            sorted(output.keys()) if isinstance(output, dict) else type(output).__name__,
+        )
     except Exception as exc:
+        error_details = describe_exception(exc)
+        LOGGER.exception(
+            "run failed run_id=%s studio=%s model=%s error_type=%s error_message=%s",
+            run["id"],
+            payload.studio,
+            payload.model,
+            error_details["type"],
+            error_details["message"],
+        )
         data_store.add_run_step(
             context.workspace_id,
             run["id"],
@@ -633,14 +763,14 @@ async def create_run(
             tool_used="system",
             status="failed",
             input_payload=payload.prompt,
-            output_payload={"error": str(exc)},
+            output_payload={"error": error_details["message"], "details": error_details},
         )
         completed = data_store.complete_run(
             context.workspace_id,
             run["id"],
             status="failed",
-            error=str(exc),
-            output={"error": str(exc)},
+            error=error_details["message"],
+            output={"error": error_details["message"], "details": error_details},
         )
     return {"run": completed}
 

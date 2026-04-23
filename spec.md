@@ -145,7 +145,7 @@ All protected data is workspace-scoped. Auth, chat threads, artifacts, runs, rem
 - Supabase Postgres for persistence
 - Supabase Storage for uploaded/generated files
 - OpenRouter for model calls
-- Tavily for research search
+- Exa for research search
 
 ### Persistence
 
