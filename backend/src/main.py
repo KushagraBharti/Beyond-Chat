@@ -1,12 +1,20 @@
 from __future__ import annotations
 
+import io
 import json
 import mimetypes
+import re
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+
+try:
+    import pandas as pd
+    _PANDAS_AVAILABLE = True
+except ImportError:
+    _PANDAS_AVAILABLE = False
 
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
@@ -171,6 +179,12 @@ class CreateReminderRequest(BaseModel):
 class SignedUrlRequest(BaseModel):
     path: str
     expires_in: int = Field(default=3600, ge=60, le=86400)
+
+
+class DataAnalyzeRequest(BaseModel):
+    storage_path: str
+    prompt: str = ""
+    model: str = settings.openrouter_default_model
 
 # Push
 
@@ -920,6 +934,123 @@ def create_storage_signed_url(
             "expiresIn": signed["expires_in"],
         }
     )
+
+
+@app.post("/api/data/analyze")
+async def analyze_data(
+    payload: DataAnalyzeRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    if not _PANDAS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="pandas is not installed on this backend.")
+
+    workspace_prefix = f"{context.workspace_id}/"
+    if not payload.storage_path.startswith(workspace_prefix):
+        raise HTTPException(status_code=403, detail="Storage path is outside the active workspace.")
+
+    file_bytes = supabase_service.download_artifact_file(payload.storage_path, context.access_token)
+    if file_bytes is None:
+        raise HTTPException(status_code=404, detail="File not found in storage.")
+
+    try:
+        df = pd.read_csv(io.BytesIO(file_bytes))
+    except Exception as exc:
+        raise HTTPException(status_code=422, detail=f"Could not parse CSV: {exc}") from exc
+
+    columns_info = ", ".join(f"{col} ({str(df[col].dtype)})" for col in df.columns)
+    preview_md = df.head(10).to_markdown(index=False)
+    describe_str = df.describe(include="all").fillna("").to_string()
+
+    analysis_prompt = f"""You are a data analyst. Analyze this dataset and answer the user's question.
+
+## Dataset info
+Columns: {columns_info}
+Shape: {len(df)} rows x {len(df.columns)} columns
+
+## First 10 rows
+{preview_md}
+
+## Summary statistics
+{describe_str}
+
+## User question
+{payload.prompt or "Summarize the key findings and suggest useful insights."}
+
+Return ONLY a valid JSON object — no markdown fences, no text outside the JSON — with exactly this shape:
+{{
+  "insight": "<one paragraph plain English finding>",
+  "chart_type": "bar",
+  "chart_data": {{
+    "labels": ["<label1>", "<label2>"],
+    "datasets": [{{"label": "<series name>", "data": [<number>, <number>]}}]
+  }},
+  "table": {{
+    "headers": ["<col1>", "<col2>"],
+    "rows": [["<val>", "<val>"]]
+  }}
+}}
+chart_type must be one of: bar, line, pie, scatter.
+chart_data.labels and chart_data.datasets[0].data must have the same length (max 20 items).
+table.rows should contain at most 10 rows of the most relevant data."""
+
+    data_store = get_runtime_store(context)
+    filename = payload.storage_path.split("/")[-1]
+    run = data_store.create_run(
+        context.workspace_id,
+        studio="data",
+        title=f"Data analysis: {filename}",
+        prompt=payload.prompt or "Summarize and find insights",
+        model=payload.model,
+        options={"storage_path": payload.storage_path},
+    )
+
+    data_store.add_run_step(
+        context.workspace_id, run["id"],
+        step_name="download",
+        tool_used="supabase-storage",
+        status="completed",
+        input_payload={"path": payload.storage_path},
+        output_payload={"bytes": len(file_bytes), "rows": len(df), "columns": len(df.columns)},
+    )
+
+    try:
+        raw = await call_openrouter(
+            model=payload.model,
+            messages=[{"role": "user", "content": analysis_prompt}],
+            temperature=0.2,
+            max_tokens=1500,
+        )
+    except RuntimeError as exc:
+        data_store.complete_run(context.workspace_id, run["id"], status="failed", error=str(exc))
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    json_match = re.search(r'\{[\s\S]+\}', raw)
+    if not json_match:
+        data_store.complete_run(context.workspace_id, run["id"], status="failed", error="Model did not return JSON")
+        raise HTTPException(status_code=502, detail="Model did not return valid JSON.")
+
+    try:
+        result = json.loads(json_match.group())
+    except json.JSONDecodeError as exc:
+        data_store.complete_run(context.workspace_id, run["id"], status="failed", error=str(exc))
+        raise HTTPException(status_code=502, detail=f"Could not parse model JSON: {exc}") from exc
+
+    data_store.add_run_step(
+        context.workspace_id, run["id"],
+        step_name="analyze",
+        tool_used="openrouter",
+        status="completed",
+        input_payload={"model": payload.model},
+        output_payload=result,
+    )
+
+    completed = data_store.complete_run(
+        context.workspace_id, run["id"],
+        status="completed",
+        output=result,
+    )
+
+    return api_success({"result": result, "run_id": completed["id"]})
 
 
 @app.post("/api/integrations/google-calendar/connect-start")

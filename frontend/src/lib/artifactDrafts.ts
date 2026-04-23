@@ -1,4 +1,4 @@
-import type { CompareResult, CreateArtifactInput, RunRecord } from "./api";
+import type { CompareResult, CreateArtifactInput, DataAnalysisResult, RunRecord } from "./api";
 
 function uniqueTags(tags: Array<string | null | undefined>): string[] {
   return [
@@ -67,20 +67,29 @@ export function buildRunArtifactInput({
 export function buildDataArtifactInput({
   fileName,
   prompt,
-  run,
+  analysisResult,
+  runId,
 }: {
   fileName: string;
   prompt: string;
-  run: RunRecord | null;
+  analysisResult: DataAnalysisResult | null;
+  runId?: string | null;
 }): CreateArtifactInput | null {
-  return buildRunArtifactInput({
-    studio: "data",
-    title: `Data insight: ${fileName || "uploaded dataset"}`,
-    prompt: prompt || `Insights for ${fileName || "uploaded dataset"}`,
-    run,
+  if (!analysisResult) return null;
+
+  const title = `Data insight: ${fileName || "uploaded dataset"}`;
+  return {
+    title,
     type: "report",
-    tags: ["data", "insights"],
-  });
+    studio: "data",
+    content: analysisResult.insight,
+    content_format: "plain",
+    summary: summarize(analysisResult.insight, title),
+    content_json: analysisResult as unknown as Record<string, unknown>,
+    source_run_id: runId ?? null,
+    metadata: { prompt: prompt || title },
+    tags: uniqueTags(["data", "insights", "saved-output"]),
+  };
 }
 
 export function buildWritingArtifactInput({

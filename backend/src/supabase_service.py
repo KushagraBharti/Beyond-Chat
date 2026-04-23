@@ -192,6 +192,19 @@ class SupabaseService:
             "signed_url": signed.get("signedURL") if isinstance(signed, dict) else None,
         }
 
+    def download_artifact_file(
+        self,
+        path: str,
+        access_token: str | None = None,
+    ) -> bytes | None:
+        client = self.client(access_token)
+        if client is None:
+            return None
+        try:
+            return client.storage.from_(settings.supabase_storage_bucket).download(path)
+        except Exception:
+            return None
+
     def create_signed_artifact_url(
         self,
         path: str,

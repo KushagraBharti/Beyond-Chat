@@ -510,3 +510,54 @@ export async function exportArtifact(artifactId: string, format: "markdown" | "p
 
   return response.blob();
 }
+
+export interface DataAnalysisResult {
+  insight: string;
+  chart_type: "bar" | "line" | "pie" | "scatter";
+  chart_data: {
+    labels: string[];
+    datasets: Array<{ label: string; data: number[] }>;
+  };
+  table: { headers: string[]; rows: string[][] };
+}
+
+export async function uploadArtifactFile(
+  file: File,
+): Promise<{ artifactId: string; path: string; signedUrl: string }> {
+  const session = supabase ? await supabase.auth.getSession() : null;
+  const accessToken = session?.data.session?.access_token;
+  const workspaceId = getStoredWorkspaceId();
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch(`${apiBaseUrl}/api/storage/artifacts/upload`, {
+    method: "POST",
+    headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    const detail = maybeJson?.detail ?? response.statusText;
+    throw new Error(typeof detail === "string" ? detail : "Upload failed.");
+  }
+
+  const payload = await response.json();
+  const data = (payload?.data ?? payload) as { artifactId: string; path: string; signedUrl: string };
+  return { artifactId: data.artifactId, path: data.path, signedUrl: data.signedUrl };
+}
+
+export async function analyzeData(payload: {
+  storage_path: string;
+  prompt: string;
+  model?: string;
+}): Promise<{ result: DataAnalysisResult; run_id: string }> {
+  return api<{ result: DataAnalysisResult; run_id: string }>("/api/data/analyze", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
