@@ -90,7 +90,7 @@
 - Configured upload path convention to follow `workspace_id/artifact_id/file-name.ext` for consistent file organization.
 - Added Row Level Security (RLS) policies so only workspace members can access their own files.
 - Executed `008_storage_setup.sql` to complete the storage backend setup.
-- Confirmed the `SUPABASE_STORAGE_BUCKET` environment variable matches the bucket name exactly.
+- Confirmed the Supabase storage bucket name is `artifacts`.
 
 ## Research / Technical Findings
 - Learned how Supabase Storage works, including bucket creation, access controls, and path conventions for organizing files by workspace and artifact.

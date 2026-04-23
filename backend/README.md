@@ -8,7 +8,9 @@ FastAPI backend for Beyond Chat.
 - Database: Supabase Postgres
 - Storage: Supabase Storage
 - Model provider: OpenRouter
-- Search provider: Tavily
+- Search provider: Exa
+- Finance agent runtime: `dexter/`
+- Vercel Sandbox runner: `sandbox-runner/`
 
 Hosted runtime data covers:
 
@@ -28,15 +30,13 @@ Required:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `SUPABASE_STORAGE_BUCKET`
 
 Optional providers:
 
 - `OPENROUTER_API_KEY`
-- `TAVILY_API_KEY`
+- `EXASEARCH_API_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
-- `GOOGLE_REDIRECT_URI`
 
 ## Run Locally
 

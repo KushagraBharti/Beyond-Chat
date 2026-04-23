@@ -6,12 +6,13 @@ from typing import Any
 
 from .config import settings
 from .providers import (
+    EXA_NOT_CONFIGURED,
     OPENROUTER_NOT_CONFIGURED,
-    TAVILY_NOT_CONFIGURED,
     call_openrouter,
     call_openrouter_image,
-    tavily_search,
+    exa_search,
 )
+from .dexter_client import run_dexter_finance
 from .runtime_store import RuntimeDataStore
 from .supabase_service import supabase_service
 
@@ -116,18 +117,18 @@ async def _run_search_backed_report(
     search_answer = ""
     search_note = None
 
-    _record_step(data_store, workspace_id, run_id, "search", "tavily", "running", prompt, "Searching sources")
+    _record_step(data_store, workspace_id, run_id, "search", "exa", "running", prompt, "Searching sources")
     try:
-        search_results = await tavily_search(prompt)
+        search_results = await exa_search(prompt)
         sources = search_results.get("results", [])
         search_answer = search_results.get("answer", "")
-        _record_step(data_store, workspace_id, run_id, "search", "tavily", "completed", prompt, search_results)
+        _record_step(data_store, workspace_id, run_id, "search", "exa", "completed", prompt, search_results)
     except RuntimeError as exc:
-        if str(exc) != TAVILY_NOT_CONFIGURED:
+        if str(exc) != EXA_NOT_CONFIGURED:
             raise
-        search_note = "Tavily is not configured; continuing without external search."
+        search_note = "Exa is not configured; continuing without external search."
         fallback_search = {"answer": "", "results": [], "warning": search_note}
-        _record_step(data_store, workspace_id, run_id, "search", "tavily", "completed", prompt, fallback_search)
+        _record_step(data_store, workspace_id, run_id, "search", "exa", "completed", prompt, fallback_search)
 
     evidence_lines = [
         f"- {item.get('title', 'Untitled source')}: {item.get('snippet', '')} ({item.get('url', '')})"
@@ -208,15 +209,117 @@ async def run_finance_workflow(
     model: str,
     options: dict[str, Any],
 ) -> dict[str, Any]:
-    return await _run_search_backed_report(
-        data_store=data_store,
-        workspace_id=workspace_id,
-        run_id=run_id,
-        studio="finance",
+    _record_step(
+        data_store,
+        workspace_id,
+        run_id,
+        "dexter_dispatch",
+        "vercel-sandbox",
+        "running",
+        {"prompt": prompt, "model": model},
+        "Launching Dexter finance agent",
+    )
+
+    async def record_dexter_event(event: dict[str, Any]) -> None:
+        event_type = event.get("type")
+        if event_type == "tool_start":
+            _record_step(
+                data_store,
+                workspace_id,
+                run_id,
+                str(event.get("tool") or "dexter_tool"),
+                str(event.get("tool") or "dexter"),
+                "running",
+                event.get("args", {}),
+                {"toolCallId": event.get("toolCallId")},
+            )
+        elif event_type == "tool_progress":
+            _record_step(
+                data_store,
+                workspace_id,
+                run_id,
+                str(event.get("tool") or "dexter_tool"),
+                str(event.get("tool") or "dexter"),
+                "running",
+                event.get("args", {}),
+                {
+                    "message": event.get("message"),
+                    "progress": event.get("progress"),
+                    "toolCallId": event.get("toolCallId"),
+                },
+            )
+        elif event_type == "tool_end":
+            _record_step(
+                data_store,
+                workspace_id,
+                run_id,
+                str(event.get("tool") or "dexter_tool"),
+                str(event.get("tool") or "dexter"),
+                "completed",
+                event.get("args", {}),
+                {
+                    "duration": event.get("duration"),
+                    "result": str(event.get("result", ""))[:4000],
+                },
+            )
+        elif event_type == "tool_error":
+            _record_step(
+                data_store,
+                workspace_id,
+                run_id,
+                str(event.get("tool") or "dexter_tool"),
+                str(event.get("tool") or "dexter"),
+                "failed",
+                event.get("args", {}),
+                {"error": event.get("error")},
+            )
+
+    result = await run_dexter_finance(
         prompt=prompt,
         model=model,
+        workspace_id=workspace_id,
+        run_id=run_id,
         options=options,
+        on_event=record_dexter_event,
     )
+
+    _record_step(
+        data_store,
+        workspace_id,
+        run_id,
+        "dexter_dispatch",
+        "vercel-sandbox",
+        "completed",
+        {"prompt": prompt, "model": model},
+        {
+            "engine": "dexter",
+            "sandbox": result.get("sandbox"),
+        },
+    )
+
+    output = {
+        "format": "markdown",
+        "workflow": "finance",
+        "engine": "dexter",
+        "content": str(result.get("answer") or ""),
+        "toolCalls": result.get("toolCalls", []),
+        "sources": result.get("sources", []),
+        "usage": result.get("usage"),
+        "sandbox": result.get("sandbox"),
+        "artifactType": options.get("artifact_type", "report"),
+    }
+
+    _record_step(
+        data_store,
+        workspace_id,
+        run_id,
+        "dexter_complete",
+        "dexter",
+        "completed",
+        {"prompt": prompt, "model": model},
+        {"answerLength": len(output["content"]), "toolCallCount": len(output["toolCalls"])},
+    )
+    return output
 
 
 async def run_image_workflow(

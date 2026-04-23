@@ -17,7 +17,7 @@ flowchart LR
     Runtime --> Storage["Supabase Storage"]
 
     API --> OR["OpenRouter"]
-    API --> Tavily["Tavily"]
+    API --> Exa["Exa"]
     API --> Google["Google Calendar Scaffolding"]
 
     PG --> Workspace["workspaces / workspace_members / user_profiles"]

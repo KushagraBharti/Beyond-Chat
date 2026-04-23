@@ -35,12 +35,10 @@ Copy `backend/env.example` to `backend/.env` and set:
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_JWT_SECRET` or `SUPABASE_JWKS_URL`
-- `SUPABASE_STORAGE_BUCKET`
 - `OPENROUTER_API_KEY`
-- `TAVILY_API_KEY`
+- `EXASEARCH_API_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
-- `GOOGLE_REDIRECT_URI`
 
 ## 4. Configure Frontend Environment
 
@@ -48,7 +46,6 @@ Copy `frontend/env.example` to `frontend/.env.local` and set:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_API_BASE_URL` if you are not using the default local proxy
 
 ## 5. Create The Storage Bucket
 
@@ -61,7 +58,7 @@ Recommended path conventions:
 
 Then confirm:
 
-1. the bucket name matches `SUPABASE_STORAGE_BUCKET`
+1. the bucket name is `artifacts`
 2. signed URLs work
 3. workspace path isolation is enforced
 
@@ -94,12 +91,12 @@ If you want the Google Calendar flow to work:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
 
-## 8. OpenRouter And Tavily
+## 8. OpenRouter And Exa
 
 Add:
 
 - `OPENROUTER_API_KEY`
-- `TAVILY_API_KEY`
+- `EXASEARCH_API_KEY`
 
 Then verify:
 

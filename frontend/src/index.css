@@ -498,6 +498,19 @@ a {
   padding: 0.9rem 1rem;
 }
 
+.run-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.run-error pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 0.82rem/1.45 var(--mono-font);
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;

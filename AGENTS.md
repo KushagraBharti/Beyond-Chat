@@ -14,9 +14,10 @@ Your role as an agent is to make safe, minimal, correct changes that move the re
 
 ### Package/runtime policy
 
-- Frontend must use **npm**.
+- Frontend and JS agent surfaces may use **npm or bun**.
+- Prefer **npm** for cloud/sandbox scripts and on Windows when Bun has compatibility issues.
 - Backend must use **uv only**.
-- Never use `bun`, `yarn`, or `pnpm` for frontend dependency management.
+- Never use `yarn` or `pnpm` for frontend or agent dependency management.
 - Never use `pip` for backend dependency management.
 
 ### Scope discipline
@@ -52,7 +53,9 @@ Agents must actively load all discoverable skills from the local agent skill reg
 
 ## 4) Repository Map
 
-- `frontend/` → production frontend (React + TypeScript + Vite, managed with npm)
+- `frontend/` → production frontend (React + TypeScript + Vite, managed with npm or Bun)
+- `backend/dexter/` → Dexter finance agent runtime
+- `backend/sandbox-runner/` → Vercel Sandbox runner for Dexter Finance Studio
 - `frontend-mock/` → visual mock variants / design sandbox
 - `backend/` → FastAPI backend (managed with uv)
 - `backend/sql-related-files/` → SQL and schema-related assets
@@ -61,7 +64,7 @@ Agents must actively load all discoverable skills from the local agent skill reg
 
 - Frontend: React, TypeScript, Vite
 - Backend: FastAPI, Uvicorn
-- JS tooling: npm
+- JS tooling: npm by default; Bun is allowed where it works locally
 - Python tooling: uv
 - Planned platform integrations: Supabase, OpenRouter, Vercel
 
@@ -84,6 +87,22 @@ cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 npm run build
+```
+
+### Dexter
+
+```powershell
+cd backend/dexter
+npm install
+npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai/gpt-5.4-nano --json
+```
+
+### Sandbox Runner
+
+```powershell
+cd backend/sandbox-runner
+npm install
+npm run typecheck
 ```
 
 ## 7) API/Connectivity Baseline

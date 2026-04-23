@@ -17,14 +17,16 @@ Beyond Chat is a studio-based AI workspace built around reusable artifacts inste
 - Persistence: Supabase Postgres
 - Storage: Supabase Storage
 - Model provider: OpenRouter
-- Research search: Tavily
+- Research search: Exa
 - Deployment target: Vercel
-- Frontend tooling: npm
+- Frontend tooling: npm or Bun for JS surfaces; npm is the default for cloud/sandbox scripts
 - Backend tooling: uv only
 
 ## Repository Map
 
 - `frontend/` production frontend
+- `backend/dexter/` Dexter finance agent runtime used by Finance Studio
+- `backend/sandbox-runner/` Vercel Sandbox runner for cloud Dexter execution
 - `frontend-mock/` archived visual sandbox and reference-only variants
 - `backend/` production API and workflow runtime
 - `backend/sql-related-files/` canonical live schema for Supabase/Postgres
@@ -56,7 +58,23 @@ npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Do not use `bun`, `yarn`, or `pnpm`.
+Dexter finance agent:
+
+```powershell
+cd backend/dexter
+npm install
+npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai/gpt-5.4-nano --json
+```
+
+Sandbox runner:
+
+```powershell
+cd backend/sandbox-runner
+npm install
+npm run typecheck
+```
+
+Use npm by default for frontend, Dexter, and the sandbox runner commands. Bun is supported best-effort for JS surfaces when it works better locally. Do not use `yarn` or `pnpm`.
 Do not use `pip`.
 
 ## Local Integration Baseline
@@ -84,7 +102,7 @@ uv run pytest
 
 ## Deploy To Vercel
 
-Deploy as two Vercel projects from the same repository.
+Deploy as three Vercel projects from the same repository.
 
 1. Backend project
 
@@ -94,15 +112,24 @@ Deploy as two Vercel projects from the same repository.
 - Use [backend/vercel.json](backend/vercel.json) and [backend/api/index.py](backend/api/index.py) as-is.
 - Add backend env vars from [backend/env.example](backend/env.example).
 
-Recommended backend env vars on Vercel:
+Required backend credentials on Vercel:
 
-- `ENVIRONMENT=production`
-- `APP_URL=https://<your-frontend-domain>.vercel.app`
-- `API_BASE_URL=https://<your-backend-domain>.vercel.app`
-- `OPENROUTER_HTTP_REFERER=https://<your-frontend-domain>.vercel.app`
-- Optional preview support: `CORS_ALLOW_ORIGIN_REGEX=^https://.*\.vercel\.app$`
+- `OPENROUTER_API_KEY`
+- `EXASEARCH_API_KEY`
+- `FINANCIAL_DATASETS_API_KEY`
+- `X_BEARER_TOKEN` if X search should be enabled
+- `DEXTER_RUNNER_SHARED_SECRET`
+- Supabase credentials from [backend/env.example](backend/env.example)
 
-2. Frontend project
+2. Sandbox runner project
+
+- Import this repository in Vercel.
+- Set Root Directory to `backend/sandbox-runner`.
+- Framework Preset: `Other`.
+- Add the runner credentials listed in [backend/env.example](backend/env.example).
+- Required: `DEXTER_RUNNER_SHARED_SECRET`, `OPENROUTER_API_KEY`, `FINANCIAL_DATASETS_API_KEY`.
+
+3. Frontend project
 
 - Import this repository in Vercel.
 - Set Root Directory to `frontend`.
@@ -114,11 +141,11 @@ Required frontend env on Vercel:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
-- `VITE_API_BASE_URL=https://<your-backend-domain>.vercel.app`
 
-3. Verify deployed integration
+4. Verify deployed integration
 
 - Open `https://<your-backend-domain>.vercel.app/api/health`
+- Open `https://<your-sandbox-runner-domain>.vercel.app/api/run` and confirm non-POST requests return 405.
 - Open frontend and confirm auth + API-backed pages load without CORS errors.
 
 ## Runtime Rules
