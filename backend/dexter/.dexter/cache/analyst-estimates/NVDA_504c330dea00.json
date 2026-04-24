@@ -1,0 +1,31 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "NVDA",
+    "period": "annual"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2027-01-31",
+        "period": "annual",
+        "revenue": 351511337462,
+        "earnings_per_share": 7.72
+      },
+      {
+        "fiscal_period": "2028-01-31",
+        "period": "annual",
+        "revenue": 456661538616,
+        "earnings_per_share": 10.18
+      },
+      {
+        "fiscal_period": "2029-01-31",
+        "period": "annual",
+        "revenue": 528396472234,
+        "earnings_per_share": 12.56
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=NVDA&period=annual",
+  "cachedAt": "2026-04-23T21:53:51.870Z"
+}

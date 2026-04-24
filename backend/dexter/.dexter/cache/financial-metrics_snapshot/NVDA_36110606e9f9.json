@@ -1,0 +1,52 @@
+{
+  "endpoint": "/financial-metrics/snapshot/",
+  "params": {
+    "ticker": "NVDA"
+  },
+  "data": {
+    "snapshot": {
+      "ticker": "NVDA",
+      "market_cap": 4850037000000,
+      "enterprise_value": 4848899000000,
+      "price_to_book_ratio": 30.834410940092692,
+      "price_to_earnings_ratio": 40.750158328266714,
+      "price_to_sales_ratio": 22.46032194426178,
+      "enterprise_value_to_ebitda_ratio": 33.54432315014666,
+      "enterprise_value_to_revenue_ratio": 22.455051913049115,
+      "free_cash_flow_yield": null,
+      "peg_ratio": 1.6719603539784065,
+      "gross_margin": 0.7106808435754708,
+      "operating_margin": 0.656248552825348,
+      "net_margin": 0.5560253406070261,
+      "return_on_equity": 0.7633333969089534,
+      "return_on_assets": 0.5805863551302447,
+      "return_on_invested_capital": 0.7169165892862861,
+      "asset_turnover": 1.173732371973442,
+      "inventory_turnover": 10.485735790419307,
+      "receivables_turnover": null,
+      "days_sales_outstanding": null,
+      "operating_cycle": null,
+      "working_capital_turnover": 2.0338986243695225,
+      "current_ratio": 3.905263812455306,
+      "quick_ratio": 3.239809719242608,
+      "cash_ratio": 0.32972670459845166,
+      "operating_cash_flow_ratio": 3.193669744737742,
+      "debt_to_equity": 0.06018703947410247,
+      "debt_to_assets": 0.045777865891694025,
+      "interest_coverage": 547.1389961389962,
+      "revenue_growth": 0.1806794136462303,
+      "earnings_growth": 0.24530160969133755,
+      "book_value_growth": 0.3229349773333221,
+      "earnings_per_share_growth": 0.24372682181908367,
+      "free_cash_flow_growth": null,
+      "operating_income_growth": 0.24727368745324121,
+      "ebitda_growth": 0.21380468553195062,
+      "payout_ratio": 0.008112137389957273,
+      "earnings_per_share": 4.897895080362242,
+      "book_value_per_share": 6.416455902749449,
+      "free_cash_flow_per_share": null
+    }
+  },
+  "url": "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=NVDA",
+  "cachedAt": "2026-04-23T21:53:51.741Z"
+}

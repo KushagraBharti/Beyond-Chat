@@ -1,0 +1,18 @@
+{
+  "endpoint": "/insider-trades/",
+  "params": {
+    "ticker": "AAPL",
+    "limit": 10,
+    "filing_date": "2026-04-23",
+    "filing_date_gte": "2026-03-23",
+    "filing_date_lte": "2026-04-23",
+    "filing_date_gt": "",
+    "filing_date_lt": "",
+    "name": ""
+  },
+  "data": {
+    "insider_trades": []
+  },
+  "url": "https://api.financialdatasets.ai/insider-trades/?ticker=AAPL&limit=10&filing_date=2026-04-23&filing_date_gte=2026-03-23&filing_date_lte=2026-04-23&filing_date_gt=&filing_date_lt=&name=",
+  "cachedAt": "2026-04-23T21:29:49.697Z"
+}

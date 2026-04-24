@@ -1,0 +1,31 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "GOOGL",
+    "period": "annual"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2026-12-31",
+        "period": "annual",
+        "revenue": 408501700318,
+        "earnings_per_share": 11.51
+      },
+      {
+        "fiscal_period": "2027-12-31",
+        "period": "annual",
+        "revenue": 476312404124,
+        "earnings_per_share": 13.34
+      },
+      {
+        "fiscal_period": "2028-12-31",
+        "period": "annual",
+        "revenue": 558551308700,
+        "earnings_per_share": 15.37
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=GOOGL&period=annual",
+  "cachedAt": "2026-04-23T21:53:51.916Z"
+}

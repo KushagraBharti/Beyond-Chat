@@ -1,0 +1,73 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "AAPL",
+    "period": "quarterly"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2026-06-30",
+        "period": "quarterly",
+        "revenue": 100705819730,
+        "earnings_per_share": 1.68
+      },
+      {
+        "fiscal_period": "2026-09-30",
+        "period": "quarterly",
+        "revenue": 111600240224,
+        "earnings_per_share": 1.99
+      },
+      {
+        "fiscal_period": "2026-12-31",
+        "period": "quarterly",
+        "revenue": 148013516726,
+        "earnings_per_share": 2.85
+      },
+      {
+        "fiscal_period": "2027-03-31",
+        "period": "quarterly",
+        "revenue": 115639233050,
+        "earnings_per_share": 2.11
+      },
+      {
+        "fiscal_period": "2027-06-30",
+        "period": "quarterly",
+        "revenue": 111481490200,
+        "earnings_per_share": 1.99
+      },
+      {
+        "fiscal_period": "2027-09-30",
+        "period": "quarterly",
+        "revenue": 120683499300,
+        "earnings_per_share": 2.26
+      },
+      {
+        "fiscal_period": "2027-12-31",
+        "period": "quarterly",
+        "revenue": 150834326800,
+        "earnings_per_share": 3.16
+      },
+      {
+        "fiscal_period": "2028-03-31",
+        "period": "quarterly",
+        "revenue": 123218402334,
+        "earnings_per_share": 2.31
+      },
+      {
+        "fiscal_period": "2028-06-30",
+        "period": "quarterly",
+        "revenue": 123181576134,
+        "earnings_per_share": 2.26
+      },
+      {
+        "fiscal_period": "2028-09-30",
+        "period": "quarterly",
+        "revenue": 131180413400,
+        "earnings_per_share": 2.71
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=AAPL&period=quarterly",
+  "cachedAt": "2026-04-23T21:27:01.136Z"
+}

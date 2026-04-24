@@ -1,0 +1,83 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "MSFT",
+    "limit": 10
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft Corp Stock (MSFT) Moved Down by 3.54% on Apr 23: Key Drivers Unveiled - TradingKey",
+        "source": "TradingKey",
+        "date": "2026-04-23T14:15:32+00:00",
+        "url": "https://www.tradingkey.com/news/market-movers/261816402-market-movers-msft-20260423"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "MBL Wealth LLC Grows Stock Position in Microsoft Corporation $MSFT - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:58:06+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-mbl-wealth-llc-grows-stock-position-in-microsoft-corporation-msft-2026-04-23/"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft Corporation $MSFT Shares Sold by Brown Shipley& Co Ltd - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T07:48:05+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-microsoft-corporation-msft-shares-sold-by-brown-shipley-co-ltd-2026-04-23/"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft (MSFT) Names New LinkedIn CEO Amid AI Focus - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-22T20:43:17+00:00",
+        "url": "https://www.gurufocus.com/news/8810215/microsoft-msft-names-new-linkedin-ceo-amid-ai-focus"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft Corp (MSFT) - MSN",
+        "source": "MSN",
+        "date": "2026-04-22T13:03:35+00:00",
+        "url": "https://www.msn.com/en-ph/money/stockdetails/msft-us-stock/fi-a1xzim?ocid=FinanceShimLayer"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft (MSFT) Launches New AI Features with Microsoft 365 E7 Frontier Suite - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-22T11:15:00+00:00",
+        "url": "https://www.gurufocus.com/news/8808435/microsoft-msft-launches-new-ai-features-with-microsoft-365-e7-frontier-suite?mobile=true"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft (MSFT) Launches New AI Features with Microsoft 365 E7 Frontier Suite - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-22T09:41:23+00:00",
+        "url": "https://www.gurufocus.com/news/8808435/microsoft-msft-launches-new-ai-features-with-microsoft-365-e7-frontier-suite"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Rheos Capital Works Inc. Lowers Position in Microsoft Corporation $MSFT - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T09:28:35+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-rheos-capital-works-inc-lowers-position-in-microsoft-corporation-msft-2026-04-22/"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Leo Wealth LLC Raises Position in Microsoft Corporation $MSFT - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-21T09:14:45+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-leo-wealth-llc-raises-position-in-microsoft-corporation-msft-2026-04-21/"
+      },
+      {
+        "ticker": "MSFT",
+        "title": "Microsoft Corp (MSFT)'s Winning Formula: Financial Metrics and C - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-20T18:00:00+00:00",
+        "url": "https://www.gurufocus.com/news/8803681/microsoft-corp-msfts-winning-formula-financial-metrics-and-competitive-strengths?mobile=true%3Fmobile%3Dtrue&mobile=true"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=MSFT&limit=10",
+  "cachedAt": "2026-04-23T21:53:48.274Z"
+}

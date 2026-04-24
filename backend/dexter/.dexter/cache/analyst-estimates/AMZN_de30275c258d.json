@@ -1,0 +1,31 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "AMZN",
+    "period": "annual"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2026-12-31",
+        "period": "annual",
+        "revenue": 803818623036,
+        "earnings_per_share": 7.73
+      },
+      {
+        "fiscal_period": "2027-12-31",
+        "period": "annual",
+        "revenue": 900451544886,
+        "earnings_per_share": 9.3
+      },
+      {
+        "fiscal_period": "2028-12-31",
+        "period": "annual",
+        "revenue": 1016437541020,
+        "earnings_per_share": 11.54
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=AMZN&period=annual",
+  "cachedAt": "2026-04-23T21:53:52.021Z"
+}

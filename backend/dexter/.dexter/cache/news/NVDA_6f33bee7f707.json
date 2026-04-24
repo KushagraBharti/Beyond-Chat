@@ -1,0 +1,83 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "NVDA",
+    "limit": 10
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "NVDA",
+        "title": "Nvidia stock price forecast: $208.00 resistance as NVDA trades flat - Traders Union",
+        "source": "Traders Union",
+        "date": "2026-04-23T14:45:15+00:00",
+        "url": "https://tradersunion.com/news/financial-news/show/1937244-nvidia-up-0-36percent-today-at/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "Oak Thistle LLC Buys New Holdings in NVIDIA Corporation $NVDA - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:30:12+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-oak-thistle-llc-buys-new-holdings-in-nvidia-corporation-nvda-2026-04-23/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation $NVDA Shares Sold by Center For Asset Management LLC - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T07:48:04+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-shares-sold-by-center-for-asset-management-llc-2026-04-23/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation (NVDA) Sets Sight on $11B Quantum Computing Opportunity With Ising - Insider Monkey",
+        "source": "Insider Monkey",
+        "date": "2026-04-22T20:56:39+00:00",
+        "url": "https://www.insidermonkey.com/blog/nvidia-corporation-nvda-sets-sight-on-11b-quantum-computing-opportunity-with-ising-1743986/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation (NVDA) Sets Sight on $11B Quantum Computing Opportunity With Ising - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-22T20:48:17+00:00",
+        "url": "https://finance.yahoo.com/sectors/technology/articles/nvidia-corporation-nvda-sets-sight-204817080.html"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "V2 Financial group LLC Increases Position in NVIDIA Corporation $NVDA - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T12:27:12+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-v2-financial-group-llc-increases-position-in-nvidia-corporation-nvda-2026-04-22/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation $NVDA Shares Bought by MBL Wealth LLC - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T08:58:34+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-shares-bought-by-mbl-wealth-llc-2026-04-22/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation $NVDA Holdings Lowered by Perfromance Wealth Partners LLC - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T08:58:34+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-holdings-lowered-by-perfromance-wealth-partners-llc-2026-04-22/"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA CORP (NASDAQ:NVDA) Stands Out as a Prime CAN SLIM Candidate - ChartMill",
+        "source": "ChartMill",
+        "date": "2026-04-21T08:41:56+00:00",
+        "url": "https://www.chartmill.com/news/NVDA/Chartmill-45580-NVIDIA-CORP-NASDAQNVDA-Stands-Out-as-a-Prime-CAN-SLIM-Candidate"
+      },
+      {
+        "ticker": "NVDA",
+        "title": "NVIDIA Corporation $NVDA is Brown Shipley& Co Ltd's Largest Position - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-21T07:54:31+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-nvidia-corporation-nvda-is-brown-shipley-co-ltds-largest-position-2026-04-21/"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=NVDA&limit=10",
+  "cachedAt": "2026-04-23T21:53:48.414Z"
+}

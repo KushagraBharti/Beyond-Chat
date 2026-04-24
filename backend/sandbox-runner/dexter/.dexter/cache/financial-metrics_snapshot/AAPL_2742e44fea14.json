@@ -1,0 +1,52 @@
+{
+  "endpoint": "/financial-metrics/snapshot/",
+  "params": {
+    "ticker": "AAPL"
+  },
+  "data": {
+    "snapshot": {
+      "ticker": "AAPL",
+      "market_cap": 4015144978600,
+      "enterprise_value": 4072151978600,
+      "price_to_book_ratio": 45.528347642589864,
+      "price_to_earnings_ratio": 31.983988301103118,
+      "price_to_sales_ratio": 8.777213250380916,
+      "enterprise_value_to_ebitda_ratio": 26.619026000954378,
+      "enterprise_value_to_revenue_ratio": 8.901832062013199,
+      "free_cash_flow_yield": null,
+      "peg_ratio": 2.198843137589397,
+      "gross_margin": 0.47238064841917493,
+      "operating_margin": 0.32993041877709306,
+      "net_margin": 0.2768405796467818,
+      "return_on_equity": 1.4360018142646558,
+      "return_on_assets": 0.33388347390039996,
+      "return_on_invested_capital": 0.8211762639723961,
+      "asset_turnover": 1.238801524092193,
+      "inventory_turnover": 78.91848529284913,
+      "receivables_turnover": null,
+      "days_sales_outstanding": null,
+      "operating_cycle": null,
+      "working_capital_turnover": 13.169742334820786,
+      "current_ratio": 0.9737446648641658,
+      "quick_ratio": 0.9375612039392242,
+      "cash_ratio": 0.27910228063584347,
+      "operating_cash_flow_ratio": 1.3518818479124453,
+      "debt_to_equity": 1.1602676040367388,
+      "debt_to_assets": 0.2697727638236,
+      "interest_coverage": null,
+      "revenue_growth": 0.09921640903400367,
+      "earnings_growth": 0.13062226586911882,
+      "book_value_growth": 0.19607231497429917,
+      "earnings_per_share_growth": 0.14545825372594487,
+      "free_cash_flow_growth": null,
+      "operating_income_growth": 0.13710643491625793,
+      "ebitda_growth": 0.059213304991448966,
+      "payout_ratio": 0.21280627916709438,
+      "earnings_per_share": 8.550841046629804,
+      "book_value_per_share": 5.9546171611269845,
+      "free_cash_flow_per_share": null
+    }
+  },
+  "url": "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AAPL",
+  "cachedAt": "2026-04-23T20:33:48.410Z"
+}

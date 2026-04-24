@@ -1,0 +1,48 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "AAPL",
+    "limit": 5
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "AAPL",
+        "title": "Y.D. More Investments Ltd Raises Position in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:49:56+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-yd-more-investments-ltd-raises-position-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Leo Wealth LLC Increases Stock Holdings in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:49:55+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-leo-wealth-llc-increases-stock-holdings-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple Inc. $AAPL is Quilter Plc's 4th Largest Position - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:28:05+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-apple-inc-aapl-is-quilter-plcs-4th-largest-position-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Rathbones Group PLC Raises Stake in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:27:12+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-rathbones-group-plc-raises-stake-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Is Slowing Services Growth and Hardware Bottleneck a Problem for Apple Inc. (AAPL)? - Insider Monkey",
+        "source": "Insider Monkey",
+        "date": "2026-04-22T20:56:39+00:00",
+        "url": "https://www.insidermonkey.com/blog/is-slowing-services-growth-and-hardware-bottleneck-a-problem-for-apple-inc-aapl-1743983/"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=AAPL&limit=5",
+  "cachedAt": "2026-04-23T21:53:58.354Z"
+}

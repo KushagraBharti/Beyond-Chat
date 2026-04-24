@@ -1,0 +1,83 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "AAPL",
+    "limit": 10
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "AAPL",
+        "title": "Y.D. More Investments Ltd Raises Position in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:49:56+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-yd-more-investments-ltd-raises-position-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Leo Wealth LLC Increases Stock Holdings in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:49:55+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-leo-wealth-llc-increases-stock-holdings-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple Inc. $AAPL is Quilter Plc's 4th Largest Position - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:28:05+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-apple-inc-aapl-is-quilter-plcs-4th-largest-position-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Rathbones Group PLC Raises Stake in Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:27:12+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-rathbones-group-plc-raises-stake-in-apple-inc-aapl-2026-04-23/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Is Slowing Services Growth and Hardware Bottleneck a Problem for Apple Inc. (AAPL)? - Insider Monkey",
+        "source": "Insider Monkey",
+        "date": "2026-04-22T20:56:39+00:00",
+        "url": "https://www.insidermonkey.com/blog/is-slowing-services-growth-and-hardware-bottleneck-a-problem-for-apple-inc-aapl-1743983/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple Inc. $AAPL Shares Sold by TigerOak Management L.L.C. - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T12:27:13+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-apple-inc-aapl-shares-sold-by-tigeroak-management-llc-2026-04-22/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Jacobson & Schmitt Advisors LLC Sells 14,822 Shares of Apple Inc. $AAPL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T09:00:25+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-jacobson-schmitt-advisors-llc-sells-14822-shares-of-apple-inc-aapl-2026-04-22/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple Inc. $AAPL is Sowell Financial Services LLC's Largest Position - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-22T08:52:35+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-apple-inc-aapl-is-sowell-financial-services-llcs-largest-position-2026-04-22/"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple (AAPL) Shows Mixed Sentiment Among Option Traders - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-21T22:05:18+00:00",
+        "url": "https://www.gurufocus.com/news/8807510/apple-aapl-shows-mixed-sentiment-among-option-traders"
+      },
+      {
+        "ticker": "AAPL",
+        "title": "Apple's New Leadership Preserves The Story (NASDAQ:AAPL) - Seeking Alpha",
+        "source": "Seeking Alpha",
+        "date": "2026-04-21T17:20:06+00:00",
+        "url": "https://seekingalpha.com/article/4892463-apple-new-leadership-preserves-the-story"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=AAPL&limit=10",
+  "cachedAt": "2026-04-23T21:53:48.372Z"
+}

@@ -1,0 +1,52 @@
+{
+  "endpoint": "/financial-metrics/snapshot/",
+  "params": {
+    "ticker": "GOOGL"
+  },
+  "data": {
+    "snapshot": {
+      "ticker": "GOOGL",
+      "market_cap": 1973366900000,
+      "enterprise_value": 1994180900000,
+      "price_to_book_ratio": 4.752066511745512,
+      "price_to_earnings_ratio": 31.363838238632063,
+      "price_to_sales_ratio": 4.8986855693135665,
+      "enterprise_value_to_ebitda_ratio": 11.035987670035086,
+      "enterprise_value_to_revenue_ratio": 4.9503542384493935,
+      "free_cash_flow_yield": null,
+      "peg_ratio": 4.947232005039877,
+      "gross_margin": 0.5965231508603998,
+      "operating_margin": 0.39609667457724734,
+      "net_margin": 0.3280987796522654,
+      "return_on_equity": 0.3182786895115167,
+      "return_on_assets": 0.22202959610671263,
+      "return_on_invested_capital": 0.28906225706810007,
+      "asset_turnover": 0.7118815992931301,
+      "inventory_turnover": null,
+      "receivables_turnover": null,
+      "days_sales_outstanding": null,
+      "operating_cycle": null,
+      "working_capital_turnover": 1.643691855720581,
+      "current_ratio": 2.005333592875566,
+      "quick_ratio": null,
+      "cash_ratio": 0.2988758577059711,
+      "operating_cash_flow_ratio": 1.603124239622366,
+      "debt_to_equity": 0.12407017205880583,
+      "debt_to_assets": 0.08655072142399976,
+      "interest_coverage": 216.7961956521739,
+      "revenue_growth": 0.06774880988984192,
+      "earnings_growth": 0.0657495806992646,
+      "book_value_growth": 0.07340507202733756,
+      "earnings_per_share_growth": 0.06339674025127766,
+      "free_cash_flow_growth": null,
+      "operating_income_growth": 0.05039267446529785,
+      "ebitda_growth": 0.052135736910750886,
+      "payout_ratio": 0.07603086933494742,
+      "earnings_per_share": 10.807031888798038,
+      "book_value_per_share": 33.954619787408014,
+      "free_cash_flow_per_share": null
+    }
+  },
+  "url": "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=GOOGL",
+  "cachedAt": "2026-04-23T21:53:51.909Z"
+}

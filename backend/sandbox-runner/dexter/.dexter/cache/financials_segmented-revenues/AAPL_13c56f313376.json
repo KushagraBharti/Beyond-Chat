@@ -1,0 +1,1059 @@
+{
+  "endpoint": "/financials/segmented-revenues/",
+  "params": {
+    "ticker": "AAPL",
+    "period": "annual",
+    "limit": 5
+  },
+  "data": {
+    "segmented_revenues": [
+      {
+        "ticker": "AAPL",
+        "period": "annual",
+        "report_period": "2025-09-27",
+        "items": [
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 307003000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:ProductMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Product",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 109158000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:ServiceMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Service",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 209586000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "aapl:IPhoneMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPhone",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 33708000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "aapl:MacMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Mac",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 28023000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "aapl:IPadMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPad",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 35686000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "aapl:WearablesHomeandAccessoriesMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Wearables Homeand Accessories",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 178353000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:OperatingSegmentsMember",
+                "axis": "srt:ConsolidationItemsAxis",
+                "label": "Operatings",
+                "type": "Consolidation Items"
+              },
+              {
+                "key": "aapl:AmericasSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Americas",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 111032000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:OperatingSegmentsMember",
+                "axis": "srt:ConsolidationItemsAxis",
+                "label": "Operatings",
+                "type": "Consolidation Items"
+              },
+              {
+                "key": "aapl:EuropeSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Europe",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 64377000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:OperatingSegmentsMember",
+                "axis": "srt:ConsolidationItemsAxis",
+                "label": "Operatings",
+                "type": "Consolidation Items"
+              },
+              {
+                "key": "aapl:GreaterChinaSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Greater China",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 28703000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:OperatingSegmentsMember",
+                "axis": "srt:ConsolidationItemsAxis",
+                "label": "Operatings",
+                "type": "Consolidation Items"
+              },
+              {
+                "key": "aapl:JapanSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Japan",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 33696000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "us-gaap:OperatingSegmentsMember",
+                "axis": "srt:ConsolidationItemsAxis",
+                "label": "Operatings",
+                "type": "Consolidation Items"
+              },
+              {
+                "key": "aapl:RestOfAsiaPacificSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Rest of Asia Pacific",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 151790000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "country:US",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "US",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 64377000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "country:CN",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "CN",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 199994000000,
+            "end_period": "2025-09-27",
+            "start_period": "2024-09-29",
+            "segments": [
+              {
+                "key": "aapl:OtherCountriesMember",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "Other Countries",
+                "type": "Statement Geographical"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticker": "AAPL",
+        "period": "annual",
+        "report_period": "2024-09-28",
+        "items": [
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 294866000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "us-gaap:ProductMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Product",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 96169000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "us-gaap:ServiceMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Service",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 201183000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:IPhoneMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPhone",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 29984000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:MacMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Mac",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 26694000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:IPadMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPad",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 37005000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:WearablesHomeandAccessoriesMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Wearables Homeand Accessories",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 167045000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:AmericasSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Americas",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 101328000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:EuropeSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Europe",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 66952000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:GreaterChinaSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Greater China",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 25052000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:JapanSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Japan",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 30658000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:RestOfAsiaPacificSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Rest of Asia Pacific",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 142196000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "country:US",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "US",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 66952000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "country:CN",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "CN",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 181887000000,
+            "end_period": "2024-09-28",
+            "start_period": "2023-10-01",
+            "segments": [
+              {
+                "key": "aapl:OtherCountriesMember",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "Other Countries",
+                "type": "Statement Geographical"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticker": "AAPL",
+        "period": "annual",
+        "report_period": "2023-09-30",
+        "items": [
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 298085000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "us-gaap:ProductMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Product",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 85200000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "us-gaap:ServiceMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Service",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 200583000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:IPhoneMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPhone",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 29357000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:MacMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Mac",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 28300000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:IPadMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPad",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 39845000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:WearablesHomeandAccessoriesMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Wearables Homeand Accessories",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 162560000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:AmericasSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Americas",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 94294000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:EuropeSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Europe",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 72559000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:GreaterChinaSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Greater China",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 24257000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:JapanSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Japan",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 29615000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:RestOfAsiaPacificSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Rest of Asia Pacific",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 138573000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "country:US",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "US",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 72559000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "country:CN",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "CN",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 172153000000,
+            "end_period": "2023-09-30",
+            "start_period": "2022-09-25",
+            "segments": [
+              {
+                "key": "aapl:OtherCountriesMember",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "Other Countries",
+                "type": "Statement Geographical"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticker": "AAPL",
+        "period": "annual",
+        "report_period": "2022-09-24",
+        "items": [
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 316199000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "us-gaap:ProductMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Product",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 78129000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "us-gaap:ServiceMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Service",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 205489000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:IPhoneMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPhone",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 40177000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:MacMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Mac",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 29292000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:IPadMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPad",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 41241000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:WearablesHomeandAccessoriesMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Wearables Homeand Accessories",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 169658000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:AmericasSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Americas",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 95118000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:EuropeSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Europe",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 74200000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:GreaterChinaSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Greater China",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 25977000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:JapanSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Japan",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 29375000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:RestOfAsiaPacificSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Rest of Asia Pacific",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 147859000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "country:US",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "US",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 74200000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "country:CN",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "CN",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 172269000000,
+            "end_period": "2022-09-24",
+            "start_period": "2021-09-26",
+            "segments": [
+              {
+                "key": "aapl:OtherCountriesMember",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "Other Countries",
+                "type": "Statement Geographical"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "ticker": "AAPL",
+        "period": "annual",
+        "report_period": "2021-09-25",
+        "items": [
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 297392000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "us-gaap:ProductMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Product",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 68425000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "us-gaap:ServiceMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Service",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 191973000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:IPhoneMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPhone",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 35190000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:MacMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Mac",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 31862000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:IPadMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "IPad",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 38367000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:WearablesHomeandAccessoriesMember",
+                "axis": "srt:ProductOrServiceAxis",
+                "label": "Wearables Homeand Accessories",
+                "type": "Product or Service"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 153306000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:AmericasSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Americas",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 89307000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:EuropeSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Europe",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 68366000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:GreaterChinaSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Greater China",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 28482000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:JapanSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Japan",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 26356000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:RestOfAsiaPacificSegmentMember",
+                "axis": "us-gaap:StatementBusinessSegmentsAxis",
+                "label": "Rest of Asia Pacific",
+                "type": "Statement Business Segments"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 133803000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "country:US",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "US",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 68366000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "country:CN",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "CN",
+                "type": "Statement Geographical"
+              }
+            ]
+          },
+          {
+            "name": "Revenue From Contract With Customer Excluding Assessed Tax",
+            "amount": 163648000000,
+            "end_period": "2021-09-25",
+            "start_period": "2020-09-27",
+            "segments": [
+              {
+                "key": "aapl:OtherCountriesMember",
+                "axis": "srt:StatementGeographicalAxis",
+                "label": "Other Countries",
+                "type": "Statement Geographical"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/financials/segmented-revenues/?ticker=AAPL&period=annual&limit=5",
+  "cachedAt": "2026-04-23T20:33:48.579Z"
+}

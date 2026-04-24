@@ -1,0 +1,52 @@
+{
+  "endpoint": "/financial-metrics/snapshot/",
+  "params": {
+    "ticker": "AMZN"
+  },
+  "data": {
+    "snapshot": {
+      "ticker": "AMZN",
+      "market_cap": 2738048917102,
+      "enterprise_value": 2724821917102,
+      "price_to_book_ratio": 6.660866084687337,
+      "price_to_earnings_ratio": 35.554713789107765,
+      "price_to_sales_ratio": 3.819162027079579,
+      "enterprise_value_to_ebitda_ratio": 16.53541794620935,
+      "enterprise_value_to_revenue_ratio": 3.8007123727229106,
+      "free_cash_flow_yield": null,
+      "peg_ratio": 4.259949273209915,
+      "gross_margin": 0.5028566486824266,
+      "operating_margin": 0.13813319124481813,
+      "net_margin": 0.10833784334183261,
+      "return_on_equity": 0.1889482198679041,
+      "return_on_assets": 0.09494622525493801,
+      "return_on_invested_capital": 0.1966491134582418,
+      "asset_turnover": 0.9274788594552392,
+      "inventory_turnover": 17.963742968466153,
+      "receivables_turnover": null,
+      "days_sales_outstanding": null,
+      "operating_cycle": null,
+      "working_capital_turnover": 3.8072589874379,
+      "current_ratio": 1.0508153482718285,
+      "quick_ratio": 0.8750166280589895,
+      "cash_ratio": 0.39820187610375907,
+      "operating_cash_flow_ratio": 0.6399577991330474,
+      "debt_to_equity": 0.17900575334801067,
+      "debt_to_assets": 0.08995014925884001,
+      "interest_coverage": 43.54925241864556,
+      "revenue_growth": 0.08228829359238544,
+      "earnings_growth": 0.08166448486198925,
+      "book_value_growth": 0.11209557639916566,
+      "earnings_per_share_growth": 0.08346276330731264,
+      "free_cash_flow_growth": null,
+      "operating_income_growth": 0.09003753398421592,
+      "ebitda_growth": 0.049404886995395754,
+      "payout_ratio": null,
+      "earnings_per_share": 7.173732335827099,
+      "book_value_per_share": 37.96665743049783,
+      "free_cash_flow_per_share": null
+    }
+  },
+  "url": "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=AMZN",
+  "cachedAt": "2026-04-23T21:53:51.878Z"
+}

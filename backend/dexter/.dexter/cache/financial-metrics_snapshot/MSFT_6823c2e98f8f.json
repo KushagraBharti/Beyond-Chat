@@ -1,0 +1,52 @@
+{
+  "endpoint": "/financial-metrics/snapshot/",
+  "params": {
+    "ticker": "MSFT"
+  },
+  "data": {
+    "snapshot": {
+      "ticker": "MSFT",
+      "market_cap": 3086388469149,
+      "enterprise_value": 3107191469149,
+      "price_to_book_ratio": 7.896100976396546,
+      "price_to_earnings_ratio": 26.698419969518756,
+      "price_to_sales_ratio": 10.33467429162816,
+      "enterprise_value_to_ebitda_ratio": 16.23529257334169,
+      "enterprise_value_to_revenue_ratio": 10.40433247997281,
+      "free_cash_flow_yield": null,
+      "peg_ratio": 1.9680180347050757,
+      "gross_margin": 0.6861179196635458,
+      "operating_margin": 0.4885783742516173,
+      "net_margin": 0.38888107579593095,
+      "return_on_equity": 0.29712056283978255,
+      "return_on_assets": 0.1745628301132418,
+      "return_on_invested_capital": 0.2799996356375614,
+      "asset_turnover": 0.45886883831558795,
+      "inventory_turnover": 272.8588396528095,
+      "receivables_turnover": null,
+      "days_sales_outstanding": null,
+      "operating_cycle": null,
+      "working_capital_turnover": 1.4453045411979355,
+      "current_ratio": 1.3860236144763662,
+      "quick_ratio": 1.3778777739317718,
+      "cash_ratio": 0.1868851198030845,
+      "operating_cash_flow_ratio": 1.0780354601746087,
+      "debt_to_equity": 0.11537959705788295,
+      "debt_to_assets": 0.06778726052228913,
+      "interest_coverage": 55.6487414187643,
+      "revenue_growth": 0.05544324912707276,
+      "earnings_growth": 0.13474879330897152,
+      "book_value_growth": 0.07656523703026363,
+      "earnings_per_share_growth": 0.1356614598987643,
+      "free_cash_flow_growth": null,
+      "operating_income_growth": 0.14189231491626234,
+      "ebitda_growth": 0.13358921051228745,
+      "payout_ratio": 0.21758784883370502,
+      "earnings_per_share": 15.567962466487936,
+      "book_value_per_share": 52.39611260053619,
+      "free_cash_flow_per_share": null
+    }
+  },
+  "url": "https://api.financialdatasets.ai/financial-metrics/snapshot/?ticker=MSFT",
+  "cachedAt": "2026-04-23T21:53:51.729Z"
+}

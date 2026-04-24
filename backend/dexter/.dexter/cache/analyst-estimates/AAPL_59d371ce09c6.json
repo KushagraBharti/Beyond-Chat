@@ -1,0 +1,31 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "AAPL",
+    "period": "annual"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2026-09-30",
+        "period": "annual",
+        "revenue": 460759971324,
+        "earnings_per_share": 8.39
+      },
+      {
+        "fiscal_period": "2027-09-30",
+        "period": "annual",
+        "revenue": 494375348838,
+        "earnings_per_share": 9.28
+      },
+      {
+        "fiscal_period": "2028-09-30",
+        "period": "annual",
+        "revenue": 531767424818,
+        "earnings_per_share": 8.94
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=AAPL&period=annual",
+  "cachedAt": "2026-04-23T21:29:45.915Z"
+}

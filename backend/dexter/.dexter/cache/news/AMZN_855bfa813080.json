@@ -1,0 +1,83 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "AMZN",
+    "limit": 10
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "AMZN",
+        "title": "Amazon.com Inc. (AMZN) Gains Analyst Support on Strong AWS and AI Demand - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-23T13:34:22+00:00",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-inc-amzn-gains-133422641.html"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Amazon.com, Inc. (AMZN) Strengthens Satellite Service Prospect with Globalstar Deal - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-22T20:51:22+00:00",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-inc-amzn-strengthens-205122489.html"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Amazon: Beware Of Falling Over The Cliff Again (Downgrade) (NASDAQ:AMZN) - Seeking Alpha",
+        "source": "Seeking Alpha",
+        "date": "2026-04-22T16:19:20+00:00",
+        "url": "https://seekingalpha.com/article/4892921-amazon-beware-of-falling-over-the-cliff-again-downgrade"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Sweden's Einride to deploy 75 electric trucks for Amazon's US freight network - Reuters",
+        "source": "Reuters",
+        "date": "2026-04-21T16:22:41+00:00",
+        "url": "https://www.reuters.com/business/retail-consumer/swedens-einride-deploy-75-electric-trucks-amazons-us-freight-2026-04-21/"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Amazon.com, Inc. (AMZN): One of the Best Tech Stocks to Buy According to Nancy Pelosi - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-21T14:45:36+00:00",
+        "url": "https://finance.yahoo.com/markets/options/articles/amazon-com-inc-amzn-one-144536329.html"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Amazon.com, Inc. (AMZN) is Attracting Investor Attention: Here is What You Should Know - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-21T13:00:04+00:00",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-inc-amzn-attracting-130004216.html"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Antitrust Allegations Against Amazon (AMZN) Intensify in Califor - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-21T12:00:00+00:00",
+        "url": "https://www.gurufocus.com/news/8805246/antitrust-allegations-against-amazon-amzn-intensify-in-california?mobile=true"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Antitrust Allegations Against Amazon (AMZN) Intensify in Califor - GuruFocus",
+        "source": "GuruFocus",
+        "date": "2026-04-21T11:27:25+00:00",
+        "url": "https://www.gurufocus.com/news/8805246/antitrust-allegations-against-amazon-amzn-intensify-in-california"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "AMZN Stock Quote Price and Forecast - CNN",
+        "source": "CNN",
+        "date": "2026-04-20T16:38:33+00:00",
+        "url": "https://www.cnn.com/markets/stocks/AMZN"
+      },
+      {
+        "ticker": "AMZN",
+        "title": "Amazon.com, Inc. (AMZN) : One of the Top Unrivaled Stocks of the Next 5 Years? - Yahoo Finance",
+        "source": "Yahoo Finance",
+        "date": "2026-04-18T18:40:31+00:00",
+        "url": "https://finance.yahoo.com/markets/stocks/articles/amazon-com-inc-amzn-one-184031397.html"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=AMZN&limit=10",
+  "cachedAt": "2026-04-23T21:53:48.437Z"
+}

@@ -1,0 +1,43 @@
+{
+  "endpoint": "/earnings",
+  "params": {
+    "ticker": "AAPL"
+  },
+  "data": {
+    "earnings": {
+      "ticker": "AAPL",
+      "report_period": "2025-12-27",
+      "fiscal_period": "2026-Q1",
+      "currency": "USD",
+      "quarterly": {
+        "revenue": 143756000000,
+        "earnings_per_share": 2.84,
+        "estimated_earnings_per_share": 2.65,
+        "eps_surprise": "BEAT",
+        "net_income": 42097000000,
+        "gross_profit": 69231000000,
+        "operating_income": 50852000000,
+        "weighted_average_shares": 14748158000,
+        "weighted_average_shares_diluted": 14810356000,
+        "cash_and_equivalents": 45317000000,
+        "total_debt": 90509000000,
+        "total_assets": 379297000000,
+        "total_liabilities": 291107000000,
+        "shareholders_equity": 88190000000,
+        "net_cash_flow_from_operations": null,
+        "capital_expenditure": null,
+        "net_cash_flow_from_investing": null,
+        "net_cash_flow_from_financing": null,
+        "change_in_cash_and_equivalents": null,
+        "free_cash_flow": 51552000000,
+        "revenue_chg": 0.403,
+        "net_income_chg": 0.5327,
+        "operating_income_chg": 0.5682,
+        "gross_profit_chg": 0.4321,
+        "free_cash_flow_chg": 0.9464
+      }
+    }
+  },
+  "url": "https://api.financialdatasets.ai/earnings?ticker=AAPL",
+  "cachedAt": "2026-04-23T20:33:48.582Z"
+}

@@ -1,0 +1,31 @@
+{
+  "endpoint": "/analyst-estimates/",
+  "params": {
+    "ticker": "MSFT",
+    "period": "annual"
+  },
+  "data": {
+    "analyst_estimates": [
+      {
+        "fiscal_period": "2026-06-30",
+        "period": "annual",
+        "revenue": 326682910828,
+        "earnings_per_share": 16.42
+      },
+      {
+        "fiscal_period": "2027-06-30",
+        "period": "annual",
+        "revenue": 373687666920,
+        "earnings_per_share": 18.7
+      },
+      {
+        "fiscal_period": "2028-06-30",
+        "period": "annual",
+        "revenue": 427660164602,
+        "earnings_per_share": 21.78
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/analyst-estimates/?ticker=MSFT&period=annual",
+  "cachedAt": "2026-04-23T21:53:51.671Z"
+}

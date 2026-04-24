@@ -1,0 +1,83 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "GOOGL",
+    "limit": 10
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "GOOGL",
+        "title": "Brazil regulator approves deeper probe into Google's news content use - Reuters",
+        "source": "Reuters",
+        "date": "2026-04-23T18:02:34+00:00",
+        "url": "https://www.reuters.com/legal/litigation/brazil-regulator-approves-deeper-probe-into-googles-news-content-use-2026-04-23/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Meta Vs. Google: In The Age Of AI, The Ad Crown Is Up For Grabs (NASDAQ:META) - Seeking Alpha",
+        "source": "Seeking Alpha",
+        "date": "2026-04-23T15:45:00+00:00",
+        "url": "https://seekingalpha.com/article/4893471-meta-vs-google-in-the-age-of-ai-the-ad-crown-is-up-for-grabs"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Alphabet Stock Gains 2.1% After Unveiling New AI Inference Chip - TradingView",
+        "source": "TradingView",
+        "date": "2026-04-23T12:00:00+00:00",
+        "url": "https://www.tradingview.com/news/zacks:465c9fa59094b:0-alphabet-stock-gains-2-1-after-unveiling-new-ai-inference-chip/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Premier Path Wealth Partners LLC Increases Stake in Alphabet Inc. $GOOGL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:33:59+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-premier-path-wealth-partners-llc-increases-stake-in-alphabet-inc-googl-2026-04-23/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "UBS adjusts price target on Alphabet stock - thestreet.com",
+        "source": "thestreet.com",
+        "date": "2026-04-23T01:03:00+00:00",
+        "url": "https://www.thestreet.com/investing/ubs-adjusts-price-target-on-alphabet-stock"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Google puts AI agents at heart of its enterprise money-making push - Reuters",
+        "source": "Reuters",
+        "date": "2026-04-22T22:37:08+00:00",
+        "url": "https://www.reuters.com/business/google-puts-ai-agents-heart-its-enterprise-money-making-push-2026-04-22/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Merck to partner with Google Cloud on AI initiatives - Reuters",
+        "source": "Reuters",
+        "date": "2026-04-22T19:55:16+00:00",
+        "url": "https://www.reuters.com/legal/litigation/merck-partner-with-google-cloud-ai-initiatives-2026-04-22/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Alphabet shares climb after Google announces new AI products - CNBC",
+        "source": "CNBC",
+        "date": "2026-04-22T16:20:00+00:00",
+        "url": "https://www.cnbc.com/video/2026/04/22/alphabet-shares-climb-after-google-announces-new-ai-products.html"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Google Introduces Specialized Chip for New Wave of AI Computing - WSJ",
+        "source": "WSJ",
+        "date": "2026-04-22T15:50:00+00:00",
+        "url": "https://www.wsj.com/tech/ai/google-tpux-inference-chip-7930f2d0"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Google Cloud Releases New TPU Chip Lineup in Bid to Speed Up AI - Bloomberg.com",
+        "source": "Bloomberg.com",
+        "date": "2026-04-22T13:01:36+00:00",
+        "url": "https://www.bloomberg.com/news/articles/2026-04-22/google-cloud-releases-new-tpu-chip-lineup-in-bid-to-speed-up-ai"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=GOOGL&limit=10",
+  "cachedAt": "2026-04-23T21:53:48.430Z"
+}

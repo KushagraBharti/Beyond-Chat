@@ -1,0 +1,48 @@
+{
+  "endpoint": "/news",
+  "params": {
+    "ticker": "GOOGL",
+    "limit": 5
+  },
+  "data": {
+    "news": [
+      {
+        "ticker": "GOOGL",
+        "title": "Brazil regulator approves deeper probe into Google's news content use - Reuters",
+        "source": "Reuters",
+        "date": "2026-04-23T18:02:34+00:00",
+        "url": "https://www.reuters.com/legal/litigation/brazil-regulator-approves-deeper-probe-into-googles-news-content-use-2026-04-23/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Meta Vs. Google: In The Age Of AI, The Ad Crown Is Up For Grabs (NASDAQ:META) - Seeking Alpha",
+        "source": "Seeking Alpha",
+        "date": "2026-04-23T15:45:00+00:00",
+        "url": "https://seekingalpha.com/article/4893471-meta-vs-google-in-the-age-of-ai-the-ad-crown-is-up-for-grabs"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Alphabet Stock Gains 2.1% After Unveiling New AI Inference Chip - TradingView",
+        "source": "TradingView",
+        "date": "2026-04-23T12:00:00+00:00",
+        "url": "https://www.tradingview.com/news/zacks:465c9fa59094b:0-alphabet-stock-gains-2-1-after-unveiling-new-ai-inference-chip/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "Premier Path Wealth Partners LLC Increases Stake in Alphabet Inc. $GOOGL - MarketBeat",
+        "source": "MarketBeat",
+        "date": "2026-04-23T08:33:59+00:00",
+        "url": "https://www.marketbeat.com/instant-alerts/filing-premier-path-wealth-partners-llc-increases-stake-in-alphabet-inc-googl-2026-04-23/"
+      },
+      {
+        "ticker": "GOOGL",
+        "title": "UBS adjusts price target on Alphabet stock - thestreet.com",
+        "source": "thestreet.com",
+        "date": "2026-04-23T01:03:00+00:00",
+        "url": "https://www.thestreet.com/investing/ubs-adjusts-price-target-on-alphabet-stock"
+      }
+    ]
+  },
+  "url": "https://api.financialdatasets.ai/news?ticker=GOOGL&limit=5",
+  "cachedAt": "2026-04-23T21:53:58.370Z"
+}
