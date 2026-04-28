@@ -205,3 +205,33 @@ HARSH KOTHARI
 
 ### Hours Worked  
 - Total estimated time: ~7–8 hours    
+
+# NISHANT BHAGAT
+
+## Weekly Summary
+- Week 9 was focused on polishing the Image Studio, integrating generated images into the artifact library, and improving the overall reliability of the image workflow after week 8's foundation.
+- I spent the first half of the week hardening edge cases — failed uploads, empty model responses, and browser memory issues with large image blobs — and the second half wiring image outputs into the shared artifact save flow.
+- I also spent time reviewing the auth layer and beginning the groundwork for Stripe-based subscription billing to gate premium image models behind the Pro plan.
+
+## Work Completed
+- Hardened the image upload flow to handle failed Supabase Storage writes gracefully — the studio now shows a clear error state instead of silently dropping the result.
+- Fixed a browser memory issue where large image blobs were being held in component state indefinitely; switched to object URLs with cleanup on unmount.
+- Added the save-to-artifact flow to `ImagePage.tsx` so users can promote a generated image into the artifact library with one click, writing a record via `/api/artifact`.
+- Connected image artifacts to the shared artifact search and filter flow so saved images show up in the Artifacts page with type `image` and the correct studio tag.
+- Updated `artifactDrafts.ts` to handle the image artifact shape — storing the signed URL and storage path in metadata and the prompt as content.
+- Reviewed the existing Supabase auth setup in `AuthContext.tsx` and `ProtectedRoute.tsx` and identified the missing password reset and email confirmation callback flows.
+- Started scoping out the Stripe subscription integration — researched Checkout Sessions, webhook event handling, and how to store plan state in Supabase alongside the existing user model.
+- Documented the auth gaps and Stripe requirements as the basis for the upcoming billing implementation.
+
+## Research / Technical Findings
+- Object URLs (`URL.createObjectURL`) created for image blobs need explicit cleanup via `URL.revokeObjectURL` on unmount, otherwise they accumulate and cause memory pressure in long sessions.
+- Saving an image artifact requires storing both the signed URL (for immediate display) and the raw storage path (for re-signing later) — treating the signed URL as the canonical reference will cause breakage once it expires.
+- Stripe Checkout Sessions are simpler to integrate than Stripe Elements for a subscription-first product — the redirect model handles PCI compliance without custom payment form work.
+- Supabase's `user_metadata` and `app_metadata` distinction matters for plan state: `app_metadata` is admin-write-only and more trustworthy for plan enforcement than `user_metadata`.
+
+## Blockers / Risks
+- Image artifacts stored by signed URL will render broken images once the URL expires — re-signing at display time is the right fix but adds a backend call per artifact.
+- The Stripe integration depends on having webhook infrastructure in place before plan state can be trusted on the backend — testing locally requires the Stripe CLI.
+
+## Hours Worked
+- Total estimated time: 13 hours
