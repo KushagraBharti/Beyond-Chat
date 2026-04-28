@@ -88,8 +88,10 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```powershell
 cd frontend
 bun install
-bun run dev --host 127.0.0.1 --port 5173
+bun --bun run dev --host 127.0.0.1 --port 5173
 ```
+
+Note: `--bun` is required on this machine (ARM64 bun + x64 Node — `--bun` forces bun's runtime so the ARM64 rollup binding loads correctly).
 
 ### Build check
 

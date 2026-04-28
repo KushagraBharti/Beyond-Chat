@@ -20,7 +20,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
     if (authLoading || !session) {
@@ -84,30 +83,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleForgotPassword() {
-    if (!email) {
-      setError("Enter your email address above, then click Forgot password.");
-      return;
-    }
-    if (!supabase) {
-      setError("Supabase is not configured for this environment.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-      });
-      if (resetError) throw resetError;
-      setForgotSent(true);
-      setMessage("Password reset email sent. Check your inbox.");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Could not send reset email.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-stone-100 text-stone-950">
@@ -216,14 +191,12 @@ export default function LoginPage() {
 
                   {mode === "signin" && (
                     <div className="flex justify-end">
-                      <button
-                        type="button"
-                        disabled={loading || forgotSent}
-                        onClick={() => void handleForgotPassword()}
-                        className="text-sm font-semibold text-violet-700 hover:text-violet-900 disabled:text-stone-400"
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm font-semibold text-violet-700 hover:text-violet-900"
                       >
-                        {forgotSent ? "Reset email sent" : "Forgot password?"}
-                      </button>
+                        Forgot password?
+                      </Link>
                     </div>
                   )}
 

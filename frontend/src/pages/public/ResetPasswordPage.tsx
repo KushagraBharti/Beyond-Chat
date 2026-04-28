@@ -34,7 +34,8 @@ export default function ResetPasswordPage() {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) throw updateError;
       setDone(true);
-      setTimeout(() => navigate("/dashboard", { replace: true }), 2000);
+      await supabase.auth.signOut();
+      setTimeout(() => navigate("/login", { replace: true }), 2000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Could not update password.");
     } finally {
@@ -61,7 +62,7 @@ export default function ResetPasswordPage() {
 
         {done ? (
           <p className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Password updated. Redirecting to your dashboard…
+            Password updated. Redirecting to sign in…
           </p>
         ) : (
           <form

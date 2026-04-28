@@ -11,6 +11,7 @@ const PricingPage = lazy(() => import("../pages/public/PricingPage"));
 const LoginPage = lazy(() => import("../pages/public/LoginPage"));
 const AuthCallbackPage = lazy(() => import("../pages/public/AuthCallbackPage"));
 const ResetPasswordPage = lazy(() => import("../pages/public/ResetPasswordPage"));
+const ForgotPasswordPage = lazy(() => import("../pages/public/ForgotPasswordPage"));
 const HomePage = lazy(() => import("../pages/protected/HomePage"));
 const ChatPage = lazy(() => import("../pages/protected/ChatPage"));
 const WritingHomePage = lazy(() => import("../pages/protected/WritingHomePage"));
@@ -75,6 +76,7 @@ export default function AppShell() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
               <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
 
               {/* Chat and Image have their own dedicated layouts */}

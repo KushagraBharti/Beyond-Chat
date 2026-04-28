@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 
-load_dotenv()
+_env_file = Path(__file__).parent.parent / "env"
+load_dotenv(dotenv_path=_env_file)
 
 APP_TITLE = "Beyond Chat"
 APP_URL = "http://127.0.0.1:5173"

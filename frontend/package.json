@@ -13,6 +13,7 @@
   "dependencies": {
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
+    "@rollup/rollup-win32-x64-msvc": "*",
     "@supabase/supabase-js": "^2.103.0",
     "@tiptap/extension-color": "^3.22.3",
     "@tiptap/extension-text-align": "^3.22.3",
@@ -39,7 +40,7 @@
     "@types/node": "^25.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "enhanced-resolve": "^5.20.1",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -50,7 +51,7 @@
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.58.1",
-    "vite": "^8.0.8",
-    "vitest": "^4.1.4"
+    "vite": "^6.3.5",
+    "vitest": "^2.1.8"
   }
 }

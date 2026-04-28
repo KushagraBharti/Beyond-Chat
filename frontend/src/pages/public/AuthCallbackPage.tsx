@@ -11,12 +11,21 @@ export default function AuthCallbackPage() {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const params = new URLSearchParams(window.location.search);
-      const hash = new URLSearchParams(window.location.hash.replace("#", "?"));
-      const type = params.get("type") ?? hash.get("type");
+    // Read URL params synchronously BEFORE Supabase processes and clears the hash.
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    const type = params.get("type") ?? hashParams.get("type");
 
-      if (type === "recovery") {
+    if (type === "recovery") {
+      navigate("/reset-password", { replace: true });
+      return;
+    }
+
+    // For email confirmation, magic link, OAuth — rely on auth state change.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
         navigate("/reset-password", { replace: true });
       } else if (session) {
         navigate("/dashboard", { replace: true });
@@ -24,6 +33,8 @@ export default function AuthCallbackPage() {
         navigate("/login", { replace: true });
       }
     });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
