@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [forgotSent, setForgotSent] = useState(false);
 
   useEffect(() => {
     if (authLoading || !session) {
@@ -78,6 +79,31 @@ export default function LoginPage() {
       }
     } catch (submitError: unknown) {
       setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError("Enter your email address above, then click Forgot password.");
+      return;
+    }
+    if (!supabase) {
+      setError("Supabase is not configured for this environment.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+      });
+      if (resetError) throw resetError;
+      setForgotSent(true);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not send reset email.");
     } finally {
       setLoading(false);
     }
@@ -187,6 +213,19 @@ export default function LoginPage() {
                       className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
                     />
                   </label>
+
+                  {mode === "signin" && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        disabled={loading || forgotSent}
+                        onClick={() => void handleForgotPassword()}
+                        className="text-sm font-semibold text-violet-700 hover:text-violet-900 disabled:text-stone-400"
+                      >
+                        {forgotSent ? "Reset email sent" : "Forgot password?"}
+                      </button>
+                    </div>
+                  )}
 
                   {mode === "signup" ? (
                     <label className="block space-y-2">
