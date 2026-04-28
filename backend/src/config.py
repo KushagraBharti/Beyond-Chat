@@ -44,6 +44,9 @@ class Settings:
     supabase_service_role_key: str | None = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     supabase_storage_bucket: str = SUPABASE_STORAGE_BUCKET
     openrouter_image_default_model: str = OPENROUTER_IMAGE_DEFAULT_MODEL
+    stripe_secret_key: str | None = os.getenv("STRIPE_SECRET_KEY")
+    stripe_webhook_secret: str | None = os.getenv("STRIPE_WEBHOOK_SECRET")
+    stripe_pro_price_id: str | None = os.getenv("STRIPE_PRO_PRICE_ID")
 
 
 settings = Settings()

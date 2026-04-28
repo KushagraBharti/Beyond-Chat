@@ -30,6 +30,7 @@ from reportlab.pdfgen import canvas
 from .ai_context import merge_prompt_with_context, resolve_context_artifacts
 from .auth import RequestContext, require_request_context, resolve_request_context
 from .artifact_drafts import build_run_artifact_payload
+from .billing import router as billing_router
 from .config import settings
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
@@ -57,6 +58,7 @@ if not any(isinstance(handler, RotatingFileHandler) and handler.baseFilename == 
 LOGGER = logging.getLogger("beyond_chat.api")
 
 app = FastAPI(title="Beyond Chat API", version="0.3.0")
+app.include_router(billing_router)
 
 cors_allow_origins = [
     "http://localhost:5173",

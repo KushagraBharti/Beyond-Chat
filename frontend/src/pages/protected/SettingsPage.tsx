@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  getBillingStatus,
+  createCheckoutSession,
+  createPortalSession,
   getCachedProviderStatuses,
   getProviderStatuses,
   getWorkspace,
   startGoogleCalendarConnect,
+  type BillingStatus,
   type ProviderRecord,
 } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +26,8 @@ export default function SettingsPage() {
   const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>(() => getCachedProviderStatuses() ?? {});
   const [status, setStatus] = useState("Ready");
+  const [billing, setBilling] = useState<BillingStatus | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [nameStatus, setNameStatus] = useState("Saved");
 
@@ -100,6 +106,29 @@ export default function SettingsPage() {
 
     return () => window.clearTimeout(timeoutId);
   }, [displayName, nameDraft, updateProfileName]);
+
+  useEffect(() => {
+    let active = true;
+    void getBillingStatus().then((data) => { if (active) setBilling(data); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  const handleBillingAction = async () => {
+    setBillingLoading(true);
+    try {
+      if (billing?.plan === "pro") {
+        const { portalUrl } = await createPortalSession();
+        window.location.href = portalUrl;
+      } else {
+        const { checkoutUrl } = await createCheckoutSession();
+        window.location.href = checkoutUrl;
+      }
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : "Billing action failed.");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   const handleGoogleConnect = async () => {
     try {
@@ -185,6 +214,39 @@ export default function SettingsPage() {
                 <StatusBadge status={provider.status} />
               </div>
             ))}
+          </div>
+        </MotionCard>
+
+        <MotionCard>
+          <div className="context-builder-head">
+            <div>
+              <h3>Plan &amp; Billing</h3>
+              <p>Your subscription and monthly usage.</p>
+            </div>
+          </div>
+          <div className="stack-sm">
+            <div className="list-row">
+              <div>
+                <strong>Current plan</strong>
+                <p style={{ textTransform: "capitalize" }}>{billing?.plan ?? "—"}</p>
+              </div>
+              <StatusBadge status={billing?.plan === "pro" ? "connected" : "not_configured"} />
+            </div>
+            {billing && (
+              <div className="list-row">
+                <div>
+                  <strong>Usage this month</strong>
+                  <p>
+                    {billing.usage.requests} request{billing.usage.requests !== 1 ? "s" : ""}
+                    {billing.limits.requests !== null ? ` / ${billing.limits.requests}` : ""}
+                    {" · "}${billing.usage.spend_usd.toFixed(4)} spent
+                  </p>
+                </div>
+              </div>
+            )}
+            <PrimaryButton type="button" onClick={handleBillingAction} disabled={billingLoading}>
+              {billingLoading ? "Redirecting…" : billing?.plan === "pro" ? "Manage Subscription" : "Upgrade to Pro — $10/mo"}
+            </PrimaryButton>
           </div>
         </MotionCard>
 
