@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [status, setStatus] = useState("Ready");
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [billingFetching, setBillingFetching] = useState(true);
   const [nameDraft, setNameDraft] = useState("");
   const [nameStatus, setNameStatus] = useState("Saved");
 
@@ -109,7 +110,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let active = true;
-    void getBillingStatus().then((data) => { if (active) setBilling(data); }).catch(() => {});
+    setBillingFetching(true);
+    void getBillingStatus()
+      .then((data) => { if (active) setBilling(data); })
+      .catch(() => {})
+      .finally(() => { if (active) setBillingFetching(false); });
     return () => { active = false; };
   }, []);
 
@@ -228,9 +233,13 @@ export default function SettingsPage() {
             <div className="list-row">
               <div>
                 <strong>Current plan</strong>
-                <p style={{ textTransform: "capitalize" }}>{billing?.plan ?? "—"}</p>
+                <p style={{ textTransform: "capitalize" }}>
+                  {billingFetching ? "Loading…" : billing?.plan ?? "Free"}
+                </p>
               </div>
-              <StatusBadge status={billing?.plan === "pro" ? "connected" : "not_configured"} />
+              {!billingFetching && (
+                <StatusBadge status={billing?.plan === "pro" ? "connected" : "disconnected"} />
+              )}
             </div>
             {billing && (
               <div className="list-row">
@@ -244,7 +253,7 @@ export default function SettingsPage() {
                 </div>
               </div>
             )}
-            <PrimaryButton type="button" onClick={handleBillingAction} disabled={billingLoading}>
+            <PrimaryButton type="button" onClick={handleBillingAction} disabled={billingLoading || billingFetching}>
               {billingLoading ? "Redirecting…" : billing?.plan === "pro" ? "Manage Subscription" : "Upgrade to Pro — $10/mo"}
             </PrimaryButton>
           </div>
