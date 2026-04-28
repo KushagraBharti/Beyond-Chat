@@ -25,7 +25,8 @@ export default function LoginPage() {
     if (authLoading || !session) {
       return;
     }
-    navigate("/dashboard", { replace: true });
+    const dest = sessionStorage.getItem("upgrade_intent") === "1" ? "/pricing" : "/dashboard";
+    navigate(dest, { replace: true });
   }, [authLoading, navigate, session]);
 
   if (authLoading || session) {
@@ -62,7 +63,7 @@ export default function LoginPage() {
         if (data.session) {
           await bootstrapAuth();
           setMessage("Account created and workspace provisioned.");
-          navigate("/dashboard", { replace: true });
+          // useEffect handles redirect once session state updates
         } else {
           setMessage("Account created. Confirm the email if required, then sign in.");
         }
@@ -74,7 +75,7 @@ export default function LoginPage() {
 
         await bootstrapAuth();
         setMessage("Signed in successfully. Workspace restored.");
-        navigate("/dashboard", { replace: true });
+        // useEffect handles redirect once session state updates
       }
     } catch (submitError: unknown) {
       setError(submitError instanceof Error ? submitError.message : "Something went wrong.");

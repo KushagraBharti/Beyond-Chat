@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { createCheckoutSession } from "../../lib/api";
+import { useAuth } from "../../context/AuthContext";
 import { motion, useMotionValue, AnimatePresence } from "framer-motion";
 
 const heading = "'Bricolage Grotesque', sans-serif";
@@ -154,7 +156,35 @@ const ROICalculator = ({ setCursorVariant }: { setCursorVariant: any }) => {
 
 export default function AtelierPlusPricing() {
   const [cursorVariant, setCursorVariant] = useState<"default" | "play" | "rotate">("default");
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
+  const handleUpgrade = async () => {
+    if (!user) {
+      sessionStorage.setItem("upgrade_intent", "1");
+      navigate("/login?mode=signup");
+      return;
+    }
+    setCheckoutLoading(true);
+    setCheckoutError(null);
+    try {
+      const { checkoutUrl } = await createCheckoutSession();
+      window.location.href = checkoutUrl;
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setCheckoutLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && sessionStorage.getItem("upgrade_intent") === "1") {
+      sessionStorage.removeItem("upgrade_intent");
+      handleUpgrade();
+    }
+  }, [user]);
 
   return (
     <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
@@ -306,19 +336,23 @@ export default function AtelierPlusPricing() {
 
             <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, color: "#fff", marginBottom: "0.5rem" }}>Professional</h3>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem", marginBottom: "1rem", color: "#fff" }}>
-              <span style={{ fontFamily: heading, fontSize: "3.5rem", fontWeight: 800, letterSpacing: "-0.04em" }}>$29</span>
+              <span style={{ fontFamily: heading, fontSize: "3.5rem", fontWeight: 800, letterSpacing: "-0.04em" }}>$10</span>
               <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>/mo</span>
             </div>
             <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>For power users who need advanced models and unlimited context.</p>
             
-            <Link 
-              to="/signup" 
-              onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "scale(1.02)"; }}
-              onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "scale(1)"; }}
-              style={{ display: "block", textAlign: "center", background: c.primary, color: "#fff", padding: "1rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginBottom: "2.5rem", boxShadow: `0 8px 20px ${c.primary}40`, transition: "transform 0.2s" }}
+            <button
+              onClick={handleUpgrade}
+              disabled={checkoutLoading}
+              onMouseEnter={(e) => { setCursorVariant("play"); (e.currentTarget as HTMLElement).style.transform = "scale(1.02)"; }}
+              onMouseLeave={(e) => { setCursorVariant("default"); (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+              style={{ display: "block", width: "100%", textAlign: "center", background: checkoutLoading ? `${c.primary}80` : c.primary, color: "#fff", padding: "1rem", borderRadius: "12px", fontWeight: 700, border: "none", cursor: checkoutLoading ? "not-allowed" : "none", marginBottom: checkoutError ? "1rem" : "2.5rem", boxShadow: `0 8px 20px ${c.primary}40`, transition: "transform 0.2s", fontSize: "1rem" }}
             >
-              Upgrade to Pro
-            </Link>
+              {checkoutLoading ? "Redirecting…" : "Upgrade to Pro"}
+            </button>
+            {checkoutError && (
+              <p style={{ color: "#E55613", fontSize: "0.85rem", marginBottom: "2.5rem", textAlign: "center" }}>{checkoutError}</p>
+            )}
 
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
               {["All 6 advanced studios", "Unlimited artifact saves", "Premium models (GPT-4o, Claude 3.5 Sonnet)", "Model Compare feature", "Priority email support"].map((feat, i) => (
