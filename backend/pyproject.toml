@@ -1,0 +1,28 @@
+[project]
+name = "beyond-chat-backend"
+version = "0.1.0"
+description = "Barebones backend for Beyond Chat"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.116.1",
+    "uvicorn>=0.35.0",
+    "python-dotenv>=1.0.0",
+    "supabase>=2.0.0",
+    "httpx>=0.28.1",
+    "reportlab>=4.4.10",
+    "pyjwt>=2.11.0",
+    "python-multipart>=0.0.20",
+    "pandas>=2.0.0",
+    "tabulate>=0.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+testpaths = ["tests"]

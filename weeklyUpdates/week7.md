@@ -1,0 +1,147 @@
+# NISHANT
+
+## Weekly Summary
+- Week 7 focused on auditing the Image Studio against its original Linear acceptance criteria and closing the remaining gaps to bring the feature to a fully complete state.
+- I reviewed the three Linear issues tied to the Image Studio (BEY-48, BEY-40, BEY-32) and traced each acceptance criterion through the codebase to confirm what was implemented and what was missing.
+- The one gap identified was that clicking a generated image was supposed to open it full-size in a modal - this behavior was specified in BEY-48 but had not been implemented. I built and shipped the lightbox modal this week.
+
+## Work Completed
+- Pulled and reviewed all three Image Studio Linear issues (BEY-48, BEY-40, BEY-32) to systematically check acceptance criteria against the current implementation.
+- Confirmed BEY-40 (backend workflow) and BEY-32 (Supabase Storage) were fully implemented - prompt enhancement, image generation, upload pipeline, and signed URL delivery were all working correctly.
+- Identified the missing feature from BEY-48: clicking a generated image should open it full-size in a modal, which was not yet implemented.
+- Added `modalUrl` state to `ImagePage.tsx` to track which image is currently open in the lightbox.
+- Added `onClick` and `onKeyDown` handlers to all image preview elements in both the fresh outputs section and the saved gallery section.
+- Built the lightbox overlay - a fixed full-screen backdrop that dismisses on click, rendering the selected image at up to 90vw/90vh with `object-fit: contain`.
+- Added `image-gallery-preview--clickable` CSS class with a zoom-in cursor to communicate interactivity on hoverable images.
+- Added `.image-lightbox-overlay` and `.image-lightbox-img` CSS rules to `index.css` to style the modal and prevent image clicks from closing it unintentionally.
+- Pushed the changes to `main` and verified the commit included only the intended files.
+
+## Research / Technical Findings
+- A fixed-position overlay with `inset: 0` is the simplest reliable approach for a full-screen lightbox without pulling in a modal library.
+- Using `e.stopPropagation()` on the inner image element prevents the backdrop click-to-close from firing when the user clicks directly on the image.
+- Keyboard accessibility for the lightbox required both `role="button"` and `onKeyDown` on the clickable preview divs since they are `<div>` elements rather than native buttons.
+- Saved gallery images conditionally get the clickable class only when a `previewImage` URL is present, which prevents giving a zoom cursor to placeholder tiles that have no image to show.
+
+## Blockers / Risks
+- Signed URL expiration from week 6 remains an open issue - images in the saved gallery will eventually return broken `<img>` tags as their 24-hour URLs expire. A URL refresh mechanism or longer-lived signed URLs are needed before production.
+- The lightbox does not currently have a close button, relying entirely on backdrop click and keyboard dismiss - a visible close affordance may be needed for mobile users.
+
+## Hours Worked
+- Total estimated time: 10 hours
+
+# KUSHAGRA BHARTI
+
+## Weekly Summary
+- Week 7 was focused on agent research and on exploring the core infrastructure needed to make Beyond Chat more capable than a standard chat interface.
+- I spent most of the week studying how agent systems handle context management, tool usage, memory boundaries, and execution flow so the project can support more reliable autonomous behavior.
+- The main goal was to identify the practical building blocks for agent workflows, then test those ideas in isolated sandboxes before they are wired into the main product.
+
+## Work Completed
+- Researched how modern agent systems manage context so they can keep track of relevant instructions, conversation history, tool outputs, and task state without overflowing the model context window.
+- Studied context compression and selection strategies, including how agents decide what to keep, what to summarize, and what to drop when conversations or task histories become too large.
+- Looked into tool orchestration patterns for agents, especially how search, execution, and retrieval tools can be chained together without making the system brittle.
+- Added a search API in a test sandbox inspired by tools like EXA AI so agents can retrieve external information instead of relying only on static model knowledge.
+- Experimented with a virtual sandbox environment for agents so they can execute code safely in isolation rather than running everything directly in the main application process.
+- Tested how sandboxed execution can support code running, lightweight task automation, and structured agent actions while keeping the surrounding system more secure and predictable.
+- Explored how agent environments can separate planning, retrieval, and execution so each part of the workflow stays easier to debug and control.
+- Looked into how agent outputs should be surfaced back to the user in a way that preserves traceability, rather than hiding everything behind a black-box response.
+- Compared different ways of handling agent memory and persistence so future work can decide whether to store state in short-lived context, durable task records, or a mix of both.
+- Investigated how search + execution loops could be used together, for example letting an agent search for relevant information first and then run code or transformations based on that information.
+- Used the sandbox experiments to understand practical limits around latency, permissions, state isolation, and how much autonomy is safe to give an agent by default.
+
+## Research / Technical Findings
+- Agent quality depends heavily on context management; without disciplined context selection, the system quickly becomes noisy, expensive, and harder to trust.
+- Search tools materially improve agent usefulness because they let the model ground its responses in current or task-specific information instead of guessing.
+- Sandboxed code execution is a practical requirement for agent systems that need to do real work, especially when the task involves scripting, transformation, or validation.
+- Separating planning from execution makes the overall workflow easier to reason about and reduces the risk of one bad step cascading through the whole interaction.
+- A test sandbox is the right place to validate agent primitives before they are promoted into the product, because it makes failure modes easier to observe without affecting the main app.
+
+## Blockers / Risks
+- Agent systems can become unstable if context growth is not controlled, so summarization and retrieval rules will need to be defined carefully.
+- External search tools introduce dependency and quality concerns because search results can vary in relevance, freshness, and reliability.
+- Virtual sandboxes reduce risk, but they add complexity around execution limits, resource isolation, and returning structured results back to the main app.
+- The agent architecture still needs clearer boundaries for what should happen in the model, what should happen in tools, and what should remain purely deterministic code.
+
+## Hours Worked
+- Total estimated time: 18 hours
+
+## Diya
+
+## Weekly Summary
+
+**Week 7** focused on refining the overall user experience of the workspace by polishing the core navigation system and completing the full integration of the Compare Studio feature. A significant portion of this week was dedicated to improving the responsiveness and visual stability of the sidebar, ensuring that transitions between expanded and collapsed states felt smooth, intentional, and free of disruptive layout shifts.
+
+In addition to resolving UI inconsistencies in the navigation layer, I also worked on elevating the Model Compare page to align with the design standards established across the rest of the application. This involved replacing temporary UI elements with the standardized component system, improving both the visual consistency and maintainability of the codebase. Overall, the goal for the week was to move the product closer to a cohesive, production-ready interface by eliminating rough edges and ensuring all major features are properly integrated into the workspace.
+
+---
+
+## Work Completed
+
+- Conducted a detailed audit of the sidebar behavior within the `DashboardLayout` component to identify the root cause of abrupt layout snapping during expansion and collapse interactions. Implemented smoother transitions by introducing cubic-bezier CSS transition rules to both the `.app-sidebar` width and `.app-main` margin, resulting in a significantly improved and more polished animation experience.
+
+- Resolved persistent text clipping issues affecting the "Workspace" and "Library" section labels in the collapsed sidebar state. This was achieved by applying `overflow: hidden` and combining it with a controlled opacity transition, ensuring that text fades out cleanly instead of being abruptly cut off, which improves both readability and perceived quality.
+
+- Investigated a horizontal overflow issue in the compact sidebar configuration and identified the `AppBrand` component as the source. The issue stemmed from the "Beyond Chat" text remaining rendered even in compact mode. Updated `protectedUi.tsx` to conditionally unmount the text when the `compact={true}` prop is passed, eliminating overflow and restoring proper layout constraints.
+
+- Finalized the integration of the Compare Studio feature into the main user workflow by adding a dedicated shortcut tile on the dashboard (`HomePage.tsx`). This ensures that the feature is easily discoverable and accessible, improving overall usability and feature visibility.
+
+- Performed a comprehensive UI refactor of `ComparePage.tsx`, replacing raw HTML elements such as `<textarea>` and `<button>` with standardized design system components including `<PageSection>`, `<MotionCard>`, `<TextArea>`, and `<PrimaryButton>`. This change enhances consistency across the application, improves accessibility, and aligns the page with the established visual language of the workspace.
+
+- Organized and committed all changes into two clean, well-scoped commits - one focused on sidebar and navigation fixes, and the other dedicated to Compare Studio integration and UI improvements - ensuring clear version control history and maintainability.
+
+---
+
+## Research / Technical Findings
+
+- Determined that leveraging native CSS transition properties for layout changes (specifically sidebar width adjustments) is significantly more performant than relying on heavier animation libraries for this use case. By combining `white-space: nowrap` with `overflow: hidden`, it is possible to achieve smooth and visually stable transitions without introducing unnecessary rendering overhead.
+
+- Discovered that the `MotionCard` component enforces design constraints by stripping inline style objects, which prevents ad hoc layout styling. As a result, layout-specific rules such as grid and flexbox configurations must be applied through wrapper elements or predefined class names (e.g., `.compare-card`). This reinforces consistency but requires more deliberate structural planning during implementation.
+
+- Validated the reliability of the OpenRouter integration through end-to-end API testing using `curl`. These tests confirmed that multi-model comparison requests are successfully processed and returned as structured JSON payloads, which are then safely transformed and consumed by the frontend via the `lib/api.ts` mapping layer.
+
+---
+
+## Blockers / Risks
+
+- The Image Studio feature remains partially blocked due to limitations in the OpenRouter API, which does not currently provide support for a native `/images/generations` endpoint. To enable image generation functionality, an alternative solution must be implemented, such as integrating directly with the OpenAI API or configuring a third-party provider like Stability AI through environment variables in the `.env` file.
+
+- The current error handling strategy within the `ComparePage` is heavily dependent on textual error output. In scenarios where the `comparePrompt` API call fails due to parsing issues or model provider timeouts, the user experience may degrade. A more robust fallback mechanism, such as a visual empty state or loading/error illustration, should be considered to improve resilience and usability under failure conditions.
+
+---
+
+## Hours Worked
+
+**Total estimated time:** 8 hours
+
+## HARSH KOTHARI
+
+Weekly Summary
+
+- Focused on building and shipping the Model Compare Studio - the side-by-side LLM comparison feature that lets users send the same prompt to multiple models and see responses together.
+- Resolved merge conflicts and integration issues to get the feature merged into main and deployed to Vercel.
+- Fixed backend auth flow for local development and configured environment secrets (Supabase JWT, OpenRouter).
+
+Work Completed
+
+- Built ComparePage.tsx - full UI with prompt input, toggleable model selector (GPT-4o, Claude Sonnet, Gemini Flash), compare button, and side-by-side results panel with loading animations and latency metadata.
+- Wired the Compare Studio into the existing app routing as a lazy-loaded /compare route and added it to the sidebar navigation.
+- Resolved merge conflicts between the feature branch and main (which had evolved significantly with new routing, API layer, and lazy loading patterns).
+- Adapted the Compare page to use main's existing comparePrompt() API and theme tokens instead of standalone implementations.
+- Configured backend .env with Supabase JWT secret and OpenRouter API key.
+- Fixed backend auth middleware to prioritize local dev bypass over JWT verification, unblocking local testing.
+- Deployed frontend changes to Vercel via push to main.
+
+Research / Technical Findings
+
+- Main branch already had a /api/chat/compare backend endpoint and comparePrompt() API helper - only the frontend UI was missing.
+- Supabase JWT secret (from Dashboard > API > JWT Settings) is different from the secret API key - needed the correct one for backend token verification.
+- Backend auth middleware was blocking local dev when a Supabase session token was present but JWT verification wasn't configured - moving the dev bypass check earlier in the flow fixed this.
+
+Blockers / Risks
+
+- OpenRouter API key has no credits - need to purchase credits before the Compare Studio can be fully tested end-to-end.
+- Backend is not deployed yet (only frontend on Vercel), so the Compare Studio only works locally for now.
+
+Hours Worked
+
+- Total estimated time: ~5 hours

@@ -1,0 +1,70 @@
+.claude
+.agents
+skills/
+skills-lock.json
+
+# AI agent tool directories
+.codebuddy/
+.commandcode/
+.continue/
+.crush/
+.factory/
+.goose/
+.kilocode/
+.kiro/
+.mcp.json
+.mcpjam/
+.mux/
+.neovate/
+.openhands/
+.pi/
+.qoder/
+.qwen/
+.roo/
+.trae/
+.windsurf/
+.zencoder/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules
+.venv
+.conda
+
+# Build outputs
+dist
+dist-ssr
+
+# Python caches
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Local environment files
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# env files
+.env
+.env.*
+backend/.env
+frontend/.env.local
+api-credentials.txt
