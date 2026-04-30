@@ -52,7 +52,7 @@
 - Artifact collections or launch-kit bundles still need to be built so the final demo output feels complete.
 
 ## Hours Worked
-- Total estimated time: 18 hours
+- Total estimated time: 10 hours
 
 # NISHANT BHAGAT
 
