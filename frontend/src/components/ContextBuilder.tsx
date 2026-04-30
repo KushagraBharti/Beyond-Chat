@@ -7,15 +7,42 @@ export default function ContextBuilder({
   selectedIds,
   onChange,
   title = "Context Builder",
+  suggestedStudio,
 }: {
   selectedIds: string[];
   onChange: (ids: string[]) => void;
   title?: string;
+  suggestedStudio?: string;
 }) {
   const [items, setItems] = useState<ArtifactRecord[]>([]);
+  const [suggestedItems, setSuggestedItems] = useState<ArtifactRecord[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!suggestedStudio) {
+      setSuggestedItems([]);
+      return;
+    }
+
+    let active = true;
+    listArtifacts({ studio: suggestedStudio, limit: 5 })
+      .then(({ items: fetched }) => {
+        if (active) {
+          setSuggestedItems(fetched);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setSuggestedItems([]);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [suggestedStudio]);
 
   useEffect(() => {
     let active = true;
@@ -45,7 +72,10 @@ export default function ContextBuilder({
     };
   }, [query]);
 
-  const selectedItems = items.filter((item) => selectedIds.includes(item.id));
+  const allKnownItems = [...suggestedItems, ...items].filter(
+    (item, index, allItems) => allItems.findIndex((candidate) => candidate.id === item.id) === index,
+  );
+  const selectedItems = allKnownItems.filter((item) => selectedIds.includes(item.id));
 
   const toggleSelection = (id: string) => {
     if (selectedIds.includes(id)) {
@@ -87,6 +117,62 @@ export default function ContextBuilder({
 
       {loading ? <div className="meta-placeholder">Loading context options...</div> : null}
       {error ? <div className="error-copy">{error}</div> : null}
+
+      {suggestedItems.length > 0 ? (
+        <div>
+          <div
+            style={{
+              color: "#6B6B70",
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              letterSpacing: "0.06em",
+              marginBottom: "0.5rem",
+              textTransform: "uppercase",
+            }}
+          >
+            Suggested from {suggestedStudio?.charAt(0).toUpperCase()}
+            {suggestedStudio?.slice(1)} Studio
+          </div>
+          <div className="context-grid">
+            {suggestedItems.map((item) => {
+              const selected = selectedIds.includes(item.id);
+              return (
+                <button
+                  key={item.id}
+                  className={`context-option ${selected ? "is-selected" : ""}`}
+                  onClick={() => toggleSelection(item.id)}
+                  type="button"
+                >
+                  <div className="context-option-top">
+                    <strong>{item.title}</strong>
+                    <div style={{ alignItems: "center", display: "flex", gap: "0.25rem" }}>
+                      <span
+                        style={{
+                          background: "#4F3FE8",
+                          borderRadius: "3px",
+                          color: "#fff",
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          padding: "1px 5px",
+                        }}
+                      >
+                        {suggestedStudio}
+                      </span>
+                      <StatusBadge status={selected ? "connected" : "disconnected"} label={selected ? "Included" : ""} />
+                    </div>
+                  </div>
+                  <p>{item.summary ?? item.content.slice(0, 120)}</p>
+                  <div className="context-option-tags">
+                    {item.tags.map((tag) => (
+                      <span key={tag}>#{tag}</span>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {!loading && !items.length ? (
         <EmptyState

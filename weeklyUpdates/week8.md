@@ -237,3 +237,32 @@
 
 ## Time worked: 
 - 6 hours 
+
+# NISHANT BHAGAT
+
+## Weekly Summary
+- Week 8 was focused on building out the Image Studio from the ground up — getting prompt controls, model selection, and Supabase-backed image storage working end-to-end.
+- I spent most of my time designing the frontend upload and display flow, wiring the image generation backend to Supabase Storage, and making sure generated images persist across sessions.
+- A secondary focus was making the studio resilient when one model fails — showing partial results instead of blocking the entire run.
+
+## Work Completed
+- Built the initial `ImagePage.tsx` with prompt input, model selection controls, aspect ratio and style options, and a results grid.
+- Integrated the image generation run flow with the backend `/api/runs` endpoint using the `image` studio type.
+- Wired Supabase Storage upload into the image workflow so generated images are saved to the `artifacts` bucket under a workspace-scoped path.
+- Added signed URL generation so image results render from Supabase Storage rather than relying on transient model API URLs.
+- Implemented per-model result rendering so the UI groups outputs by model and clearly shows which models succeeded and which failed.
+- Added loading states and error badges for individual model slots so partial success is communicated clearly without hiding results that did come back.
+- Tested the end-to-end flow locally across multiple image models to confirm storage paths, signed URLs, and run records were all writing correctly.
+- Coordinated with Kushagra on the parallel generation changes in `backend/src/workflows.py` to make sure the frontend contract matched the new multi-model output shape.
+
+## Research / Technical Findings
+- Supabase Storage signed URLs have a configurable expiry — for image results we default to 1 hour, which is enough for active sessions but means bookmarked URLs will expire. Long-term artifact links need a refresh mechanism.
+- Grouping image results by model requires the backend to return per-model status alongside the output so the frontend can differentiate success, failure, and pending.
+- Aspect ratio and style options vary significantly across image models — treating them as optional metadata passed through the run options dict is more flexible than hardcoding per-model controls.
+
+## Blockers / Risks
+- Signed URL expiry means shared image links stop working after an hour — a longer-lived access pattern (e.g. RLS-based public reads or on-demand re-signing) will be needed before image artifacts are truly durable.
+- Image generation latency is high enough that users may think the studio is broken during the wait — better progress indicators are needed.
+
+## Hours Worked
+- Total estimated time: 11 hours

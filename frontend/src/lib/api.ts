@@ -4,6 +4,7 @@ export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "
 
 const apiBaseUrl = "";
 const workspaceStorageKey = "bc.workspace_id";
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let providerStatusesCache: Record<string, ProviderRecord> | null = null;
 
 export interface Workspace {
@@ -133,7 +134,12 @@ export interface CreateArtifactInput {
 
 export function getStoredWorkspaceId() {
   if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(workspaceStorageKey);
+  const stored = window.localStorage.getItem(workspaceStorageKey);
+  if (stored && !UUID_RE.test(stored)) {
+    window.localStorage.removeItem(workspaceStorageKey);
+    return null;
+  }
+  return stored;
 }
 
 export function setStoredWorkspaceId(workspaceId: string | null) {
@@ -423,6 +429,26 @@ export async function createArtifact(payload: CreateArtifactInput) {
     body: JSON.stringify(payload),
   });
   return { artifact };
+}
+
+export interface BillingStatus {
+  plan: "free" | "pro";
+  status: string;
+  current_period_end: string | null;
+  usage: { requests: number; spend_usd: number };
+  limits: { requests: number | null; spend_usd: number };
+}
+
+export async function getBillingStatus() {
+  return api<BillingStatus>("/api/billing/status");
+}
+
+export async function createCheckoutSession() {
+  return api<{ checkoutUrl: string }>("/api/billing/checkout", { method: "POST" });
+}
+
+export async function createPortalSession() {
+  return api<{ portalUrl: string }>("/api/billing/portal", { method: "POST" });
 }
 
 export async function listArtifacts(params?: {

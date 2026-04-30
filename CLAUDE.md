@@ -12,9 +12,9 @@ Execute requested coding tasks with high precision, minimal blast radius, and st
 
 You must always enforce:
 
-- **Frontend: Bun only** (`bun install`, `bun run ...`)
+- **Frontend: npm by default; Bun allowed when it works locally** (`npm install`, `npm run ...`)
 - **Backend: uv only** (`uv sync`, `uv run ...`)
-- Never use `npm`, `yarn`, `pnpm`, or `pip` for dependency workflows in this repo.
+- Never use `yarn`, `pnpm`, or `pip` for dependency workflows in this repo.
 
 If a user asks for a conflicting command, comply with intent but convert implementation to the approved toolchain.
 
@@ -54,7 +54,7 @@ Default behavior: product work belongs in `frontend/` + `backend/`.
 
 Run the smallest meaningful validations first, then broaden if needed.
 
-- Frontend edits: `bun run build`
+- Frontend edits: `npm run build`
 - Backend edits: run API with uv and verify affected endpoints
 - Integration edits: confirm frontend/backend path, including `/api/health`
 
@@ -87,15 +87,15 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 
 ```powershell
 cd frontend
-bun install
-bun run dev --host 127.0.0.1 --port 5173
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
 ### Build check
 
 ```powershell
 cd frontend
-bun run build
+npm run build
 ```
 
 ## Completion Checklist (Claude)
@@ -103,7 +103,7 @@ bun run build
 Before finishing any task, confirm:
 
 - Request is fully implemented.
-- Bun/uv policy remained intact.
+- npm/uv policy remained intact.
 - Relevant validations passed.
 - Docs were updated if setup/behavior changed.
 - Response includes concise next-step options when helpful.

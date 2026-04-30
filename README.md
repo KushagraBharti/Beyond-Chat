@@ -119,6 +119,9 @@ Required backend credentials on Vercel:
 - `FINANCIAL_DATASETS_API_KEY`
 - `X_BEARER_TOKEN` if X search should be enabled
 - `DEXTER_RUNNER_SHARED_SECRET`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRO_PRICE_ID`
 - Supabase credentials from [backend/env.example](backend/env.example)
 
 2. Sandbox runner project

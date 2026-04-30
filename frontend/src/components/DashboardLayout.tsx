@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
-import { setStoredWorkspaceId } from "../lib/api";
+import { getBillingStatus, setStoredWorkspaceId } from "../lib/api";
 import { supabase } from "../lib/supabaseClient";
 import { AppBrand } from "./protectedUi";
 
@@ -177,7 +177,31 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(true);
+  const [plan, setPlan] = useState<"free" | "pro" | null>(null);
   const collapsed = !expanded;
+
+  const displayName = useMemo(() => {
+    const metadata = user?.user_metadata;
+    if (metadata && typeof metadata.first_name === "string" && metadata.first_name.trim()) {
+      return metadata.first_name.trim();
+    }
+    if (metadata && typeof metadata.name === "string" && metadata.name.trim()) {
+      return metadata.name.trim();
+    }
+    return user?.email?.split("@")[0] ?? "User";
+  }, [user]);
+
+  useEffect(() => {
+    let active = true;
+    void getBillingStatus()
+      .then((status) => {
+        if (active) setPlan(status.plan);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSignOut = async () => {
     setStoredWorkspaceId(null);
@@ -262,22 +286,34 @@ export default function DashboardLayout() {
             </nav>
           </div>
 
-          <div className={`${expanded ? "flex items-end justify-start gap-3 pl-3 pr-2" : "flex flex-col items-center gap-3"}`}>
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-rose-500 text-sm font-bold text-white">
-              {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
+          <div className={`${expanded ? "flex items-center justify-between gap-2 px-1" : "flex flex-col items-center gap-3"}`}>
+            <div className={expanded ? "flex min-w-0 items-center gap-3" : "relative"}>
+              <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-rose-500 text-sm font-bold text-white">
+                {user?.email?.slice(0, 1).toUpperCase() ?? "U"}
+                {!expanded && plan === "pro" ? (
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#4F3FE8] text-[8px] font-black text-white ring-2 ring-white">
+                    P
+                  </span>
+                ) : null}
+              </div>
+              {expanded ? (
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-bold text-stone-900">{displayName}</div>
+                  <div className="mt-1 inline-flex rounded-full border border-stone-200 bg-white px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] text-stone-500">
+                    {plan === "pro" ? "Pro" : "Free"}
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <button
-              className={`group flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-stone-200 bg-white text-stone-700 transition hover:-translate-y-0.5 hover:border-[#4F3FE8] hover:bg-[#4F3FE8] hover:text-white hover:shadow-[0_14px_36px_rgba(79,63,232,0.32)] ${
-                expanded ? "min-w-[122px] px-4 py-3" : "h-11 w-11"
-              }`}
+              className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-700 transition hover:-translate-y-0.5 hover:border-[#4F3FE8] hover:bg-[#4F3FE8] hover:text-white hover:shadow-[0_14px_36px_rgba(79,63,232,0.32)]"
               onClick={handleSignOut}
               type="button"
               aria-label="Sign out"
               title="Sign out"
             >
               <ExitGlyph />
-              {expanded ? <span className="text-sm font-semibold">Sign out</span> : null}
             </button>
           </div>
         </aside>

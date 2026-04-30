@@ -26,12 +26,14 @@ export default function RunStudioWorkspace({
   eyebrow,
   description,
   promptPlaceholder,
+  suggestedStudio,
 }: {
   studio: "research" | "finance";
   title: string;
   eyebrow: string;
   description: string;
   promptPlaceholder: string;
+  suggestedStudio?: string;
 }) {
   const { openComparePanel } = useComparePanel();
   const isFinance = studio === "finance";
@@ -187,7 +189,7 @@ export default function RunStudioWorkspace({
             </div>
           </MotionCard>
 
-          <ContextBuilder selectedIds={contextIds} onChange={setContextIds} />
+          <ContextBuilder selectedIds={contextIds} onChange={setContextIds} suggestedStudio={suggestedStudio} />
 
           <StepTimeline
             steps={run?.steps ?? []}

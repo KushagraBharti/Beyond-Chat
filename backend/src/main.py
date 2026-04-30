@@ -30,6 +30,7 @@ from reportlab.pdfgen import canvas
 from .ai_context import merge_prompt_with_context, resolve_context_artifacts
 from .auth import RequestContext, require_request_context, resolve_request_context
 from .artifact_drafts import build_run_artifact_payload
+from .billing import record_usage_event, router as billing_router
 from .config import settings
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
@@ -57,6 +58,7 @@ if not any(isinstance(handler, RotatingFileHandler) and handler.baseFilename == 
 LOGGER = logging.getLogger("beyond_chat.api")
 
 app = FastAPI(title="Beyond Chat API", version="0.3.0")
+app.include_router(billing_router)
 
 cors_allow_origins = [
     "http://localhost:5173",
@@ -493,7 +495,7 @@ def delete_reminder(
 @app.post("/api/openrouter/chat", response_model=OpenRouterChatResponse)
 async def openrouter_chat(
     payload: OpenRouterChatRequest,
-    _context: RequestContext = Depends(require_request_context),
+    context: RequestContext = Depends(require_request_context),
 ) -> OpenRouterChatResponse:
     try:
         content = await call_openrouter(
@@ -510,6 +512,7 @@ async def openrouter_chat(
             ) from exc
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
+    record_usage_event(context, event_type="openrouter_chat", model=payload.model)
     return OpenRouterChatResponse(model=payload.model, content=content)
 
 
@@ -603,6 +606,7 @@ async def add_message(
                 temperature=0.4,
                 max_tokens=700,
             )
+            record_usage_event(context, event_type="chat_message", model=payload.model)
         except RuntimeError as exc:
             assistant_content = str(exc)
 
@@ -643,6 +647,7 @@ async def add_message_stream(
                 ):
                     assistant_content += chunk
                     yield sse("delta", {"content": chunk})
+                record_usage_event(context, event_type="chat_message_stream", model=payload.model)
             except RuntimeError as exc:
                 assistant_content = str(exc)
                 yield sse("delta", {"content": assistant_content})
@@ -678,6 +683,8 @@ async def compare(
         context_artifacts = resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
         effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
         results = await compare_models(effective_prompt, payload.models)
+        for model in payload.models:
+            record_usage_event(context, event_type="model_compare", model=model)
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
@@ -717,6 +724,7 @@ async def create_run(
         len(payload.prompt),
         len(payload.context_ids),
     )
+    record_usage_event(context, event_type=f"{payload.studio}_run", model=payload.model)
 
     if payload.studio == "finance":
         data_store.add_run_step(

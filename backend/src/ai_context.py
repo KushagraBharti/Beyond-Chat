@@ -28,16 +28,61 @@ def resolve_context_artifacts(
     return artifacts
 
 
+def _format_data_content_block(artifact: dict[str, Any]) -> str:
+    content_json = artifact.get("contentJson")
+    if not isinstance(content_json, dict):
+        return ""
+
+    lines: list[str] = [f"[Data Analysis - {artifact.get('title') or 'Untitled'}]"]
+
+    insight = content_json.get("insight")
+    if isinstance(insight, str) and insight.strip():
+        lines.append(f"Insight: {insight.strip()}")
+
+    table = content_json.get("table")
+    if isinstance(table, dict):
+        headers = table.get("headers") or []
+        rows = table.get("rows") or []
+        if headers:
+            lines.append("")
+            lines.append("Table:")
+            lines.append("| " + " | ".join(str(header) for header in headers) + " |")
+            lines.append("| " + " | ".join("---" for _ in headers) + " |")
+            for row in rows:
+                lines.append("| " + " | ".join(str(cell) for cell in (row or [])) + " |")
+
+    chart_data = content_json.get("chart_data")
+    chart_type = content_json.get("chart_type", "")
+    if isinstance(chart_data, dict):
+        labels = chart_data.get("labels") or []
+        datasets = chart_data.get("datasets") or []
+        first_dataset = datasets[0] if datasets and isinstance(datasets[0], dict) else {}
+        values = first_dataset.get("data") or []
+        if labels or values:
+            lines.append("")
+            lines.append(f"Chart data ({chart_type}):")
+            lines.append(f"Labels: {labels}")
+            lines.append(f"Values: {values}")
+
+    return "\n".join(lines)
+
+
 def build_context_block(artifacts: list[dict[str, Any]]) -> str:
     if not artifacts:
         return ""
 
     sections: list[str] = []
     for artifact in artifacts:
-        content = str(artifact.get("content") or "").strip()
-        trimmed_content = content[:MAX_CONTEXT_CHARS_PER_ARTIFACT]
-        if len(content) > MAX_CONTEXT_CHARS_PER_ARTIFACT:
-            trimmed_content += "\n...[truncated]"
+        if artifact.get("studio") == "data" and artifact.get("contentJson") is not None:
+            body = _format_data_content_block(artifact)
+            if not body:
+                body = str(artifact.get("content") or "").strip() or "[empty]"
+        else:
+            content = str(artifact.get("content") or "").strip()
+            body = content[:MAX_CONTEXT_CHARS_PER_ARTIFACT]
+            if len(content) > MAX_CONTEXT_CHARS_PER_ARTIFACT:
+                body += "\n...[truncated]"
+            body = body or "[empty]"
 
         sections.append(
             "\n".join(
@@ -48,7 +93,7 @@ def build_context_block(artifacts: list[dict[str, Any]]) -> str:
                     f"Type: {artifact.get('type') or 'unknown'}",
                     f"Summary: {artifact.get('summary') or 'No summary provided.'}",
                     "Content:",
-                    trimmed_content or "[empty]",
+                    body,
                 ]
             )
         )

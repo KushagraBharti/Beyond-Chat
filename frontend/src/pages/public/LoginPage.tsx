@@ -25,6 +25,10 @@ export default function LoginPage() {
     if (authLoading || !session) {
       return;
     }
+    if (window.sessionStorage.getItem("upgrade_intent") === "1") {
+      navigate("/pricing", { replace: true });
+      return;
+    }
     navigate("/dashboard", { replace: true });
   }, [authLoading, navigate, session]);
 
@@ -54,7 +58,13 @@ export default function LoginPage() {
       }
 
       if (mode === "signup") {
-        const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
+        });
         if (signUpError) {
           throw signUpError;
         }
@@ -62,7 +72,6 @@ export default function LoginPage() {
         if (data.session) {
           await bootstrapAuth();
           setMessage("Account created and workspace provisioned.");
-          navigate("/dashboard", { replace: true });
         } else {
           setMessage("Account created. Confirm the email if required, then sign in.");
         }
@@ -74,7 +83,6 @@ export default function LoginPage() {
 
         await bootstrapAuth();
         setMessage("Signed in successfully. Workspace restored.");
-        navigate("/dashboard", { replace: true });
       }
     } catch (submitError: unknown) {
       setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
@@ -187,6 +195,14 @@ export default function LoginPage() {
                       className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
                     />
                   </label>
+
+                  {mode === "signin" ? (
+                    <div className="flex justify-end">
+                      <Link to="/forgot-password" className="text-sm font-semibold text-violet-700 hover:text-violet-900">
+                        Forgot password?
+                      </Link>
+                    </div>
+                  ) : null}
 
                   {mode === "signup" ? (
                     <label className="block space-y-2">
