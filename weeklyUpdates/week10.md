@@ -37,3 +37,37 @@
 
 ## Hours Worked
 - Total estimated time: 14 hours
+
+
+# DIYA MEHTA
+
+## Weekly Summary
+- Week 10 was focused on implementing a production-ready Google Calendar integration and refining the local development authentication flow to enable faster iteration.
+- The primary goal was to move from mock calendar data to a live, authorized API connection that persists across sessions.
+- Successfully implemented the full OAuth 2.0 lifecycle on the backend and wired the live agenda view into the frontend dashboard.
+
+## Work Completed
+- **OAuth Infrastructure**: Built the OAuth 2.0 flow in `backend/src/providers.py`, including URL generation with `calendar.readonly` scopes and a callback handler for secure code exchange.
+- **Token Management**: Implemented a local persistence layer (`.google_tokens.json`) to store access and refresh tokens, enabling integration state to survive backend restarts.
+- **Live Agenda API**: Replaced mock event data with actual calls to the Google Calendar `primary` events endpoint using `httpx`, fetching real-time event titles, start times, and locations.
+- **Token Refresh Logic**: Developed an automatic refresh mechanism that detects expired access tokens and silently updates them using the refresh token before API calls.
+- **Backend Routing**: Added the `/api/integrations/google-calendar/callback` endpoint to `main.py` and updated existing status and event routes to handle live user contexts.
+- **Auth Bypass Refinement**: Modified `backend/src/auth.py` and `backend/src/runtime_store.py` to support a local bypass mode (`ALLOW_LOCAL_AUTH_BYPASS`), allowing full testing of integrations without a Supabase production JWT.
+- **Frontend Integration**: Updated `HomePage.tsx` to display real calendar data and connected the "Connect" button to the live OAuth flow, ensuring the UI reflects the real-time `Connected` status.
+
+## Research / Technical Findings
+- Google OAuth token exchange requires a strict `redirect_uri` match between the initial request and the code exchange call; even a trailing slash mismatch causes a `redirect_uri_mismatch` error.
+- Implementing a silent refresh loop (checking `expires_at` before every request) is essential for a seamless user experience in read-only calendar integrations.
+- Local development bypasses must be synchronized across the stack (frontend `.env` and backend `auth.py`) to prevent 401/403 errors during cross-origin API requests.
+- The `timeMin` parameter in the Google Calendar API must be in RFC3339 format (ISO string) to correctly filter for upcoming events and minimize payload size.
+
+## Blockers / Risks
+- **Credential Sensitivity**: The integration relies on `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in the `.env` file, which must be manually configured in any new deployment environment.
+- **Token Storage Scaling**: The current JSON-file-based token storage is suitable for local development but will require a migration to a relational database (Supabase/Postgres) for multi-user production support.
+- **Scope Limitations**: The integration is currently limited to `readonly` access; any future feature for creating calendar events will require a scope update and user re-consent.
+
+## Hours Worked
+- Total estimated time: 6 hours
+
+
+
