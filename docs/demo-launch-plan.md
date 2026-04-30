@@ -1,180 +1,511 @@
-# Beyond Chat Demo Launch Plan
+# Beyond Chat Investor Demo Plan
 
 ## Demo Thesis
 
-Show that Beyond Chat turns scattered product-launch work into one workspace:
+Beyond Chat is the workspace where a team launches a product from scattered company knowledge, market research, financial context, creative direction, and final artifacts.
 
-- source data is analyzed
-- market context is researched
-- financial meaning is made visible
-- copy and notes are drafted
-- creative assets are generated
-- results are saved as reusable artifacts
+The investor should understand the value in one sentence:
 
-The demo should feel obvious in under 30 seconds:
+> "Instead of jumping between Notion, spreadsheets, calendar, research tabs, image tools, and chat threads, the whole product launch moves through one artifact-first workspace."
 
-- "We launch a product in one workspace instead of jumping between spreadsheets, docs, research tabs, and design tools."
+## Final Demo Scenario
 
-## Demo Scenario
+### Company Frame
 
-### Company
+Use a public-company-style demo so Finance Studio can feel materially stronger.
 
-- Company: Northbound Coffee
-- Brand: a fast-growing premium ready-to-drink coffee company
-- Launch: a seasonal product called `Cinder Orange Cold Brew`
-- Audience: commuters, grocery buyers, and convenience-store shoppers
+- Company: Starbucks Innovation Team
+- Ticker context: SBUX
+- Workspace name: Starbucks Seasonal Launch Room
+- User: Maya Chen, Director of Beverage Innovation
+- Product: Cinder Orange Cold Brew
+- Launch window: Summer 2026
+- Core question: Should Starbucks pilot a citrus-forward cold brew across 400 stores?
 
-### Why This Scenario Works
+This keeps the story instantly understandable while letting Finance Studio talk about public-company market context, category risk, pricing, margin, and operational implications.
 
-- Everyone understands a product launch.
-- It naturally includes data, finance, writing, research, and image generation.
-- It creates one final deliverable investors can immediately recognize.
-- Every studio can participate without feeling forced.
+### Product Concept
 
-## One Flow
+- Name: Cinder Orange Cold Brew
+- Tagline: Bright citrus cold brew for warmer mornings.
+- Format: ready-to-drink bottle plus in-store handcrafted variation
+- Target buyer: morning commuters, Gen Z coffee buyers, seasonal beverage customers
+- Business goal: validate a seasonal beverage that increases cold coffee attachment without cannibalizing core cold brew
 
-### 1. Chat
+## Demo Arc
 
-- Start with a simple command:
-- "Help me launch Cinder Orange Cold Brew."
-- Chat becomes the intake point and orchestration layer.
-- Use it to show the workspace can coordinate the next steps.
+### 1. Dashboard
 
-### 2. Research
+The app opens into a live workspace, not an empty prompt box.
 
-- Pull competitor positioning, consumer language, category trends, and launch examples.
-- Save a short research report with visible sources.
-- Outcome: "Here is the market context."
+What to show:
 
-### 3. Data
+- Calendar preview with launch-critical meetings
+- Reminders for pricing lock, packaging review, and pilot decision
+- Provider status for Supabase, OpenRouter, Exa, Dexter, Notion, Calendar, Drive, and Slack
+- Quick links into each studio
+- A prominent launch workspace card: Cinder Orange Cold Brew
 
-- Upload the launch dataset.
-- Show sales by channel, gross margin, reorder rate, and seasonal demand.
-- Outcome: "Here is what the numbers say."
+Magic moment:
 
-### 4. Finance
+- "Before I ask the model anything, Beyond Chat already knows what workspace I am in, what is due, which sources are connected, and which launch artifacts exist."
 
-- Show price, unit economics, contribution margin, and break-even thinking.
-- Outcome: "Here is the business case."
+Needed features:
 
-### 5. Writing
+- Dashboard launch workspace card
+- Calendar agenda card
+- Integration tiles for Notion, Drive, Slack, Calendar
+- Demo-mode provider statuses for not-yet-live integrations
 
-- Draft the internal launch brief.
-- Draft the retailer-facing summary.
-- Draft the landing page copy and launch email.
-- Outcome: "Here is the language that ships."
+### 2. Chat
 
-### 6. Image
+Chat is the command center and thinking surface.
 
-- Generate packaging mockups, hero visuals, and social ad concepts.
-- Outcome: "Here is the creative direction."
+User prompt:
 
-### 7. Compare
+```text
+We are evaluating Cinder Orange Cold Brew for a summer pilot. Pull in our company notes, prior cold beverage artifacts, and any launch constraints. Help me decide what to research, analyze, and produce.
+```
 
-- Compare two positioning options:
-- premium citrus energy
-- bright functional coffee
-- Outcome: "Here is the better angle."
+What to show:
 
-### 8. Artifacts
+- Context Builder can attach:
+- Notion pages
+- saved artifacts
+- uploaded files
+- previous launch notes
+- calendar constraints
+- Chat summarizes the product, unknowns, and next best studios
+- Chat creates or suggests a launch plan artifact
+- Chat includes a button or action: `Create Launch Plan`
 
-- Save the final outputs into a launch kit.
-- Export the launch brief as Markdown or PDF.
-- Outcome: "Here is the reusable artifact."
+Magic moment:
 
-### 9. Settings / Home
+- "The model is not starting cold. It sees company knowledge, prior work, and durable artifacts."
 
-- Show the connected workspace, provider health, and saved context.
-- Outcome: "This is a real operating environment, not a standalone prompt box."
+Needed features:
 
-## Demo Asset Bundle
+- Context Builder source tabs: Artifacts, Notion, Files, Calendar, Slack
+- One-click add suggested context
+- Chat action button: Create Launch Plan
+- Save chat-derived plan as artifact
+- Button to continue the same context into Research Studio
 
-The demo should preload a fixed bundle of names and artifacts.
+### 3. Research Studio
 
-### Workspace Identity
+Research Studio handles external context: category trends, competitors, pricing, messaging, and source-backed launch risk.
 
-- Workspace name: `Northbound Coffee Launch Lab`
-- User name: `Maya Chen`
-- Role: Head of Product
-- Assistant persona: `Jordan Blake`, Chief of Staff
+Research prompt:
 
-### Final Demo Artifacts
+```text
+Research the market for citrus-forward cold brew and seasonal ready-to-drink coffee. Compare competitor positioning, likely buyer motivations, and risks for a Starbucks pilot.
+```
 
-- `Seasonal Launch Brief`
-- `Northbound Coffee Category Research`
-- `Launch Economics Memo`
-- `Retailer Pitch Notes`
-- `Landing Page Copy`
-- `Launch Email Draft`
-- `Social Ad Variants`
-- `Packaging Concepts`
-- `Compare Result: Positioning`
+What to show:
 
-### Suggested File Names
+- Visible research steps
+- Exa-backed source cards
+- Competitor grid
+- Customer language patterns
+- Opportunity/risk matrix
+- Save report as artifact
 
-- `northbound_launch_sales_q2.csv`
-- `northbound_customer_notes.md`
-- `northbound_competitor_notes.md`
-- `northbound_launch_brief.md`
-- `northbound_product_finance.xlsx`
-- `cinder_orange_packaging_prompt.md`
-- `retailer_pitch_one_pager.md`
+Magic moment:
 
-## Two-Week Product Plan
+- "Research becomes a structured artifact with sources, not a disappearing browser tab."
 
-### Week 1
+Needed features:
 
-- Lock the demo scenario and naming system.
-- Add demo seed data for every studio.
-- Make the launch brief easy to start from Chat.
-- Make Research output look source-backed and polished.
-- Make Data output read like a real product launch analysis.
-- Make Finance output show margin and break-even language clearly.
-- Make Writing output create a complete launch memo.
-- Make Image output generate at least two creative directions.
+- Better source cards
+- Competitor matrix output
+- Research-to-artifact save polish
+- Suggested follow-up: continue to Data Studio
 
-### Week 2
+### 4. Data Studio
 
-- Add workspace bundling so launch assets can be collected together.
-- Add source citations and provenance in more places.
-- Add one-click launch kit creation.
-- Add Notion import or a Notion-shaped mock integration if the real integration is not ready.
-- Add Google Drive or file-based doc ingestion if possible.
-- Add Slack-style note import if possible.
-- Improve compare so it can compare positioning or copy directions inside the same launch flow.
-- Polish the artifact bundle export experience.
+Data Studio should feel like a real data agent, not just a CSV summarizer.
 
-## Feature Priorities
+Data story:
 
-### Must Have
+- Starbucks has prior seasonal beverage pilot data.
+- The team wants to understand where a citrus cold brew is likely to work.
+- The user uploads or selects a preloaded dataset.
 
-- Launch scenario preload
-- Demo data for all studios
-- Artifacts bundle for the launch kit
-- Clear data and finance outputs
-- Strong image mockups
-- Compare panel for positioning
+Dataset:
 
-### Should Have
+- `starbucks_seasonal_beverage_pilots.csv`
+- Stores, regions, units sold, revenue, gross margin, repeat rate, attach rate, cannibalization index, weather index, and customer segment
 
-- Notion-style knowledge import
-- File upload or doc import
-- Better source traceability
-- Better launch brief export
-- Stronger artifact search and filtering
+Data prompt:
 
-### Nice To Have
+```text
+Analyze prior seasonal beverage pilots and estimate where Cinder Orange Cold Brew has the strongest pilot fit. Surface channel, region, margin, and cannibalization patterns.
+```
 
-- Slack thread ingestion
-- Drive folder ingest
-- Retailer pitch builder
-- Brand voice controls
-- Auto-generated launch checklist
+What to show:
 
-## Success Criteria
+- Dataset preview
+- Summary metrics
+- Region/channel performance chart
+- Margin vs repeat-rate chart
+- Anomaly or risk callout
+- Recommended pilot store profile
+- Save insight artifact
 
-- A viewer understands the scenario in seconds.
-- Every studio is visibly useful.
-- The final output feels like a real shipped deliverable.
-- The workspace story is stronger than a simple chatbot demo.
+Magic moment:
 
+- "The app sees the company data and turns it into a decision, not just a chart."
+
+Needed features:
+
+- Demo dataset picker
+- More complete data output schema
+- Charts beyond one bar chart
+- Data analysis step timeline
+- Save chart/table/insight as artifact
+- Suggested follow-up: continue to Finance Studio
+
+### 5. Finance Studio
+
+Finance Studio gives the launch a business case.
+
+Finance prompt:
+
+```text
+Using SBUX public-company context and our pilot assumptions, assess whether Cinder Orange Cold Brew is financially credible. Include price, gross margin, break-even units, cannibalization risk, and what management would need to believe.
+```
+
+What to show:
+
+- Dexter/tool timeline
+- Public company context
+- Unit economics
+- Pilot P&L
+- Break-even units
+- sensitivity table
+- financial risks
+- recommendation memo
+
+Magic moment:
+
+- "This is not generic product copy. It can reason through a public-company launch with financial assumptions and tool traces."
+
+Needed features:
+
+- Demo finance prompt preset
+- SBUX ticker context preset
+- Cleaner Dexter output rendering
+- Sensitivity table artifact
+- Finance-to-writing handoff
+
+### 6. Writing Studio
+
+Writing Studio turns all collected context into launch materials.
+
+Writing prompt:
+
+```text
+Draft the Cinder Orange Cold Brew launch kit using the research report, data analysis, finance memo, and Notion brand notes. Create an executive brief, retail pilot summary, product FAQ, launch email, and landing page copy.
+```
+
+What to show:
+
+- Context Builder attaches Research, Data, Finance, and Notion brand notes
+- Drafted launch brief
+- Drafted retailer pitch
+- Drafted landing page copy
+- Drafted email copy
+- Save each output as artifact
+
+Magic moment:
+
+- "Writing is no longer a blank page. It is grounded in everything the workspace has learned."
+
+Needed features:
+
+- Writing templates for launch brief, retailer pitch, landing page, email
+- Context attachments in Writing Studio
+- Multi-output writing run
+- Save multiple documents from one generation
+
+### 7. Image Studio
+
+Image Studio creates launch visuals from the same strategy context.
+
+Image prompts:
+
+```text
+Create a premium product mockup for Cinder Orange Cold Brew with Starbucks-inspired retail realism, citrus color accents, cold condensation, and summer morning lighting.
+```
+
+```text
+Create a social ad visual for Cinder Orange Cold Brew aimed at commuters, with orange peel, cold brew, glass bottle, and bright morning energy.
+```
+
+What to show:
+
+- Brand direction presets
+- Multiple model outputs
+- Packaging mockups
+- Social creative
+- Save visual artifacts
+
+Magic moment:
+
+- "The same workspace that analyzed the numbers also produces the creative."
+
+Needed features:
+
+- Demo prompt presets
+- Context-aware image prompt enhancement
+- Better gallery labels
+- Launch creative artifact bundle
+
+### 8. Compare Panel
+
+Compare is an LLM comparison layer, not a positioning-only feature.
+
+Where to embed:
+
+- Chat: compare launch strategy recommendations across models
+- Research: compare market synthesis across models
+- Writing: compare executive brief drafts across models
+
+Demo compare prompt:
+
+```text
+Given the attached research, data, and finance artifacts, recommend whether Starbucks should pilot Cinder Orange Cold Brew. Be concise, executive-ready, and explicit about risks.
+```
+
+What to show:
+
+- 3-4 LLM outputs side by side
+- latency/status per model
+- model disagreement
+- save the best result as an artifact
+
+Magic moment:
+
+- "Beyond Chat lets the operator compare model judgment at the point of work, with the same context attached."
+
+Needed features:
+
+- Open Compare from Chat, Research, and Writing with context attached
+- Save selected compare result
+- Add a "Use this answer" action where relevant
+
+### 9. Artifacts
+
+Artifacts are the proof that this is a workspace.
+
+Final launch kit:
+
+- Launch Plan
+- Notion Brand Notes
+- Category Research Report
+- Competitive Positioning Matrix
+- Seasonal Pilot Data Analysis
+- Finance Memo
+- Executive Launch Brief
+- Retail Pilot Summary
+- Landing Page Copy
+- Launch Email
+- Packaging Mockups
+- Social Ad Concepts
+- Model Compare Result
+
+Magic moment:
+
+- "Every output survives. The team is not trapped in chat history."
+
+Needed features:
+
+- Artifact collections or bundles
+- Launch kit detail view
+- Export bundle
+- Artifact provenance: source studio, model, context used, source run
+
+## Integration Plan
+
+### Notion
+
+Purpose:
+
+- Company knowledge
+- brand guidelines
+- customer interview notes
+- launch constraints
+- previous launch retrospectives
+
+Demo pages:
+
+- Starbucks Brand Voice Notes
+- Cold Beverage Launch Retrospective
+- Summer 2026 Beverage Pipeline
+- Retail Pilot Requirements
+- Customer Interview Highlights
+
+Initial implementation:
+
+- Demo-mode Notion source in Context Builder
+- Later: real Notion OAuth/search
+
+### Calendar
+
+Purpose:
+
+- Show launch deadlines
+- Check whether the user is free
+- Offer schedule-aware next steps
+
+Demo events:
+
+- Pricing lock
+- Packaging review
+- Retail pilot readout
+- Creative approval
+- Executive decision meeting
+
+Initial implementation:
+
+- Dashboard agenda card
+- "Find time for review" action
+- Later: real Google Calendar availability
+
+### Google Drive
+
+Purpose:
+
+- Pull briefs, docs, decks, and CSVs
+
+Demo files:
+
+- Retail Pilot One-Pager
+- Beverage Pipeline Spreadsheet
+- Customer Notes Export
+- Prior Launch Review Deck
+
+Initial implementation:
+
+- Demo file source in Context Builder
+- Later: real Drive picker/search
+
+### Slack
+
+Purpose:
+
+- Capture scattered team discussion
+
+Demo channels:
+
+- `#beverage-innovation`
+- `#retail-pilot`
+- `#creative-review`
+
+Initial implementation:
+
+- Demo Slack digest source
+- Later: real Slack channel/thread ingestion
+
+### Data Sources
+
+Purpose:
+
+- Provide numbers that make the launch decision meaningful
+
+Demo sources:
+
+- prior seasonal launch data
+- store cluster data
+- margin assumptions
+- customer segment data
+
+Initial implementation:
+
+- Built-in demo dataset picker
+- Later: Sheets, uploaded CSV, warehouse connectors
+
+## Two-Week Build Plan
+
+### Week 1: Make the Demo Work End to End
+
+- Add demo mode flag and launch workspace seed.
+- Add dashboard launch card, calendar card, and integration tiles.
+- Expand Context Builder to show source tabs.
+- Add demo Notion, Drive, Slack, Calendar, and Artifact context items.
+- Add a Chat launch prompt preset and `Create Launch Plan` action.
+- Add demo dataset picker to Data Studio.
+- Improve Data Studio output UI: metrics, charts, insight, table, risks.
+- Add finance prompt presets for SBUX/public-company context.
+- Add writing templates for launch kit deliverables.
+- Add image prompt presets for packaging and campaign creative.
+
+### Week 2: Make It Feel Like Magic
+
+- Add artifact collections for `Cinder Orange Launch Kit`.
+- Add cross-studio "Continue in..." actions.
+- Add context provenance to saved artifacts.
+- Add compare "Use this answer" and "Save best result" actions.
+- Add bundle export or launch kit preview.
+- Add richer source cards in Research Studio.
+- Add chart/table save from Data Studio.
+- Polish Dexter Finance output with sections and sensitivity table.
+- Make demo data deterministic so the investor flow never depends on live provider success.
+- Keep live provider paths available when keys are configured.
+
+## Feature Priority
+
+### P0 Demo Critical
+
+- Demo workspace seed
+- Context Builder source tabs
+- Demo Notion/company knowledge
+- Demo calendar agenda
+- Demo launch dataset picker
+- Strong Data Studio output
+- SBUX finance prompt preset
+- Writing launch templates
+- Image prompt presets
+- Artifact launch kit collection
+
+### P1 Strong Differentiators
+
+- Cross-studio handoff actions
+- Provenance on artifacts
+- Compare result save/use actions
+- Research competitor matrix
+- Finance sensitivity table
+- Dashboard integration hub
+
+### P2 After Investor Demo
+
+- Real Notion OAuth/search
+- Real Google Drive picker
+- Real Slack ingestion
+- Calendar availability scheduling
+- Sheets/warehouse connectors
+- Team sharing and permissions
+
+## Demo Script
+
+### Opening
+
+"Imagine you are on Starbucks' beverage innovation team. You are evaluating a new summer product, Cinder Orange Cold Brew. The data is in spreadsheets, the brand notes are in Notion, the team discussion is in Slack, the decision meeting is on the calendar, and every AI answer normally disappears into a chat thread."
+
+### Core Line
+
+"Beyond Chat turns that scattered launch into one workspace."
+
+### Close
+
+"At the end, we do not have a chat transcript. We have a launch kit: research, data, finance, copy, creative, and model comparisons, all saved as reusable artifacts."
+
+## Definition Of Done
+
+- Demo starts from Dashboard and never feels empty.
+- Every studio participates in the same launch.
+- Context appears to travel across the product.
+- Artifacts accumulate naturally.
+- Compare is shown as LLM judgment comparison.
+- The final launch kit is visible in Artifacts.
+- If live providers fail, demo-mode data still completes the story.
