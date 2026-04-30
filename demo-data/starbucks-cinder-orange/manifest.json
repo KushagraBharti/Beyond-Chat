@@ -1,0 +1,26 @@
+{
+  "demo": "starbucks-cinder-orange",
+  "workspace": "Starbucks Seasonal Launch Room",
+  "company": "Starbucks",
+  "ticker": "SBUX",
+  "product": "Cinder Orange Cold Brew",
+  "folders": {
+    "notion": "Mock company knowledge pages",
+    "artifacts": "Pre-existing Beyond Chat artifacts",
+    "data": "Data Studio demo datasets",
+    "finance": "Finance Studio prompts and public company context",
+    "research": "Research Studio prompts and proposal context",
+    "writing": "Writing Studio templates and launch documents",
+    "image": "Image Studio creative prompts and assets",
+    "compare": "Multi-LLM comparison prompts"
+  },
+  "primary_data_file": "data/starbucks_seasonal_beverage_pilots.csv",
+  "finance_prompt": "finance/dexter_finance_prompt.md",
+  "compare_prompt": "compare/launch_decision_compare_prompt.md",
+  "image_assets": [
+    "artifacts/images/cinder-orange-pack-shot.png",
+    "artifacts/images/cinder-orange-social-ad.jpeg",
+    "artifacts/images/cinder-orange-menu-board.png"
+  ]
+}
+

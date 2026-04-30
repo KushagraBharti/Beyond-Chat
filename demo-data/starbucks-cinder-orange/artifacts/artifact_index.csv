@@ -1,0 +1,9 @@
+artifact_id,title,type,studio,source_file,tags
+artifact-prior-cold-brew,Prior Cold Brew Launch Learnings,document,research,prior-cold-brew-launch-learnings.md,"cold-brew;launch;research"
+artifact-category-research,Category Research Memo,report,research,category-research-memo.md,"category;research;sources"
+artifact-pilot-decision-draft,Pilot Decision Brief Draft,document,writing,pilot-decision-brief-draft.md,"decision;brief;writing"
+artifact-creative-digest,Creative Review Digest,document,image,creative-review-digest.md,"creative;image;brand"
+artifact-pack-shot,Cinder Orange Pack Shot,image,image,images/cinder-orange-pack-shot.png,"image;packaging;mockup"
+artifact-social-ad,Cinder Orange Social Ad,image,image,images/cinder-orange-social-ad.jpeg,"image;social;campaign"
+artifact-menu-board,Cinder Orange Menu Board,image,image,images/cinder-orange-menu-board.png,"image;menu;retail"
+

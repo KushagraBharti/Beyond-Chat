@@ -172,13 +172,15 @@ Finance Studio gives the launch a business case.
 Finance prompt:
 
 ```text
-Using SBUX public-company context and our pilot assumptions, assess whether Cinder Orange Cold Brew is financially credible. Include price, gross margin, break-even units, cannibalization risk, and what management would need to believe.
+Using SBUX public-company context, our pilot assumptions, and public competitor context, assess whether Cinder Orange Cold Brew is financially credible. Compare Starbucks against relevant beverage and coffee peers, then include price, gross margin, break-even units, cannibalization risk, and what management would need to believe.
 ```
 
 What to show:
 
 - Dexter/tool timeline
 - Public company context
+- Competitor research across public beverage and coffee companies
+- Peer comparison table
 - Unit economics
 - Pilot P&L
 - Break-even units
@@ -194,9 +196,24 @@ Needed features:
 
 - Demo finance prompt preset
 - SBUX ticker context preset
+- Competitor ticker basket preset
+- Peer comparison card
+- Finance research source cards
 - Cleaner Dexter output rendering
 - Sensitivity table artifact
 - Finance-to-writing handoff
+
+Public-company competitor basket:
+
+- SBUX: Starbucks, core company context
+- BROS: Dutch Bros, high-growth beverage chain peer
+- DNUT: Krispy Kreme, consumer food/beverage retail comp
+- MCD: McDonald's, beverage and breakfast traffic benchmark
+- KO: Coca-Cola, RTD beverage scale and brand distribution benchmark
+- PEP: PepsiCo, bottled beverage and retail distribution benchmark
+- MNST: Monster Beverage, premium functional beverage margin benchmark
+
+Finance Studio should not imply these are perfect comps. The demo should explicitly frame them as useful public reference points for pricing power, beverage demand, gross margin expectations, and channel strategy.
 
 ### 6. Writing Studio
 
@@ -475,6 +492,7 @@ Initial implementation:
 - Compare result save/use actions
 - Research competitor matrix
 - Finance sensitivity table
+- Public-company competitor comparison in Finance Studio
 - Dashboard integration hub
 
 ### P2 After Investor Demo

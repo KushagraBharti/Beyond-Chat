@@ -1,0 +1,11 @@
+assumption,value,unit,notes
+pilot_stores,400,stores,Initial summer market test
+pilot_weeks,8,weeks,Limited-time decision window
+price_per_cup,5.95,USD,In-store handcrafted version
+variable_cost_per_cup,1.42,USD,Coffee citrus component cup labor allocation
+contribution_margin_per_cup,4.53,USD,Price less variable cost
+launch_budget,950000,USD,Creative media training supply readiness
+break_even_units,209713,cups,Launch budget divided by contribution margin
+base_units_per_store_week,75,cups,Base case volume assumption
+upside_units_per_store_week,110,cups,Upside case volume assumption
+conservative_units_per_store_week,45,cups,Downside case volume assumption

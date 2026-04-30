@@ -1,3 +1,59 @@
+# KUSHAGRA BHARTI
+
+## Weekly Summary
+- Week 10 focused on defining the investor-demo direction for Beyond Chat and turning it into a concrete product plan, demo scenario, and reusable mock data package.
+- The main product decision was to center the next two weeks around one clear end-to-end demo: a Starbucks-style beverage innovation team evaluating a new product launch called `Cinder Orange Cold Brew`.
+- The demo is designed to show every major Beyond Chat studio in one understandable workflow: Dashboard, Chat, Context Builder, Research, Data, Finance, Writing, Image, Compare, and Artifacts.
+- A major theme this week was shifting Beyond Chat from "many AI tools" toward a single artifact-first operating workspace where company knowledge, research, financial reasoning, datasets, creative assets, and final launch materials all connect.
+
+## Work Completed
+- Reviewed the current Beyond Chat product architecture and clarified the product thesis: Beyond Chat is an artifact-first AI workspace, not a generic chat app.
+- Mapped the existing app surface across protected studios, including Chat, Writing, Research, Image, Data, Finance, Artifacts, Settings, Dashboard, and the shared Compare panel.
+- Developed the main investor-demo concept around a product launch workflow instead of a generic executive brief, because a launch naturally uses data, finance, writing, research, creative images, and saved artifacts.
+- Refined the demo from a small coffee brand into a Starbucks-style public-company launch scenario so Finance Studio can use a stronger public-company and competitor-research angle.
+- Defined the demo workspace as `Starbucks Seasonal Launch Room`, with the user persona `Maya Chen`, Director of Beverage Innovation.
+- Created the product concept `Cinder Orange Cold Brew`, a citrus-forward summer cold brew pilot with both in-store and ready-to-drink context.
+- Wrote the full investor demo plan in `docs/demo-launch-plan.md`, including the dashboard entry point, chat orchestration, richer Context Builder, Notion/company knowledge, calendar awareness, Drive/Slack-style integrations, Research Studio, Data Studio, Finance Studio, Writing Studio, Image Studio, Compare, and Artifacts.
+- Added a two-week feature roadmap around the demo, prioritizing demo mode, launch workspace seed data, Context Builder source tabs, Notion-style company knowledge, calendar agenda, dataset picker, better Data Studio output, Finance Studio competitor comparisons, writing templates, image prompts, artifact collections, and cross-studio handoff actions.
+- Expanded `frontend/src/data/demoLaunchKit.ts` with structured mock data for the Starbucks launch demo, including workspace metadata, launch details, calendar events, context sources, chat prompts, research prompts, competitor grids, data assumptions, finance assumptions, writing deliverables, image prompts, compare prompts, and artifact names.
+- Added a Finance Studio competitor basket for public-company comparison: `SBUX`, `BROS`, `DNUT`, `MCD`, `KO`, `PEP`, and `MNST`.
+- Defined how each peer should be used in Finance Studio, including why it matters, what metrics to watch, and how it supports the Cinder Orange launch decision.
+- Created a dedicated mock demo data package under `demo-data/starbucks-cinder-orange/`.
+- Added Notion-style company knowledge docs covering Starbucks brand voice, cold beverage launch retrospectives, summer 2026 beverage pipeline, retail pilot requirements, customer interview highlights, and operations/Siren System notes.
+- Added pre-existing Beyond Chat artifact files, including prior cold brew launch learnings, category research memo, pilot decision brief draft, creative review digest, artifact index CSV, and beverage pipeline CSV.
+- Generated mock PNG/JPEG image artifacts for product pack shot, social ad, and menu board visuals to populate Image Studio and Artifacts.
+- Created a large deterministic Data Studio CSV with 1,800 rows at `demo-data/starbucks-cinder-orange/data/starbucks_seasonal_beverage_pilots.csv`.
+- Added a Data Studio dictionary explaining the dataset fields, including store clusters, regions, channels, revenue, margin, repeat rate, attach rate, cannibalization index, weather index, promo spend, conversion rate, operational complexity, stockouts, and NPS.
+- Added Finance Studio assets, including `dexter_finance_prompt.md`, `peer_competitor_basket.csv`, `pilot_finance_assumptions.csv`, and `public-company-context-notes.md`.
+- Added Research Studio assets, including a research prompt and product launch proposal.
+- Added Writing Studio assets, including a multi-document writing prompt and draft markdown files for the executive launch brief, retail pilot summary, product FAQ, launch email, and landing page copy.
+- Added Image Studio prompt files and creative direction notes.
+- Added a Compare prompt designed to send the same attached context to multiple LLMs and compare whether Starbucks should pilot Cinder Orange Cold Brew.
+- Created a demo package `README.md` and `manifest.json` so the folder can later be used by seed scripts, upload tooling, or demo-mode UI.
+- Grounded the mock Starbucks company knowledge in public Starbucks research and investor materials, including public discussion of cold beverage growth, store count, traffic/margin context, innovation strategy, and Siren System operations.
+- Validated the frontend build with `npm run build` after updating the structured demo data.
+
+## Research / Product Findings
+- A product launch is a stronger investor demo than a CEO brief because it is instantly understandable and naturally exercises every studio.
+- Starbucks/SBUX is a stronger demo frame than a fictional small coffee company because it lets Finance Studio use public-company analysis, peer comparison, and investor-style reasoning.
+- Context Builder is currently artifact-focused, so the next product step should be source tabs for Artifacts, Notion, Files/Drive, Calendar, Slack, and Datasets.
+- Compare should be shown as a shared LLM comparison feature embedded inside Chat, Research, and Writing rather than treated as a standalone studio.
+- The Data Studio needs to feel like a real data agent, so the demo dataset should be large enough to produce meaningful region, channel, margin, cannibalization, and operational-readiness insights.
+- Artifacts are the proof of the product thesis: the demo should end with a launch kit, not a transcript.
+- The investor flow needs deterministic demo data so the story still works if live provider calls fail during a demo.
+
+## Blockers / Risks
+- The demo data package is ready, but it is not yet wired into the live UI.
+- Context Builder still needs source tabs and mock integration sources to make Notion, Drive, Slack, Calendar, and Artifacts feel unified.
+- Compare still needs to be refactored further into a shared cross-studio feature with "use this answer" and "save best result" actions.
+- Data Studio still needs a richer analysis UI for the demo, including multiple charts, risk cards, and saved table/chart artifacts.
+- Finance Studio needs UI polish for competitor comparison, sensitivity tables, and clearer Dexter output sections.
+- Writing Studio needs multi-document generation and save flows to produce several launch documents from the same context.
+- Artifact collections or launch-kit bundles still need to be built so the final demo output feels complete.
+
+## Hours Worked
+- Total estimated time: 18 hours
+
 # NISHANT BHAGAT
 
 ## Weekly Summary

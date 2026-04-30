@@ -288,8 +288,66 @@ export const demoLaunchKit = {
   },
   finance: {
     prompt:
-      "Using SBUX public-company context and our pilot assumptions, assess whether Cinder Orange Cold Brew is financially credible. Include price, gross margin, break-even units, cannibalization risk, and what management would need to believe.",
+      "Using SBUX public-company context, our pilot assumptions, and public competitor context, assess whether Cinder Orange Cold Brew is financially credible. Compare Starbucks against relevant beverage and coffee peers, then include price, gross margin, break-even units, cannibalization risk, and what management would need to believe.",
     ticker: "SBUX",
+    competitorBasket: [
+      {
+        ticker: "SBUX",
+        company: "Starbucks",
+        role: "core company",
+        whyItMatters: "Direct launch owner with cold beverage, app, store, and brand context.",
+        watch: "Cold beverage mix, same-store sales, traffic, pricing power, margin commentary.",
+      },
+      {
+        ticker: "BROS",
+        company: "Dutch Bros",
+        role: "high-growth beverage chain peer",
+        whyItMatters: "Useful reference for flavored beverage demand and younger customer behavior.",
+        watch: "Unit growth, beverage innovation, traffic trends, customer frequency.",
+      },
+      {
+        ticker: "DNUT",
+        company: "Krispy Kreme",
+        role: "consumer food and beverage retail comp",
+        whyItMatters: "Useful for indulgent seasonal product drops and retail partnership dynamics.",
+        watch: "Seasonal launches, retail distribution, margin pressure, promotion intensity.",
+      },
+      {
+        ticker: "MCD",
+        company: "McDonald's",
+        role: "breakfast and beverage traffic benchmark",
+        whyItMatters: "McCafe and breakfast traffic are a practical benchmark for coffee occasion competition.",
+        watch: "Breakfast daypart, beverage value pricing, traffic trends.",
+      },
+      {
+        ticker: "KO",
+        company: "Coca-Cola",
+        role: "RTD beverage scale benchmark",
+        whyItMatters: "Provides reference for bottled beverage distribution, brand scale, and retail execution.",
+        watch: "RTD category strength, pricing, channel mix, product innovation.",
+      },
+      {
+        ticker: "PEP",
+        company: "PepsiCo",
+        role: "retail beverage distribution benchmark",
+        whyItMatters: "Useful comparison for retail channel strategy and beverage portfolio management.",
+        watch: "Convenience channel, pricing, gross margin, innovation cadence.",
+      },
+      {
+        ticker: "MNST",
+        company: "Monster Beverage",
+        role: "premium functional beverage margin benchmark",
+        whyItMatters: "Shows economics of premium beverage positioning, high margin, and strong brand-led demand.",
+        watch: "Gross margin, international growth, category resilience, premium price points.",
+      },
+    ],
+    competitorInsights: [
+      "Starbucks has the strongest owned-channel launch surface because store, app, loyalty, and beverage operations sit in one system.",
+      "Dutch Bros is the clearest public peer for younger flavored beverage demand, but it is less useful for RTD retail distribution.",
+      "Coca-Cola and PepsiCo are better distribution benchmarks than direct menu innovation comps.",
+      "Monster is not a coffee comp, but it is useful for understanding premium beverage margin and functional positioning.",
+      "McDonald's is the practical breakfast-occasion pressure test: if the product cannot defend a premium morning use case, value coffee wins.",
+    ],
     assumptions: {
       pricePerCup: 5.95,
       variableCostPerCup: 1.42,
