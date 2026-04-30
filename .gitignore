@@ -68,3 +68,5 @@ __pycache__/
 backend/.env
 frontend/.env.local
 api-credentials.txt
+
+.presentation-workspace
