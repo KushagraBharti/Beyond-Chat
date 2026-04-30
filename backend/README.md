@@ -38,7 +38,7 @@ Optional providers:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
-## Run Locally
+## Run Locally...
 
 ```powershell
 cd backend

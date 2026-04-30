@@ -38,3 +38,5 @@ npm run test
 
 - Compare is implemented as a shared panel, not a standalone route.
 - This is the only active frontend application in the repo.
+
+Push
