@@ -106,8 +106,12 @@ with check (
 );
 
 drop policy if exists integration_connections_workspace_access on public.integration_connections;
-create policy integration_connections_workspace_access on public.integration_connections
-for all
+drop policy if exists integration_connections_workspace_read on public.integration_connections;
+drop policy if exists integration_connections_owner_insert on public.integration_connections;
+drop policy if exists integration_connections_owner_update on public.integration_connections;
+drop policy if exists integration_connections_owner_delete on public.integration_connections;
+create policy integration_connections_workspace_read on public.integration_connections
+for select
 using (
     user_id = (select auth.uid())
     or exists (
@@ -116,15 +120,27 @@ using (
         where wm.workspace_id = integration_connections.workspace_id
           and wm.user_id = (select auth.uid())
     )
+);
+
+create policy integration_connections_owner_insert on public.integration_connections
+for insert
+with check (
+    user_id = (select auth.uid())
+);
+
+create policy integration_connections_owner_update on public.integration_connections
+for update
+using (
+    user_id = (select auth.uid())
 )
 with check (
     user_id = (select auth.uid())
-    or exists (
-        select 1
-        from public.workspace_members wm
-        where wm.workspace_id = integration_connections.workspace_id
-          and wm.user_id = (select auth.uid())
-    )
+);
+
+create policy integration_connections_owner_delete on public.integration_connections
+for delete
+using (
+    user_id = (select auth.uid())
 );
 
 drop policy if exists integration_sync_logs_workspace_access on public.integration_sync_logs;
@@ -250,7 +266,31 @@ using (
         where wm.workspace_id::text = (storage.foldername(name))[1]
           and wm.user_id = (select auth.uid())
     )
-);
+    and (
+        exists (
+            select 1
+            from public.artifacts a
+            where a.workspace_id::text = (storage.foldername(name))[1]
+              and a.id::text = (storage.foldername(name))[2]
+              and (
+                a.owner_profile_id = (select auth.uid())
+                or (a.owner_profile_id is null and a.created_by = (select auth.uid()))
+              )
+        )
+        or (
+            (storage.foldername(name))[2] = 'images'
+            and exists (
+                select 1
+                from public.runs r
+                where r.workspace_id::text = (storage.foldername(name))[1]
+                  and r.id::text = (storage.foldername(name))[3]
+                  and (
+                    r.owner_profile_id = (select auth.uid())
+                    or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+                  )
+            )
+        )
+    ));
 
 drop policy if exists artifact_bucket_workspace_write on storage.objects;
 create policy artifact_bucket_workspace_write on storage.objects
@@ -263,7 +303,31 @@ with check (
         where wm.workspace_id::text = (storage.foldername(name))[1]
           and wm.user_id = (select auth.uid())
     )
-);
+    and (
+        exists (
+            select 1
+            from public.artifacts a
+            where a.workspace_id::text = (storage.foldername(name))[1]
+              and a.id::text = (storage.foldername(name))[2]
+              and (
+                a.owner_profile_id = (select auth.uid())
+                or (a.owner_profile_id is null and a.created_by = (select auth.uid()))
+              )
+        )
+        or (
+            (storage.foldername(name))[2] = 'images'
+            and exists (
+                select 1
+                from public.runs r
+                where r.workspace_id::text = (storage.foldername(name))[1]
+                  and r.id::text = (storage.foldername(name))[3]
+                  and (
+                    r.owner_profile_id = (select auth.uid())
+                    or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+                  )
+            )
+        )
+    ));
 
 drop policy if exists artifact_bucket_workspace_update on storage.objects;
 create policy artifact_bucket_workspace_update on storage.objects
@@ -276,7 +340,31 @@ using (
         where wm.workspace_id::text = (storage.foldername(name))[1]
           and wm.user_id = (select auth.uid())
     )
-)
+    and (
+        exists (
+            select 1
+            from public.artifacts a
+            where a.workspace_id::text = (storage.foldername(name))[1]
+              and a.id::text = (storage.foldername(name))[2]
+              and (
+                a.owner_profile_id = (select auth.uid())
+                or (a.owner_profile_id is null and a.created_by = (select auth.uid()))
+              )
+        )
+        or (
+            (storage.foldername(name))[2] = 'images'
+            and exists (
+                select 1
+                from public.runs r
+                where r.workspace_id::text = (storage.foldername(name))[1]
+                  and r.id::text = (storage.foldername(name))[3]
+                  and (
+                    r.owner_profile_id = (select auth.uid())
+                    or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+                  )
+            )
+        )
+    ))
 with check (
     bucket_id = 'artifacts'
     and exists (
@@ -285,7 +373,31 @@ with check (
         where wm.workspace_id::text = (storage.foldername(name))[1]
           and wm.user_id = (select auth.uid())
     )
-);
+    and (
+        exists (
+            select 1
+            from public.artifacts a
+            where a.workspace_id::text = (storage.foldername(name))[1]
+              and a.id::text = (storage.foldername(name))[2]
+              and (
+                a.owner_profile_id = (select auth.uid())
+                or (a.owner_profile_id is null and a.created_by = (select auth.uid()))
+              )
+        )
+        or (
+            (storage.foldername(name))[2] = 'images'
+            and exists (
+                select 1
+                from public.runs r
+                where r.workspace_id::text = (storage.foldername(name))[1]
+                  and r.id::text = (storage.foldername(name))[3]
+                  and (
+                    r.owner_profile_id = (select auth.uid())
+                    or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+                  )
+            )
+        )
+    ));
 
 drop policy if exists artifact_bucket_workspace_delete on storage.objects;
 create policy artifact_bucket_workspace_delete on storage.objects
@@ -298,7 +410,31 @@ using (
         where wm.workspace_id::text = (storage.foldername(name))[1]
           and wm.user_id = (select auth.uid())
     )
-);
+    and (
+        exists (
+            select 1
+            from public.artifacts a
+            where a.workspace_id::text = (storage.foldername(name))[1]
+              and a.id::text = (storage.foldername(name))[2]
+              and (
+                a.owner_profile_id = (select auth.uid())
+                or (a.owner_profile_id is null and a.created_by = (select auth.uid()))
+              )
+        )
+        or (
+            (storage.foldername(name))[2] = 'images'
+            and exists (
+                select 1
+                from public.runs r
+                where r.workspace_id::text = (storage.foldername(name))[1]
+                  and r.id::text = (storage.foldername(name))[3]
+                  and (
+                    r.owner_profile_id = (select auth.uid())
+                    or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+                  )
+            )
+        )
+    ));
 
 drop policy if exists user_uploads_bucket_workspace_read on storage.objects;
 create policy user_uploads_bucket_workspace_read on storage.objects

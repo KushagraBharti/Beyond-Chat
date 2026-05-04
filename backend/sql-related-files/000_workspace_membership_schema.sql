@@ -5,7 +5,7 @@ returns trigger
 language plpgsql
 as $$
 begin
-    new.updated_at = timezone('utc', now());
+    new.updated_at = now();
     return new;
 end;
 $$;
@@ -16,8 +16,8 @@ create table if not exists public.user_profiles (
     display_name text,
     avatar_url text,
     metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 create table if not exists public.workspaces (
@@ -26,8 +26,8 @@ create table if not exists public.workspaces (
     name text not null,
     slug text unique,
     metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 create table if not exists public.workspace_members (
@@ -36,8 +36,8 @@ create table if not exists public.workspace_members (
     user_id uuid not null references auth.users(id) on delete cascade,
     role text not null default 'member' check (role in ('admin', 'member', 'viewer')),
     metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now()),
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
     unique (workspace_id, user_id)
 );
 

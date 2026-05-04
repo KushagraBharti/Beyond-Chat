@@ -280,11 +280,10 @@ export default function HomePage() {
     let active = true;
     void (async () => {
       try {
-        const [reminderResponse, providerResponse, eventResponse, artifactResponse] = await Promise.all([
+        const [reminderResponse, providerResponse, eventResponse] = await Promise.all([
           getReminders(),
           getProviderStatuses(),
           getCalendarEvents(),
-          listArtifacts({ limit: 8 }),
         ]);
 
         if (!active) return;
@@ -292,10 +291,20 @@ export default function HomePage() {
         setReminders(reminderResponse.items ?? []);
         setProviders(providerResponse.providers ?? {});
         setCalendarEvents(eventResponse.items ?? []);
-        setRecentArtifacts(artifactResponse.items ?? []);
       } catch (err) {
         if (active) {
           setError(err instanceof Error ? err.message : "Failed to load dashboard.");
+        }
+      }
+
+      try {
+        const artifactResponse = await listArtifacts({ limit: 8 });
+        if (active) {
+          setRecentArtifacts(artifactResponse.items ?? []);
+        }
+      } catch {
+        if (active) {
+          setRecentArtifacts([]);
         }
       }
     })();
@@ -370,7 +379,7 @@ export default function HomePage() {
     !["notion", "googleDrive", "slack"].includes(item.key),
   );
   const contextSourceItems = integrationItems.filter((item) =>
-    ["notion", "googleDrive", "slack", "googleCalendar"].includes(item.key),
+    ["notion", "googleDrive", "slack"].includes(item.key),
   );
   const artifactStudioCounts = recentArtifacts.reduce<Record<string, number>>((counts, artifact) => {
     counts[artifact.studio] = (counts[artifact.studio] ?? 0) + 1;

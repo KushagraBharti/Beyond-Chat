@@ -5,7 +5,7 @@ returns trigger
 language plpgsql
 as $$
 begin
-    new.updated_at = timezone('utc', now());
+    new.updated_at = now();
     return new;
 end;
 $$;
@@ -20,8 +20,8 @@ create table if not exists public.artifacts (
     content text not null,
     tags text[] not null default '{}',
     studio text not null,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 create table if not exists public.runs (
@@ -32,21 +32,23 @@ create table if not exists public.runs (
     studio text not null,
     prompt text not null,
     status text not null default 'running' check (status in ('queued', 'running', 'completed', 'failed')),
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    constraint runs_id_workspace_unique unique (id, workspace_id)
 );
 
 create table if not exists public.run_steps (
     id uuid primary key default gen_random_uuid(),
-    run_id uuid not null references public.runs(id) on delete cascade,
-    workspace_id uuid not null references public.workspaces(id) on delete cascade,
+    run_id uuid not null,
+    workspace_id uuid not null,
     step_name text not null,
     tool_used text not null,
-    status text not null default 'queued' check (status in ('queued', 'running', 'completed', 'failed')),
+    status text not null default 'queued' check (status in ('queued', 'running', 'completed', 'failed', 'canceled')),
     input jsonb not null default '{}'::jsonb,
     output jsonb not null default '{}'::jsonb,
     metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    foreign key (run_id, workspace_id) references public.runs(id, workspace_id) on delete cascade
 );
 
 create index if not exists artifacts_workspace_idx

@@ -10,8 +10,8 @@ create table if not exists public.user_plans (
     plan text not null default 'free',
     status text not null default 'active',
     current_period_end timestamptz,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now()),
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
     constraint user_plans_plan_check check (plan in ('free', 'pro')),
     constraint user_plans_status_check check (
         status in ('active', 'trialing', 'past_due', 'cancelled', 'canceled', 'unpaid', 'incomplete', 'incomplete_expired', 'paused')
@@ -25,7 +25,7 @@ create table if not exists public.usage_events (
     event_type text not null,
     model text,
     estimated_cost_usd numeric(10, 6) not null default 0,
-    created_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now()
 );
 
 create index if not exists user_plans_stripe_customer_idx

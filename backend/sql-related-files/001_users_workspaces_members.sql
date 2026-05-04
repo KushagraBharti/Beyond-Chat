@@ -65,8 +65,8 @@ begin
     on conflict (id) do update
     set email = excluded.email,
         display_name = excluded.display_name,
-        metadata = excluded.metadata,
-        updated_at = timezone('utc', now());
+        metadata = coalesce(user_profiles.metadata, '{}'::jsonb) || excluded.metadata,
+        updated_at = now();
 
     select wm.workspace_id, wm.role
     into existing_membership
@@ -112,8 +112,21 @@ begin
         inferred_slug,
         jsonb_build_object('bootstrapped_by', 'public.ensure_workspace_for_user')
     )
+    on conflict (slug) do nothing
     returning *
     into created_workspace;
+
+    if created_workspace.id is null then
+        select *
+        into created_workspace
+        from public.workspaces w
+        where w.slug = inferred_slug
+        limit 1;
+    end if;
+
+    if created_workspace.id is null then
+        raise exception 'Unable to create or resolve workspace for user %', target_user_id;
+    end if;
 
     insert into public.workspace_members (workspace_id, user_id, role)
     values (created_workspace.id, target_user_id, 'admin')

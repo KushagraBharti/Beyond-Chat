@@ -610,7 +610,7 @@ export default function AtelierPlusLanding() {
             whileInView="visible" 
             viewport={{ once: true, margin: "-100px" }} 
             variants={stagger}
-            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.5rem", autoRows: "minmax(280px, auto)" } satisfies CSSProperties}
+            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.5rem", gridAutoRows: "minmax(280px, auto)" } satisfies CSSProperties}
             className="bento-grid"
           >
             {studios.map((s, i) => (

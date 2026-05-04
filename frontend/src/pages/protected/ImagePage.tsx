@@ -66,6 +66,7 @@ interface FreshImage {
   modelLabel: string;
   ratio: string;
   quality: string;
+  contextIds: string[];
   createdAt: string;
 }
 
@@ -155,13 +156,14 @@ export default function ImagePage() {
     setLoading(true);
     setStatus("Generating...");
     setFreshImages([]);
+    const generationContextIds = [...contextIds];
     try {
       const response = await createRun({
         studio: "image",
         title: prompt.slice(0, 60) || "Image generation",
         prompt,
         model: selectedModels[0],
-        context_ids: contextIds,
+        context_ids: generationContextIds,
         options: { ratio, quality, models: selectedModels },
       });
 
@@ -195,6 +197,7 @@ export default function ImagePage() {
             modelLabel,
             ratio,
             quality,
+            contextIds: generationContextIds,
             createdAt: new Date().toISOString(),
           }));
         });
@@ -226,6 +229,7 @@ export default function ImagePage() {
           modelLabel,
           ratio,
           quality,
+          contextIds: generationContextIds,
           createdAt: new Date().toISOString(),
         })),
       );
@@ -512,7 +516,7 @@ export default function ImagePage() {
                             quality: item.data.quality,
                             url: item.data.url,
                             storagePath: item.data.storagePath,
-                            contextIds,
+                            contextIds: item.data.contextIds,
                           })
                         }
                         variant="secondary"
@@ -630,7 +634,7 @@ export default function ImagePage() {
                         quality: detail.fresh!.quality,
                         url: detail.fresh!.url,
                         storagePath: detail.fresh!.storagePath,
-                        contextIds,
+                        contextIds: detail.fresh!.contextIds,
                       })
                     }
                     variant="primary"

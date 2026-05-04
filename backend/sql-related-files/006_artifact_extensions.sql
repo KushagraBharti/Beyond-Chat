@@ -9,8 +9,7 @@ alter table if exists public.artifacts
     add column if not exists is_archived boolean not null default false,
     add column if not exists metadata jsonb not null default '{}'::jsonb;
 
-create index if not exists artifacts_workspace_updated_idx
-    on public.artifacts (workspace_id, updated_at desc);
+drop index if exists artifacts_workspace_updated_idx;
 
 create index if not exists artifacts_workspace_studio_idx
     on public.artifacts (workspace_id, studio, updated_at desc);

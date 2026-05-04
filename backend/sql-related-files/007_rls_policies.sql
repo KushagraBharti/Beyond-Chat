@@ -131,8 +131,8 @@ with check (public.is_workspace_member(workspace_id));
 drop policy if exists integration_connections_workspace_access on public.integration_connections;
 create policy integration_connections_workspace_access on public.integration_connections
 for all
-using (public.is_workspace_member(workspace_id))
-with check (public.is_workspace_member(workspace_id));
+using (public.can_manage_workspace(workspace_id))
+with check (public.can_manage_workspace(workspace_id));
 
 drop policy if exists integration_sync_logs_workspace_access on public.integration_sync_logs;
 create policy integration_sync_logs_workspace_access on public.integration_sync_logs

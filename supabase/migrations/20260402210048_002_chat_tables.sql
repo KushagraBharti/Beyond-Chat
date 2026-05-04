@@ -7,8 +7,9 @@ create table if not exists public.chat_collections (
     title text not null,
     metadata jsonb not null default '{}'::jsonb,
     created_by uuid references auth.users(id) on delete set null,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    constraint chat_collections_id_workspace_unique unique (id, workspace_id)
 );
 
 create index if not exists chat_collections_workspace_idx
@@ -17,7 +18,7 @@ create index if not exists chat_collections_workspace_idx
 create table if not exists public.chat_threads (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
-    collection_id uuid references public.chat_collections(id) on delete set null,
+    collection_id uuid,
     collection_type text not null default 'chat' check (collection_type in ('project', 'group', 'chat')),
     studio text not null default 'chat',
     title text not null,
@@ -25,8 +26,12 @@ create table if not exists public.chat_threads (
     model text not null,
     metadata jsonb not null default '{}'::jsonb,
     created_by uuid references auth.users(id) on delete set null,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+    constraint chat_threads_id_workspace_unique unique (id, workspace_id),
+    foreign key (collection_id, workspace_id)
+        references public.chat_collections(id, workspace_id)
+        on delete set null (collection_id)
 );
 
 create index if not exists chat_threads_workspace_idx
@@ -37,13 +42,16 @@ create index if not exists chat_threads_collection_idx
 
 create table if not exists public.chat_messages (
     id uuid primary key default gen_random_uuid(),
-    thread_id uuid not null references public.chat_threads(id) on delete cascade,
+    thread_id uuid not null,
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     role text not null check (role in ('system', 'user', 'assistant', 'tool')),
     content text not null,
     metadata jsonb not null default '{}'::jsonb,
     created_by uuid references auth.users(id) on delete set null,
-    created_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    foreign key (thread_id, workspace_id)
+        references public.chat_threads(id, workspace_id)
+        on delete cascade
 );
 
 create index if not exists chat_messages_thread_idx
@@ -57,7 +65,7 @@ returns trigger
 language plpgsql
 as $$
 begin
-    new.updated_at = timezone('utc', now());
+    new.updated_at = now();
     return new;
 end;
 $$;

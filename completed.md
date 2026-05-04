@@ -39,10 +39,10 @@
 - Added Supabase migration and SQL source updates allowing CSV/XLS/XLSX uploads in artifact storage.
 - Added Supabase security hardening migration/source for billing RLS policy drift and anonymous SECURITY DEFINER RPC execution.
 - Added Supabase RPC hardening that moves workspace bootstrap to the backend service-role client and revokes direct authenticated execution from public SECURITY DEFINER helper functions.
-- Applied the pending Supabase storage, profile-scope, billing/RPC hardening, and reminders FK index migrations to the linked project through Supabase MCP after CLI push was blocked by older remote migration-history drift.
-- Applied the SECURITY DEFINER authenticated RPC hardening migration to the linked project through Supabase MCP; the security advisor now only reports leaked password protection as a dashboard-level warning.
-- Wiped and rebuilt the disposable linked Supabase app schema from canonical SQL, repaired the helper-function RLS break with direct membership policies, and mirrored older remote migration versions locally.
-- Verified the linked Supabase project has private `artifacts` and `user-uploads` storage buckets, workspace-scoped storage object policies, and Excel MIME types enabled.
+- Applied the pending Supabase storage, profile-scope, billing/RPC hardening, and reminders FK index migrations to the linked project through Supabase MCP on 2026-05-04T04:31:06Z-2026-05-04T04:36:56Z (`20260504043106_20260504025126_allow_excel_artifact_uploads.sql`, `20260504043124_20260504030340_profile_scoped_artifacts_runs.sql`, `20260504043209_20260504030956_billing_rls_and_rpc_hardening.sql`, `20260504043656_usage_events_policy_and_reminders_index.sql`) after CLI push was blocked by older remote migration-history drift.
+- Applied the SECURITY DEFINER authenticated RPC hardening migration to the linked project through Supabase MCP on 2026-05-04T06:34:24Z (`20260504063424_revoke_authenticated_security_definer_rpc.sql`); the security advisor now only reports leaked password protection as a dashboard-level warning.
+- Wiped and rebuilt the disposable linked Supabase app schema from canonical SQL on 2026-05-04T07:10:00Z, repaired the helper-function RLS break with direct membership policies (`20260504071000_direct_membership_rls.sql`), and mirrored older remote migration versions locally.
+- Verified the linked Supabase project on 2026-05-04T07:10:00Z after `20260504071000_direct_membership_rls.sql` has private `artifacts` and `user-uploads` storage buckets, workspace-scoped storage object policies, and Excel MIME types enabled.
 - Tightened Research Studio to require live Exa search and fail runs explicitly when Exa is missing instead of generating fallback research.
 - Added OpenRouter retry handling and parallel compare execution.
 - Added frontend auth bootstrap wiring after sign-in/sign-up and during restored sessions.
@@ -67,7 +67,7 @@
 
 - Backend health route verified at `GET /api/health`.
 - Backend pytest suite passes with Python 3.11 via `uv run --python 3.11 pytest`.
-- Frontend `bun run lint`, `bun run test`, and `bun run build` pass after the Supabase rebuild/RLS repair.
+- Frontend `bun run lint`, `bun run test`, and `bun run build` pass after the Supabase rebuild/RLS repair on Windows with Bun 1.3.11 and Node v25.4.0.
 - Browser QA completed locally against the backend-served frontend build for:
   - login bypass
   - dashboard rendering

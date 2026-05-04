@@ -7,14 +7,8 @@ grant execute on function public.ensure_workspace_for_user(uuid, text, text, jso
 
 revoke execute on function public.handle_new_user_workspace() from authenticated;
 
-revoke execute on function public.current_workspace_ids() from authenticated;
-grant execute on function public.current_workspace_ids() to service_role;
-
 revoke execute on function public.current_admin_workspace_ids() from authenticated;
 grant execute on function public.current_admin_workspace_ids() to service_role;
-
-revoke execute on function public.is_workspace_member(uuid) from authenticated;
-grant execute on function public.is_workspace_member(uuid) to service_role;
 
 revoke execute on function public.can_manage_workspace(uuid) from authenticated;
 grant execute on function public.can_manage_workspace(uuid) to service_role;

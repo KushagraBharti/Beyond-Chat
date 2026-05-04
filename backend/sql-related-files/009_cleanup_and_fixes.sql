@@ -12,7 +12,7 @@ language plpgsql
 set search_path = public
 as $$
 begin
-    new.updated_at = timezone('utc', now());
+    new.updated_at = now();
     return new;
 end;
 $$;
@@ -107,10 +107,10 @@ end $$;
 -- 4. Drop duplicate indexes
 
 -- artifacts_workspace_idx == artifacts_workspace_updated_idx (both btree workspace_id, updated_at desc)
-drop index if exists public.artifacts_workspace_idx;
+drop index if exists public.artifacts_workspace_updated_idx;
 
 -- run_steps_run_base_idx == run_steps_run_idx (both btree run_id, created_at)
-drop index if exists public.run_steps_run_base_idx;
+drop index if exists public.run_steps_run_idx;
 
 -- workspaces_slug_key (unconditional unique) is superseded by workspaces_slug_idx (partial, WHERE slug IS NOT NULL)
 do $$

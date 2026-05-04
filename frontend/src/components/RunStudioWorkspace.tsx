@@ -60,7 +60,7 @@ export default function RunStudioWorkspace({
         "Run failed without an error message."
       : null;
   const runTraceback = typeof runOutputDetails?.traceback === "string" ? runOutputDetails.traceback : null;
-  const runContent = typeof run?.output.content === "string" ? run.output.content : "";
+  const runContent = typeof run?.output?.content === "string" ? run.output.content : "";
   const outputHandoffPrompt = runContent
     ? [
         `Use this ${studio === "finance" ? "Finance Studio" : "Research Studio"} output as source context.`,
@@ -317,8 +317,8 @@ export default function RunStudioWorkspace({
                 <pre>{runError}</pre>
                 {runTraceback ? <pre>{runTraceback}</pre> : null}
               </div>
-            ) : run?.output.content ? (
-              <article className="report-output">{String(run.output.content)}</article>
+            ) : runContent ? (
+              <article className="report-output">{runContent}</article>
             ) : (
               <EmptyState
                 title={isFinance ? "No Dexter answer yet" : "No report generated yet"}

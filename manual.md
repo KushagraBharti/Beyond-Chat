@@ -94,7 +94,11 @@ Backend:
 cd backend
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
+Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```
+
+The health response must come from the FastAPI backend and include `status:
+"ok"`. This guards the required `GET /api/health` contract.
 
 Frontend:
 
@@ -103,6 +107,11 @@ cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
+
+After the frontend dev server starts, verify the `/api/*` proxy path reaches the
+backend at `127.0.0.1:8000`. From the frontend origin, request an API route such
+as `http://127.0.0.1:5173/api/health` and confirm it returns the same backend
+health payload as `http://127.0.0.1:8000/api/health`.
 
 ## 7. Google Calendar OAuth
 

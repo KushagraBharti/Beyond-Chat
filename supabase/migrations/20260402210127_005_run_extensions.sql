@@ -41,10 +41,26 @@ alter table if exists public.run_steps
     add column if not exists input jsonb not null default '{}'::jsonb,
     add column if not exists output jsonb not null default '{}'::jsonb,
     add column if not exists metadata jsonb not null default '{}'::jsonb,
-    add column if not exists created_at timestamptz not null default timezone('utc', now());
+    add column if not exists created_at timestamptz not null default now();
 
-create index if not exists run_steps_run_idx
-    on public.run_steps (run_id, created_at asc);
+update public.run_steps
+set status = 'queued'
+where status is null
+   or status not in ('queued', 'running', 'completed', 'failed', 'canceled');
+
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint
+        where conname = 'run_steps_status_check'
+          and conrelid = 'public.run_steps'::regclass
+    ) then
+        alter table public.run_steps
+            add constraint run_steps_status_check
+            check (status in ('queued', 'running', 'completed', 'failed', 'canceled'));
+    end if;
+end $$;
 
 create index if not exists run_steps_workspace_idx
     on public.run_steps (workspace_id, created_at desc);

@@ -185,7 +185,8 @@ export default function AtelierPlusPricing() {
   useEffect(() => {
     if (user && window.sessionStorage.getItem("upgrade_intent") === "1") {
       window.sessionStorage.removeItem("upgrade_intent");
-      window.setTimeout(() => void handleUpgrade(), 0);
+      const id = window.setTimeout(() => void handleUpgrade(), 0);
+      return () => window.clearTimeout(id);
     }
   }, [handleUpgrade, user]);
 
