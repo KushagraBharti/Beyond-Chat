@@ -7,13 +7,15 @@ import {
   getCalendarEvents,
   getProviderStatuses,
   getReminders,
+  listArtifacts,
   startGoogleCalendarConnect,
+  type ArtifactRecord,
   type ProviderRecord,
   type ProviderStatus,
   type Reminder,
 } from "../../lib/api";
 import { fadeUp, stagger, studioColors } from "../../lib/theme";
-import { MotionCard, PageSection, StatusBadge } from "../../components/protectedUi";
+import { MotionCard, PageSection } from "../../components/protectedUi";
 import { useAuth } from "../../context/AuthContext";
 
 type CalendarEvent = { id: string; title: string; startsAt: string; location: string };
@@ -24,6 +26,7 @@ type IntegrationItem = {
   status: ProviderStatus;
   actionLabel: string;
   actionable: boolean;
+  icon: ReactNode;
   onAction?: () => void;
 };
 
@@ -256,6 +259,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [recentArtifacts, setRecentArtifacts] = useState<ArtifactRecord[]>([]);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>({});
   const [error, setError] = useState<string | null>(null);
@@ -292,6 +296,17 @@ export default function HomePage() {
           setError(err instanceof Error ? err.message : "Failed to load dashboard.");
         }
       }
+
+      try {
+        const artifactResponse = await listArtifacts({ limit: 8 });
+        if (active) {
+          setRecentArtifacts(artifactResponse.items ?? []);
+        }
+      } catch {
+        if (active) {
+          setRecentArtifacts([]);
+        }
+      }
     })();
 
     return () => {
@@ -308,47 +323,68 @@ export default function HomePage() {
     "there";
 
   const integrationItems = useMemo<IntegrationItem[]>(
-    () => [
-      {
-        key: "googleCalendar",
-        name: "Google Calendar",
-        status: googleCalendarStatus,
-        actionLabel: googleCalendarStatus === "connected" ? "Disconnect" : "Connect",
-        actionable: googleCalendarStatus !== "connected",
-        onAction:
-          googleCalendarStatus === "connected"
-            ? undefined
-            : () => {
-                void startGoogleCalendarConnect().then((payload) => {
-                  if (payload.url) {
-                    window.open(payload.url, "_blank", "noopener,noreferrer");
-                  }
-                });
-              },
-      },
-      {
-        key: "openrouter",
-        name: providers.openrouter?.label ?? "OpenRouter",
-        status: providers.openrouter?.status ?? "not_configured",
-        actionLabel: providers.openrouter?.status === "connected" ? "Disconnect" : "Connect",
-        actionable: false,
-      },
-      {
-        key: "exa",
-        name: providers.exa?.label ?? "Exa",
-        status: providers.exa?.status ?? "not_configured",
-        actionLabel: providers.exa?.status === "connected" ? "Disconnect" : "Connect",
-        actionable: false,
-      },
-    ],
+    () => {
+      const providerTile = (
+        key: string,
+        fallbackName: string,
+        icon: ReactNode,
+      ): IntegrationItem => {
+        const provider = providers[key];
+        const status = provider?.status ?? "not_configured";
+        return {
+          key,
+          name: provider?.label ?? fallbackName,
+          status,
+          actionLabel: status === "connected" ? "Live" : "Setup",
+          actionable: false,
+          icon,
+        };
+      };
+
+      return [
+        {
+          key: "googleCalendar",
+          name: providers.googleCalendar?.label ?? "Google Calendar",
+          status: googleCalendarStatus,
+          actionLabel: googleCalendarStatus === "connected" ? "Live" : "Connect",
+          actionable: googleCalendarStatus !== "connected",
+          icon: <CalendarGlyph />,
+          onAction:
+            googleCalendarStatus === "connected"
+              ? undefined
+              : () => {
+                  void startGoogleCalendarConnect().then((payload) => {
+                    if (payload.url) {
+                      window.open(payload.url, "_blank", "noopener,noreferrer");
+                    }
+                  });
+                },
+        },
+        providerTile("supabase", "Supabase", <ServerGlyph />),
+        providerTile("supabaseStorage", "Supabase Storage", <ArchiveGlyph />),
+        providerTile("openrouter", "OpenRouter", <SparkGlyph />),
+        providerTile("openrouterImages", "OpenRouter Images", <ImageGlyph />),
+        providerTile("exa", "Exa", <NotebookGlyph />),
+        providerTile("dexter", "Dexter Finance", <FinanceGlyph />),
+        providerTile("financialDatasets", "Financial Datasets", <DataGlyph />),
+        providerTile("notion", "Notion", <NotebookGlyph />),
+        providerTile("googleDrive", "Google Drive", <ArchiveGlyph />),
+        providerTile("slack", "Slack", <ChatGlyph />),
+      ];
+    },
     [googleCalendarStatus, providers],
   );
 
-  const mcpItems = [
-    { key: "browser", name: "Browser QA", status: "connected" as ProviderStatus, actionLabel: "Disconnect", actionable: false, icon: <ServerGlyph /> },
-    { key: "notion", name: "Notion Context", status: "not_configured" as ProviderStatus, actionLabel: "Connect", actionable: false, icon: <NotebookGlyph /> },
-    { key: "linear", name: "Linear Sync", status: "not_configured" as ProviderStatus, actionLabel: "Connect", actionable: false, icon: <SparkGlyph /> },
-  ];
+  const coreProviderItems = integrationItems.filter((item) =>
+    !["notion", "googleDrive", "slack"].includes(item.key),
+  );
+  const contextSourceItems = integrationItems.filter((item) =>
+    ["notion", "googleDrive", "slack"].includes(item.key),
+  );
+  const artifactStudioCounts = recentArtifacts.reduce<Record<string, number>>((counts, artifact) => {
+    counts[artifact.studio] = (counts[artifact.studio] ?? 0) + 1;
+    return counts;
+  }, {});
 
   async function handleAddReminder() {
     const title = newReminderTitle.trim();
@@ -422,7 +458,7 @@ export default function HomePage() {
   return (
     <motion.div className="page-wrap min-h-full flex-1" variants={stagger} initial="hidden" animate="visible">
       <PageSection
-        eyebrow="Workspace Home"
+        eyebrow="Home"
         title={`Hello, ${String(firstName).charAt(0).toUpperCase()}${String(firstName).slice(1)}`}
       />
 
@@ -440,11 +476,11 @@ export default function HomePage() {
               </div>
 
               <div className="relative grid gap-4">
-                {integrationItems.map((item) => (
+                {coreProviderItems.map((item) => (
                   <ToolCard
                     key={item.key}
-                    icon={item.key === "googleCalendar" ? <CalendarGlyph /> : item.key === "openrouter" ? <SparkGlyph /> : <NotebookGlyph />}
-                    name={item.key === "googleCalendar" ? "Google Calendar" : item.name}
+                    icon={item.icon}
+                    name={item.name}
                     status={item.status}
                     actionLabel={item.actionLabel}
                     disabled={!item.actionable}
@@ -483,14 +519,14 @@ export default function HomePage() {
             <MotionCard>
               <div className="mb-5 flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">MCP servers</div>
-                  <h3 className="mt-2 text-xl font-black tracking-[-0.03em] text-stone-950">Prepared server connections.</h3>
+                  <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">Context sources</div>
+                  <h3 className="mt-2 text-xl font-black tracking-[-0.03em] text-stone-950">Knowledge connectors.</h3>
                 </div>
                 <ServerGlyph />
               </div>
 
               <div className="grid gap-4">
-                {mcpItems.map((item) => (
+                {contextSourceItems.map((item) => (
                   <ToolCard
                     key={item.key}
                     icon={item.icon}
@@ -505,6 +541,63 @@ export default function HomePage() {
           </div>
 
           <div style={{ height: "3.5rem" }} aria-hidden="true" />
+
+          <MotionCard>
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <div>
+                <div className="text-[0.72rem] font-bold uppercase tracking-[0.22em] text-stone-500">Artifact activity</div>
+                <h3 className="mt-2 text-xl font-black tracking-[-0.03em] text-stone-950">Recent saved outputs.</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/artifacts")}
+                className="rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-semibold text-stone-700 transition hover:-translate-y-0.5 hover:border-stone-300 hover:bg-stone-100"
+              >
+                Open Library
+              </button>
+            </div>
+
+            {recentArtifacts.length ? (
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(220px,0.55fr)]">
+                <div className="grid gap-3">
+                  {recentArtifacts.slice(0, 5).map((artifact) => (
+                    <button
+                      key={artifact.id}
+                      type="button"
+                      onClick={() => navigate("/artifacts")}
+                      className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-stone-300 hover:bg-white hover:shadow-[0_18px_46px_rgba(28,25,23,0.06)]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <strong className="text-sm text-stone-950">{artifact.title}</strong>
+                        <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                          {artifact.studio}
+                        </span>
+                      </div>
+                      <p className="mt-2 line-clamp-2 text-sm leading-6 text-stone-600">
+                        {artifact.summary || artifact.content.slice(0, 180)}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="rounded-[1.35rem] border border-stone-200 bg-stone-50/80 p-4">
+                  <div className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-stone-500">Saved by studio</div>
+                  <div className="mt-4 grid gap-2">
+                    {Object.entries(artifactStudioCounts).map(([studio, count]) => (
+                      <div key={studio} className="flex items-center justify-between rounded-2xl bg-white px-3 py-2 text-sm">
+                        <span className="capitalize text-stone-700">{studio}</span>
+                        <strong className="text-stone-950">{count}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-stone-300 bg-white/70 p-8 text-sm leading-7 text-stone-600">
+                Saved studio outputs will appear here after Chat, Research, Data, Finance, Writing, Image, or Compare results are saved as artifacts.
+              </div>
+            )}
+          </MotionCard>
 
           <MotionCard>
             <div className="mb-5 flex items-center justify-between gap-3">

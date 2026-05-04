@@ -1,18 +1,125 @@
 import { motion } from "framer-motion";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { deleteArtifact, listArtifacts, renameArtifact, type ArtifactRecord } from "../../lib/api";
+import ContextBuilder from "../../components/ContextBuilder";
+import { createArtifact, createRun, deleteArtifact, listArtifacts, renameArtifact, type ArtifactRecord, type RunRecord } from "../../lib/api";
+import { buildWritingArtifactInput } from "../../lib/artifactDrafts";
 import { fadeUp, studioColors } from "../../lib/theme";
 import {
   EmptyState,
+  FieldLabel,
   MotionCard,
   PageSection,
   PrimaryButton,
   SecondaryButton,
+  TextArea,
   TextInput,
 } from "../../components/protectedUi";
 
 let writingDocumentsCache: ArtifactRecord[] | null = null;
+
+const writingTemplates = [
+  {
+    title: "Executive Launch Brief",
+    label: "Launch brief",
+    content: [
+      "# Executive Launch Brief",
+      "",
+      "## Decision",
+      "",
+      "## Customer Insight",
+      "",
+      "## Market Evidence",
+      "",
+      "## Data Signal",
+      "",
+      "## Financial Read",
+      "",
+      "## Recommendation",
+      "",
+      "## Open Risks",
+      "",
+      "## Next Actions",
+    ].join("\n"),
+  },
+  {
+    title: "Retail Pilot Summary",
+    label: "Retail pilot",
+    content: [
+      "# Retail Pilot Summary",
+      "",
+      "## Pilot Objective",
+      "",
+      "## Store Profile",
+      "",
+      "## Product Format",
+      "",
+      "## Success Metrics",
+      "",
+      "## Operating Constraints",
+      "",
+      "## Readout Plan",
+    ].join("\n"),
+  },
+  {
+    title: "Landing Page Copy",
+    label: "Landing page",
+    content: [
+      "# Landing Page Copy",
+      "",
+      "## Hero",
+      "",
+      "## Product Story",
+      "",
+      "## Why It Works",
+      "",
+      "## Proof Points",
+      "",
+      "## Call To Action",
+    ].join("\n"),
+  },
+  {
+    title: "Launch Email",
+    label: "Launch email",
+    content: [
+      "# Launch Email",
+      "",
+      "Subject:",
+      "",
+      "Preview text:",
+      "",
+      "## Opening",
+      "",
+      "## Product Detail",
+      "",
+      "## Reason To Believe",
+      "",
+      "## Action",
+    ].join("\n"),
+  },
+];
+
+const launchKitDocuments = [
+  { title: "Executive Launch Brief", brief: "Summarize the decision, evidence, recommendation, and executive risks." },
+  { title: "Retail Pilot Summary", brief: "Describe pilot objective, target store profile, operating constraints, and success metrics." },
+  { title: "Landing Page Copy", brief: "Write concise product page copy with proof points and a clear call to action." },
+  { title: "Launch Email", brief: "Draft an internal or partner-facing launch email with subject, preview text, and body." },
+];
+
+function getKitDocuments(run: RunRecord | null) {
+  const documents = run?.output?.documents;
+  if (!Array.isArray(documents)) return [];
+  return documents
+    .map((document) => {
+      if (!document || typeof document !== "object") return null;
+      const record = document as { title?: unknown; content?: unknown; summary?: unknown };
+      const title = typeof record.title === "string" ? record.title : "Untitled Document";
+      const content = typeof record.content === "string" ? record.content : "";
+      const summary = typeof record.summary === "string" ? record.summary : content.slice(0, 180);
+      return content.trim() ? { title, content, summary } : null;
+    })
+    .filter((document): document is { title: string; content: string; summary: string } => Boolean(document));
+}
 
 function DocumentGlyph() {
   return (
@@ -48,6 +155,14 @@ export default function WritingHomePage() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [loading, setLoading] = useState(() => writingDocumentsCache === null);
   const [docMenu, setDocMenu] = useState<{ documentId: string; x: number; y: number } | null>(null);
+  const [kitPrompt, setKitPrompt] = useState(
+    "Using the attached artifacts and current launch context, create a launch kit with an executive brief, retail pilot summary, landing page copy, and launch email. Keep each document concise, evidence-backed, and ready to save.",
+  );
+  const [kitContextIds, setKitContextIds] = useState<string[]>([]);
+  const [kitRun, setKitRun] = useState<RunRecord | null>(null);
+  const [kitStatus, setKitStatus] = useState("Ready");
+  const [kitLoading, setKitLoading] = useState(false);
+  const [savingKit, setSavingKit] = useState(false);
   const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
@@ -96,6 +211,7 @@ export default function WritingHomePage() {
     () => documents.filter((document) => matchesDocumentQuery(document, deferredQuery)),
     [documents, deferredQuery],
   );
+  const kitDocuments = useMemo(() => getKitDocuments(kitRun), [kitRun]);
 
   const syncDocuments = (updater: (current: ArtifactRecord[]) => ArtifactRecord[]) => {
     setDocuments((current) => {
@@ -103,6 +219,72 @@ export default function WritingHomePage() {
       writingDocumentsCache = next;
       return next;
     });
+  };
+
+  const openTemplate = (template: (typeof writingTemplates)[number]) => {
+    navigate("/writing/new", { state: { template: { title: template.title, content: template.content } } });
+  };
+
+  const runLaunchKit = async () => {
+    if (!kitPrompt.trim()) return;
+    setKitLoading(true);
+    setKitStatus("Generating launch kit...");
+    setKitRun(null);
+    try {
+      const response = await createRun({
+        studio: "writing",
+        title: "Writing launch kit",
+        prompt: kitPrompt,
+        context_ids: kitContextIds,
+        options: {
+          mode: "multi_output",
+          documents: launchKitDocuments,
+        },
+      });
+      setKitRun(response.run);
+      setKitStatus(response.run.status === "completed" ? "Launch kit generated." : response.run.error_message ?? response.run.status);
+    } catch (err) {
+      setKitStatus(err instanceof Error ? err.message : "Launch kit generation failed.");
+    } finally {
+      setKitLoading(false);
+    }
+  };
+
+  const saveLaunchKitDocuments = async () => {
+    if (!kitRun || !kitDocuments.length) return;
+    setSavingKit(true);
+    setKitStatus("Saving launch kit documents...");
+    try {
+      const saved: ArtifactRecord[] = [];
+      for (const document of kitDocuments) {
+        const payload = buildWritingArtifactInput({
+          title: document.title,
+          content: document.content,
+          summary: document.summary,
+          runId: kitRun.id,
+          contextIds: kitContextIds,
+        });
+        if (!payload) continue;
+        const response = await createArtifact({
+          ...payload,
+          source_run_id: kitRun.id,
+          content_json: {
+            multiOutputDocument: document,
+            sourceRunId: kitRun.id,
+            contextIds: kitContextIds,
+          },
+        });
+        saved.push(response.artifact);
+      }
+      if (saved.length) {
+        syncDocuments((current) => [...saved, ...current]);
+      }
+      setKitStatus(`Saved ${saved.length} document${saved.length === 1 ? "" : "s"} as artifacts.`);
+    } catch (err) {
+      setKitStatus(err instanceof Error ? err.message : "Could not save launch kit documents.");
+    } finally {
+      setSavingKit(false);
+    }
   };
 
   const handleDocumentContextMenu = (event: React.MouseEvent, documentId: string) => {
@@ -186,35 +368,17 @@ export default function WritingHomePage() {
               <strong>Blank document</strong>
             </button>
 
-            <button className="writing-template-card" onClick={() => navigate("/writing/new")} type="button">
-              <div className="writing-template-page is-muted">
-                <div className="writing-template-line w-70" />
-                <div className="writing-template-line w-90" />
-                <div className="writing-template-line w-80" />
-                <div className="writing-template-line w-85" />
-              </div>
-              <strong>Brainstorm</strong>
-            </button>
-
-            <button className="writing-template-card" onClick={() => navigate("/writing/new")} type="button">
-              <div className="writing-template-page is-muted">
-                <div className="writing-template-line w-55" />
-                <div className="writing-template-line w-92" />
-                <div className="writing-template-line w-88" />
-                <div className="writing-template-line w-76" />
-              </div>
-              <strong>Outline</strong>
-            </button>
-
-            <button className="writing-template-card" onClick={() => navigate("/writing/new")} type="button">
-              <div className="writing-template-page is-muted">
-                <div className="writing-template-line w-66" />
-                <div className="writing-template-line w-84" />
-                <div className="writing-template-line w-74" />
-                <div className="writing-template-line w-90" />
-              </div>
-              <strong>Memo</strong>
-            </button>
+            {writingTemplates.map((template, index) => (
+              <button className="writing-template-card" onClick={() => openTemplate(template)} type="button" key={template.title}>
+                <div className="writing-template-page is-muted">
+                  <div className={index % 2 === 0 ? "writing-template-line w-70" : "writing-template-line w-55"} />
+                  <div className="writing-template-line w-90" />
+                  <div className={index % 3 === 0 ? "writing-template-line w-80" : "writing-template-line w-88"} />
+                  <div className="writing-template-line w-76" />
+                </div>
+                <strong>{template.label}</strong>
+              </button>
+            ))}
           </div>
 
           <div className="writing-recents-head">
@@ -312,6 +476,76 @@ export default function WritingHomePage() {
             />
           )}
         </MotionCard>
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="writing-kit-layout">
+        <MotionCard accent={studioColors.writing} className="writing-kit-card">
+          <div className="context-builder-head">
+            <div>
+              <div className="page-eyebrow">Launch kit generator</div>
+              <h3>Generate multiple documents from one writing run.</h3>
+              <p>Create the core writing artifacts together, then save each output into the library.</p>
+            </div>
+            <span className="writing-recents-count">{kitStatus}</span>
+          </div>
+
+          <div className="stack-sm">
+            <FieldLabel>Instruction</FieldLabel>
+            <TextArea value={kitPrompt} onChange={(event) => setKitPrompt(event.target.value)} />
+          </div>
+
+          <div className="writing-kit-docs">
+            {launchKitDocuments.map((document) => (
+              <div key={document.title} className="writing-kit-doc-chip">
+                <strong>{document.title}</strong>
+                <span>{document.brief}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="inline-actions">
+            <PrimaryButton type="button" onClick={() => void runLaunchKit()} disabled={kitLoading || !kitPrompt.trim()}>
+              {kitLoading ? "Generating..." : "Generate Kit"}
+            </PrimaryButton>
+            <SecondaryButton type="button" onClick={() => void saveLaunchKitDocuments()} disabled={savingKit || !kitDocuments.length}>
+              {savingKit ? "Saving..." : "Save All Outputs"}
+            </SecondaryButton>
+          </div>
+
+          {kitDocuments.length ? (
+            <div className="writing-kit-output-grid">
+              {kitDocuments.map((document) => (
+                <button
+                  key={document.title}
+                  type="button"
+                  className="writing-doc-card"
+                  onClick={() =>
+                    navigate("/writing/new", {
+                      state: {
+                        contextIds: kitContextIds,
+                        template: {
+                          title: document.title,
+                          content: document.content,
+                        },
+                      },
+                    })
+                  }
+                >
+                  <div className="writing-doc-card-top">
+                    <span className="writing-recents-icon">
+                      <DocumentGlyph />
+                    </span>
+                    <span>Generated</span>
+                  </div>
+                  <strong>{document.title}</strong>
+                  <p>{document.summary}</p>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </MotionCard>
+
+        <ContextBuilder selectedIds={kitContextIds} onChange={setKitContextIds} title="Launch Kit Context" />
       </motion.div>
 
       {docMenu ? (

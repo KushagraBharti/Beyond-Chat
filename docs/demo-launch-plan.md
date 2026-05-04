@@ -1,5 +1,18 @@
 # Beyond Chat Investor Demo Plan
 
+## Current Product Direction
+
+This document remains a useful acceptance story, but it is no longer the implementation target by itself. The product target is broader and is defined in `agentic-artifact-workspace-plan.md`.
+
+Important constraints:
+
+- Build general product completeness, not Starbucks-only demo hardcoding.
+- Use live providers only: OpenRouter, Exa, Supabase, and the real image path.
+- Do not add deterministic demo fallbacks or fake successful outputs.
+- Do not seed Starbucks artifacts into Supabase automatically as a shortcut.
+- Artifacts should be scoped to the authenticated user profile, not workspace collaboration.
+- Compare is a model-output comparison layer available inside studios, not primarily an artifact comparison feature.
+
 ## Demo Thesis
 
 Beyond Chat is the workspace where a team launches a product from scattered company knowledge, market research, financial context, creative direction, and final artifacts.
@@ -52,10 +65,10 @@ Magic moment:
 
 Needed features:
 
-- Dashboard launch workspace card
-- Calendar agenda card
-- Integration tiles for Notion, Drive, Slack, Calendar
-- Demo-mode provider statuses for not-yet-live integrations
+- Dashboard launch/project card
+- Calendar agenda card where real integration exists
+- Integration/provider status tiles that reflect real configured providers
+- Dashboard artifact activity is backed by the authenticated user's real saved artifacts and per-studio counts; it does not seed or fabricate demo artifacts.
 
 ### 2. Chat
 
@@ -85,11 +98,12 @@ Magic moment:
 
 Needed features:
 
-- Context Builder source tabs: Artifacts, Notion, Files, Calendar, Slack
+- Context Builder source tabs: Artifacts, Notion, Files, Calendar, Slack. Non-artifact tabs currently show real not-configured/unavailable states until their connectors exist.
 - One-click add suggested context
-- Chat action button: Create Launch Plan
+- Chat action button: Create Launch Plan, implemented as a composer quick action that uses live chat generation.
 - Save chat-derived plan as artifact
 - Button to continue the same context into Research Studio
+- Assistant chat outputs can continue directly into Research, Writing, or Compare using the generated content.
 
 ### 3. Research Studio
 
@@ -120,6 +134,7 @@ Needed features:
 - Competitor matrix output
 - Research-to-artifact save polish
 - Suggested follow-up: continue to Data Studio
+- Research output actions can continue the generated report into Data, Finance, Writing, or Compare.
 
 ### 4. Data Studio
 
@@ -164,6 +179,7 @@ Needed features:
 - Data analysis step timeline
 - Save chart/table/insight as artifact
 - Suggested follow-up: continue to Finance Studio
+- Data output actions can continue the generated analysis into Finance, Writing, or Compare.
 
 ### 5. Finance Studio
 
@@ -202,6 +218,7 @@ Needed features:
 - Cleaner Dexter output rendering
 - Sensitivity table artifact
 - Finance-to-writing handoff
+- Finance output actions can continue Dexter's memo into Writing or Compare.
 
 Public-company competitor basket:
 
@@ -242,8 +259,10 @@ Needed features:
 
 - Writing templates for launch brief, retailer pitch, landing page, email
 - Context attachments in Writing Studio
-- Multi-output writing run
-- Save multiple documents from one generation
+- Save assistant suggestions as writing artifacts
+- Artifact handoffs into Writing prefill the editor, attach the source artifact, and seed the assistant instruction.
+- Multi-output writing run produces executive brief, retail pilot summary, landing page copy, and launch email from one live run.
+- Save multiple documents from one generation as separate artifacts.
 
 ### 7. Image Studio
 
@@ -275,6 +294,7 @@ Needed features:
 
 - Demo prompt presets
 - Context-aware image prompt enhancement
+- Artifact handoffs into Image attach the source artifact and prefill the generation prompt.
 - Better gallery labels
 - Launch creative artifact bundle
 
@@ -342,6 +362,11 @@ Needed features:
 - Export bundle
 - Artifact provenance: source studio, model, context used, source run
 
+Current implementation note:
+
+- Artifacts includes a Cinder Orange Launch Kit matcher, multi-artifact selection, and Markdown bundle export using saved user artifacts. Empty kit slots remain visible until the corresponding live studio output is saved.
+- Artifact detail actions can continue an artifact into Chat, Research, Finance, Writing, or Compare with the selected artifact attached as context.
+
 ## Integration Plan
 
 ### Notion
@@ -364,8 +389,8 @@ Demo pages:
 
 Initial implementation:
 
-- Demo-mode Notion source in Context Builder
-- Later: real Notion OAuth/search
+- Prefer real Notion OAuth/search when implemented.
+- Do not fake Notion success as a deterministic product fallback.
 
 ### Calendar
 
@@ -385,9 +410,8 @@ Demo events:
 
 Initial implementation:
 
-- Dashboard agenda card
-- "Find time for review" action
-- Later: real Google Calendar availability
+- Dashboard agenda card when real calendar data is available.
+- "Find time for review" action only when backed by a real provider path.
 
 ### Google Drive
 
@@ -404,8 +428,8 @@ Demo files:
 
 Initial implementation:
 
-- Demo file source in Context Builder
-- Later: real Drive picker/search
+- Use uploaded files and real file/provider integrations.
+- Do not fake Drive data as a deterministic product fallback.
 
 ### Slack
 
@@ -421,8 +445,8 @@ Demo channels:
 
 Initial implementation:
 
-- Demo Slack digest source
-- Later: real Slack channel/thread ingestion
+- Use real Slack ingestion only when connected.
+- Do not fake Slack data as a deterministic product fallback.
 
 ### Data Sources
 
@@ -439,25 +463,25 @@ Demo sources:
 
 Initial implementation:
 
-- Built-in demo dataset picker
-- Later: Sheets, uploaded CSV, warehouse connectors
+- Uploaded CSV and Excel drag/drop.
+- Later: Sheets and warehouse connectors.
 
 ## Two-Week Build Plan
 
-### Week 1: Make the Demo Work End to End
+### Week 1: Make The Product Flow Work End To End
 
-- Add demo mode flag and launch workspace seed.
+- Audit Finance/Dexter and extract reusable agent/tool/run/artifact patterns.
 - Add dashboard launch card, calendar card, and integration tiles.
 - Expand Context Builder to show source tabs.
-- Add demo Notion, Drive, Slack, Calendar, and Artifact context items.
-- Add a Chat launch prompt preset and `Create Launch Plan` action.
-- Add demo dataset picker to Data Studio.
+- Add real Artifact and uploaded-file context items.
+- Add Chat planning actions that save artifacts.
+- Add CSV and Excel upload/preview to Data Studio.
 - Improve Data Studio output UI: metrics, charts, insight, table, risks.
 - Add finance prompt presets for SBUX/public-company context.
 - Add writing templates for launch kit deliverables.
 - Add image prompt presets for packaging and campaign creative.
 
-### Week 2: Make It Feel Like Magic
+### Week 2: Make It Feel Complete
 
 - Add artifact collections for `Cinder Orange Launch Kit`.
 - Add cross-studio "Continue in..." actions.
@@ -467,8 +491,8 @@ Initial implementation:
 - Add richer source cards in Research Studio.
 - Add chart/table save from Data Studio.
 - Polish Dexter Finance output with sections and sensitivity table.
-- Make demo data deterministic so the investor flow never depends on live provider success.
-- Keep live provider paths available when keys are configured.
+- Keep all model/research behavior on live provider paths.
+- Show clear provider errors/statuses instead of fake fallback success.
 
 ## Feature Priority
 
@@ -481,8 +505,9 @@ Initial implementation:
 - Demo launch dataset picker
 - Strong Data Studio output
 - SBUX finance prompt preset
-- Writing launch templates
-- Image prompt presets
+- Research citrus-cold-brew and competitor/risk prompt presets
+- Writing launch templates for executive brief, retail pilot summary, landing page copy, and launch email
+- Image prompt presets for product mockup, commuter ad, and retail shelf creative
 - Artifact launch kit collection
 
 ### P1 Strong Differentiators
@@ -526,4 +551,4 @@ Initial implementation:
 - Artifacts accumulate naturally.
 - Compare is shown as LLM judgment comparison.
 - The final launch kit is visible in Artifacts.
-- If live providers fail, demo-mode data still completes the story.
+- Live provider failures are surfaced clearly without pretending the run succeeded.

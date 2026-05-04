@@ -1,4 +1,4 @@
-import type { CompareResult, CreateArtifactInput, DataAnalysisResult, RunRecord } from "./api";
+import type { ChatMessage, CompareResult, CreateArtifactInput, DataAnalysisResult, RunRecord } from "./api";
 
 function uniqueTags(tags: Array<string | null | undefined>): string[] {
   return [
@@ -21,6 +21,71 @@ function stringifyOutput(output: Record<string, unknown>) {
 
 function textOutput(output: Record<string, unknown>) {
   return typeof output.content === "string" ? output.content.trim() : "";
+}
+
+function dataAnalysisToMarkdown(result: DataAnalysisResult) {
+  const chart = result.chart_data;
+  const firstDataset = chart.datasets[0];
+  const chartRows = firstDataset
+    ? chart.labels.map((label, index) => `| ${label} | ${firstDataset.data[index] ?? ""} |`).join("\n")
+    : "";
+  const resultRows = result.table.rows
+    .map((row) => `| ${row.map((cell) => String(cell).replace(/\|/g, "\\|")).join(" | ")} |`)
+    .join("\n");
+
+  return [
+    "## Insight",
+    result.insight,
+    "",
+    "## Metrics",
+    result.metrics?.length
+      ? [
+          "| Metric | Value | Note |",
+          "| --- | --- | --- |",
+          ...result.metrics.map((metric) => (
+            `| ${String(metric.label).replace(/\|/g, "\\|")} | ${String(metric.value).replace(/\|/g, "\\|")} | ${String(metric.note ?? "").replace(/\|/g, "\\|")} |`
+          )),
+        ].join("\n")
+      : "No decision metrics returned.",
+    "",
+    "## Risks",
+    result.risks?.length
+      ? [
+          "| Risk | Severity | Evidence |",
+          "| --- | --- | --- |",
+          ...result.risks.map((risk) => (
+            `| ${String(risk.risk).replace(/\|/g, "\\|")} | ${String(risk.severity).replace(/\|/g, "\\|")} | ${String(risk.evidence ?? "").replace(/\|/g, "\\|")} |`
+          )),
+        ].join("\n")
+      : "No risks returned.",
+    "",
+    "## Recommendations",
+    result.recommendations?.length
+      ? result.recommendations.map((recommendation) => `- ${recommendation}`).join("\n")
+      : "No recommendations returned.",
+    "",
+    "## Chart",
+    `Type: ${result.chart_type}`,
+    firstDataset
+      ? [
+          "",
+          `Series: ${firstDataset.label}`,
+          "",
+          "| Label | Value |",
+          "| --- | ---: |",
+          chartRows,
+        ].join("\n")
+      : "No chart data returned.",
+    "",
+    "## Table",
+    result.table.headers.length
+      ? [
+          `| ${result.table.headers.map((header) => String(header).replace(/\|/g, "\\|")).join(" | ")} |`,
+          `| ${result.table.headers.map(() => "---").join(" | ")} |`,
+          resultRows,
+        ].join("\n")
+      : "No table returned.",
+  ].join("\n");
 }
 
 export function buildRunArtifactInput({
@@ -82,13 +147,128 @@ export function buildDataArtifactInput({
     title,
     type: "report",
     studio: "data",
-    content: analysisResult.insight,
-    content_format: "plain",
+    content: dataAnalysisToMarkdown(analysisResult),
+    content_format: "markdown",
     summary: summarize(analysisResult.insight, title),
     content_json: analysisResult as unknown as Record<string, unknown>,
     source_run_id: runId ?? null,
-    metadata: { prompt: prompt || title },
-    tags: uniqueTags(["data", "insights", "saved-output"]),
+    metadata: { prompt: prompt || title, fileName },
+    tags: uniqueTags(["data", "insights", "chart", "table", "saved-output"]),
+  };
+}
+
+export function buildChatMessageArtifactInput({
+  threadTitle,
+  message,
+}: {
+  threadTitle: string;
+  message: ChatMessage;
+}): CreateArtifactInput | null {
+  if (message.role !== "assistant" || !message.content.trim()) {
+    return null;
+  }
+
+  const titleSource = message.content.replace(/\s+/g, " ").trim();
+  const title = `Chat output: ${titleSource.slice(0, 56) || threadTitle || "assistant response"}`;
+
+  return {
+    title,
+    type: "chat_response",
+    studio: "chat",
+    content: message.content,
+    content_format: "markdown",
+    summary: summarize(message.content, threadTitle || title),
+    metadata: {
+      threadTitle,
+      messageId: message.id,
+      contextIds: Array.isArray(message.metadata?.contextIds) ? message.metadata.contextIds : [],
+    },
+    tags: uniqueTags(["chat", "assistant-output", "saved-output"]),
+  };
+}
+
+export function buildDataChartArtifactInput({
+  fileName,
+  prompt,
+  analysisResult,
+  runId,
+}: {
+  fileName: string;
+  prompt: string;
+  analysisResult: DataAnalysisResult | null;
+  runId?: string | null;
+}): CreateArtifactInput | null {
+  if (!analysisResult?.chart_data) return null;
+
+  const chart = analysisResult.chart_data;
+  const firstDataset = chart.datasets[0];
+  const rows = firstDataset
+    ? chart.labels.map((label, index) => `| ${label} | ${firstDataset.data[index] ?? ""} |`).join("\n")
+    : "";
+  const title = `Data chart: ${fileName || "uploaded dataset"}`;
+
+  return {
+    title,
+    type: "chart",
+    studio: "data",
+    content: [
+      `# ${title}`,
+      "",
+      `Type: ${analysisResult.chart_type}`,
+      firstDataset ? `Series: ${firstDataset.label}` : "No series returned.",
+      "",
+      "| Label | Value |",
+      "| --- | ---: |",
+      rows,
+    ].join("\n"),
+    content_format: "markdown",
+    summary: summarize(prompt, title),
+    content_json: {
+      chartType: analysisResult.chart_type,
+      chartData: analysisResult.chart_data,
+    },
+    source_run_id: runId ?? null,
+    metadata: { prompt: prompt || title, fileName },
+    tags: uniqueTags(["data", "chart", analysisResult.chart_type, "saved-output"]),
+  };
+}
+
+export function buildDataTableArtifactInput({
+  fileName,
+  prompt,
+  analysisResult,
+  runId,
+}: {
+  fileName: string;
+  prompt: string;
+  analysisResult: DataAnalysisResult | null;
+  runId?: string | null;
+}): CreateArtifactInput | null {
+  if (!analysisResult?.table?.headers.length) return null;
+
+  const table = analysisResult.table;
+  const rows = table.rows
+    .map((row) => `| ${row.map((cell) => String(cell).replace(/\|/g, "\\|")).join(" | ")} |`)
+    .join("\n");
+  const title = `Data table: ${fileName || "uploaded dataset"}`;
+
+  return {
+    title,
+    type: "table",
+    studio: "data",
+    content: [
+      `# ${title}`,
+      "",
+      `| ${table.headers.map((header) => String(header).replace(/\|/g, "\\|")).join(" | ")} |`,
+      `| ${table.headers.map(() => "---").join(" | ")} |`,
+      rows,
+    ].join("\n"),
+    content_format: "markdown",
+    summary: summarize(prompt, title),
+    content_json: table as unknown as Record<string, unknown>,
+    source_run_id: runId ?? null,
+    metadata: { prompt: prompt || title, fileName },
+    tags: uniqueTags(["data", "table", "saved-output"]),
   };
 }
 
@@ -97,11 +277,13 @@ export function buildWritingArtifactInput({
   content,
   summary,
   runId,
+  contextIds = [],
 }: {
   title: string;
   content: string;
   summary: string;
   runId?: string | null;
+  contextIds?: string[];
 }): CreateArtifactInput | null {
   if (!content.trim()) {
     return null;
@@ -116,6 +298,7 @@ export function buildWritingArtifactInput({
     summary: summarize(summary, content),
     metadata: {
       runId: runId ?? null,
+      contextIds,
     },
     tags: uniqueTags(["writing", "document", "saved-output"]),
   };
@@ -146,6 +329,8 @@ export function buildCompareArtifactInput({
       model: result.model,
       latencyMs: result.latencyMs,
       status: result.status,
+      finishReason: result.finishReason ?? null,
+      toolCalls: result.toolCalls ?? [],
       contextIds,
     },
     tags: uniqueTags(["chat", "compare", result.model]),
@@ -159,6 +344,7 @@ export function buildImageArtifactInput({
   quality,
   url,
   storagePath,
+  contextIds = [],
 }: {
   prompt: string;
   model: string;
@@ -166,6 +352,7 @@ export function buildImageArtifactInput({
   quality: string;
   url: string;
   storagePath?: string;
+  contextIds?: string[];
 }): CreateArtifactInput | null {
   if (!url.trim()) {
     return null;
@@ -184,6 +371,7 @@ export function buildImageArtifactInput({
       ratio,
       quality,
       storage_path: storagePath ?? "",
+      contextIds,
     },
     tags: uniqueTags(["image", "generated"]),
   };

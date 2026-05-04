@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import ContextBuilder from "../../components/ContextBuilder";
 import { createRun, listArtifacts, type ArtifactRecord } from "../../lib/api";
 import { buildImageArtifactInput } from "../../lib/artifactDrafts";
-import { useAuth } from "../../context/AuthContext";
-import { setStoredWorkspaceId } from "../../lib/api";
-import { supabase } from "../../lib/supabaseClient";
 import { AppBrand } from "../../components/protectedUi";
 
 const imageModels = [
@@ -38,6 +36,27 @@ const resolutionOptions = [
   { value: "Ultra", label: "Ultra", desc: "4K" },
 ];
 
+const imagePromptPresets = [
+  {
+    label: "Product mockup",
+    prompt:
+      "Create a premium product mockup for Cinder Orange Cold Brew with Starbucks-inspired retail realism, citrus color accents, cold condensation, glass bottle detail, warm summer morning lighting, and clean packaging hierarchy. Avoid logos or trademarked marks.",
+    ratio: "4:3",
+  },
+  {
+    label: "Commuter ad",
+    prompt:
+      "Create a social ad visual for Cinder Orange Cold Brew aimed at morning commuters, featuring orange peel, cold brew, glass bottle, city commute energy, bright natural light, and polished retail campaign art direction. Avoid logos or trademarked marks.",
+    ratio: "1:1",
+  },
+  {
+    label: "Shelf concept",
+    prompt:
+      "Create a retail shelf concept for a seasonal citrus cold brew bottle line, with premium coffee category cues, crisp orange accent system, realistic cooler lighting, condensation, and clear product readability. Avoid logos or trademarked marks.",
+    ratio: "16:9",
+  },
+];
+
 interface FreshImage {
   id: string;
   url: string;
@@ -47,6 +66,7 @@ interface FreshImage {
   modelLabel: string;
   ratio: string;
   quality: string;
+  contextIds: string[];
   createdAt: string;
 }
 
@@ -68,10 +88,11 @@ interface DetailTarget {
 
 export default function ImagePage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
 
   const [prompt, setPrompt] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>([imageModels[0].value]);
+  const [contextIds, setContextIds] = useState<string[]>([]);
   const [ratio, setRatio] = useState("4:3");
   const [quality, setQuality] = useState("High");
   const [gallery, setGallery] = useState<ArtifactRecord[]>([]);
@@ -89,6 +110,18 @@ export default function ImagePage() {
       return next;
     });
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { prompt?: string; contextIds?: string[] } | null;
+    if (!state) return;
+    if (state.prompt) {
+      setPrompt(state.prompt);
+    }
+    if (state.contextIds?.length) {
+      setContextIds(state.contextIds);
+    }
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     let active = true;
@@ -123,12 +156,14 @@ export default function ImagePage() {
     setLoading(true);
     setStatus("Generating...");
     setFreshImages([]);
+    const generationContextIds = [...contextIds];
     try {
       const response = await createRun({
         studio: "image",
         title: prompt.slice(0, 60) || "Image generation",
         prompt,
         model: selectedModels[0],
+        context_ids: generationContextIds,
         options: { ratio, quality, models: selectedModels },
       });
 
@@ -162,6 +197,7 @@ export default function ImagePage() {
             modelLabel,
             ratio,
             quality,
+            contextIds: generationContextIds,
             createdAt: new Date().toISOString(),
           }));
         });
@@ -193,6 +229,7 @@ export default function ImagePage() {
           modelLabel,
           ratio,
           quality,
+          contextIds: generationContextIds,
           createdAt: new Date().toISOString(),
         })),
       );
@@ -230,14 +267,6 @@ export default function ImagePage() {
         artifact: a,
       });
     }
-  };
-
-  const handleSignOut = async () => {
-    setStoredWorkspaceId(null);
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    navigate("/login");
   };
 
   const detailIndex = detail
@@ -298,6 +327,25 @@ export default function ImagePage() {
               placeholder="Describe your image..."
               rows={4}
             />
+            <div className="is-preset-row" aria-label="Image prompt presets">
+              {imagePromptPresets.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  className="is-preset-btn"
+                  onClick={() => {
+                    setPrompt(preset.prompt);
+                    setRatio(preset.ratio);
+                  }}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="is-section is-context-section">
+            <ContextBuilder selectedIds={contextIds} onChange={setContextIds} title="Image Context" />
           </div>
 
           {/* Models */}
@@ -418,7 +466,7 @@ export default function ImagePage() {
 
         {allItems.length > 0 ? (
           <div className="is-gallery">
-            {allItems.map((item, index) => {
+            {allItems.map((item) => {
               const isFresh = item.kind === "fresh";
               const imgUrl = isFresh ? item.data.url : item.data.previewImage;
               const title = isFresh
@@ -468,6 +516,7 @@ export default function ImagePage() {
                             quality: item.data.quality,
                             url: item.data.url,
                             storagePath: item.data.storagePath,
+                            contextIds: item.data.contextIds,
                           })
                         }
                         variant="secondary"
@@ -585,6 +634,7 @@ export default function ImagePage() {
                         quality: detail.fresh!.quality,
                         url: detail.fresh!.url,
                         storagePath: detail.fresh!.storagePath,
+                        contextIds: detail.fresh!.contextIds,
                       })
                     }
                     variant="primary"

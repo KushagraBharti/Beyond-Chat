@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 from typing import Any
 
 from .config import settings
@@ -57,6 +58,49 @@ def _format_options_brief(options: dict[str, Any], keys: list[str]) -> str:
     return "\n".join(lines)
 
 
+def _parse_json_object(raw: str) -> dict[str, Any]:
+    cleaned = raw.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        cleaned = "\n".join(lines).strip()
+    try:
+        parsed = json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start < 0 or end <= start:
+            raise RuntimeError("Writing multi-output run returned invalid JSON.") from exc
+        try:
+            parsed = json.loads(cleaned[start : end + 1])
+        except json.JSONDecodeError as nested_exc:
+            raise RuntimeError("Writing multi-output run returned invalid JSON.") from nested_exc
+    if not isinstance(parsed, dict):
+        raise RuntimeError("Writing multi-output run returned a non-object JSON payload.")
+    return parsed
+
+
+def _normalize_writing_documents(parsed: dict[str, Any]) -> list[dict[str, str]]:
+    raw_documents = parsed.get("documents")
+    if not isinstance(raw_documents, list) or not raw_documents:
+        raise RuntimeError("Writing multi-output run did not return any documents.")
+    documents: list[dict[str, str]] = []
+    for index, item in enumerate(raw_documents):
+        if not isinstance(item, dict):
+            continue
+        title = str(item.get("title") or f"Document {index + 1}").strip()
+        content = str(item.get("content") or "").strip()
+        summary = str(item.get("summary") or content[:180] or title).strip()
+        if content:
+            documents.append({"title": title, "content": content, "summary": summary})
+    if not documents:
+        raise RuntimeError("Writing multi-output run returned empty documents.")
+    return documents
+
+
 async def run_writing_workflow(
     *,
     data_store: RuntimeDataStore,
@@ -66,6 +110,134 @@ async def run_writing_workflow(
     model: str,
     options: dict[str, Any],
 ) -> dict[str, Any]:
+    if options.get("mode") == "multi_output":
+        requested_documents = options.get("documents")
+        if not isinstance(requested_documents, list) or not requested_documents:
+            raise RuntimeError("Multi-output writing runs require a documents list.")
+        document_briefs = []
+        for index, item in enumerate(requested_documents):
+            if not isinstance(item, dict):
+                continue
+            title = str(item.get("title") or f"Document {index + 1}").strip()
+            brief = str(item.get("brief") or item.get("description") or title).strip()
+            document_briefs.append({"title": title, "brief": brief})
+        if not document_briefs:
+            raise RuntimeError("Multi-output writing runs require at least one valid document brief.")
+
+        _record_step(
+            data_store,
+            workspace_id,
+            run_id,
+            "prepare_multi_output",
+            "system",
+            "completed",
+            options,
+            {"documents": document_briefs},
+        )
+        kit_prompt = (
+            "Source context and instructions:\n"
+            f"{prompt}\n\n"
+            "Create these documents:\n"
+            f"{json.dumps(document_briefs, ensure_ascii=True)}"
+        )
+        _record_step(data_store, workspace_id, run_id, "draft_multi_output", "openrouter", "running", kit_prompt, "Drafting multiple documents")
+        content = await call_openrouter(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Beyond Chat's Writing Studio multi-output tool. "
+                        "Generate multiple polished, artifact-ready markdown documents from the supplied context. "
+                        "Return only strict JSON with shape "
+                        '{"documents":[{"title":"...","summary":"...","content":"# Heading\\n..."}]}. '
+                        "Do not include prose outside the JSON object."
+                    ),
+                },
+                {"role": "user", "content": kit_prompt},
+            ],
+            temperature=0.42,
+            max_tokens=3200,
+        )
+        documents = _normalize_writing_documents(_parse_json_object(content))
+        combined_content = "\n\n---\n\n".join(f"# {document['title']}\n\n{document['content']}" for document in documents)
+        output = {
+            "format": "json",
+            "content": combined_content,
+            "workflow": "writing",
+            "mode": "multi_output",
+            "artifactType": "document_collection",
+            "documents": documents,
+        }
+        _record_step(data_store, workspace_id, run_id, "draft_multi_output", "openrouter", "completed", kit_prompt, output)
+        return output
+
+    if options.get("mode") == "targeted_edit":
+        selected_text = str(options.get("selected_text") or "").strip()
+        before_context = str(options.get("before_context") or "").strip()
+        after_context = str(options.get("after_context") or "").strip()
+        if not selected_text:
+            raise RuntimeError("Targeted writing edits require selected_text.")
+
+        edit_payload = {
+            "instruction": prompt,
+            "selectedText": selected_text,
+            "beforeContextChars": len(before_context),
+            "afterContextChars": len(after_context),
+        }
+        _record_step(
+            data_store,
+            workspace_id,
+            run_id,
+            "prepare_targeted_edit",
+            "system",
+            "completed",
+            options,
+            edit_payload,
+        )
+        edit_prompt = (
+            "Instruction:\n"
+            f"{prompt}\n\n"
+            "Text immediately before the selected range:\n"
+            f"{before_context or '[none]'}\n\n"
+            "Selected range to edit:\n"
+            f"{selected_text}\n\n"
+            "Text immediately after the selected range:\n"
+            f"{after_context or '[none]'}"
+        )
+        _record_step(data_store, workspace_id, run_id, "targeted_edit", "openrouter", "running", edit_prompt, "Editing selected range")
+        content = await call_openrouter(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Beyond Chat's Writing Studio targeted edit tool. "
+                        "Rewrite only the selected range according to the instruction. "
+                        "Use the surrounding context for continuity, but do not rewrite or include text outside the selected range. "
+                        "Return only the replacement text as markdown, with no preamble."
+                    ),
+                },
+                {"role": "user", "content": edit_prompt},
+            ],
+            temperature=0.35,
+            max_tokens=900,
+        )
+        output = {
+            "format": "markdown",
+            "content": content,
+            "workflow": "writing",
+            "mode": "targeted_edit",
+            "artifactType": options.get("artifact_type", "document"),
+            "selection": {
+                "original": selected_text,
+                "beforeContext": before_context,
+                "afterContext": after_context,
+            },
+        }
+        _record_step(data_store, workspace_id, run_id, "targeted_edit", "openrouter", "completed", edit_prompt, output)
+        return output
+
     brief = _format_options_brief(options, ["tone", "audience", "format", "length", "constraints"])
     prepared_prompt = prompt if not brief else f"{prompt}\n\nWriting brief:\n{brief}"
 
@@ -115,7 +287,6 @@ async def _run_search_backed_report(
 
     sources: list[dict[str, str]] = []
     search_answer = ""
-    search_note = None
 
     _record_step(data_store, workspace_id, run_id, "search", "exa", "running", prompt, "Searching sources")
     try:
@@ -124,11 +295,14 @@ async def _run_search_backed_report(
         search_answer = search_results.get("answer", "")
         _record_step(data_store, workspace_id, run_id, "search", "exa", "completed", prompt, search_results)
     except RuntimeError as exc:
-        if str(exc) != EXA_NOT_CONFIGURED:
-            raise
-        search_note = "Exa is not configured; continuing without external search."
-        fallback_search = {"answer": "", "results": [], "warning": search_note}
-        _record_step(data_store, workspace_id, run_id, "search", "exa", "completed", prompt, fallback_search)
+        detail = (
+            "Exa is not configured. Research Studio requires live Exa search; "
+            "set EXASEARCH_API_KEY before running research."
+            if str(exc) == EXA_NOT_CONFIGURED
+            else str(exc)
+        )
+        _record_step(data_store, workspace_id, run_id, "search", "exa", "failed", prompt, {"error": detail})
+        raise RuntimeError(detail) from exc
 
     evidence_lines = [
         f"- {item.get('title', 'Untitled source')}: {item.get('snippet', '')} ({item.get('url', '')})"
@@ -136,12 +310,12 @@ async def _run_search_backed_report(
     ]
     if search_answer:
         evidence_lines.insert(0, f"- Search answer: {search_answer}")
-    if search_note:
-        evidence_lines.insert(0, f"- Note: {search_note}")
 
     system_prompt = (
-        "You are Beyond Chat's Research Studio. Produce a concise, structured markdown report with these sections: "
-        "## Executive Summary, ## Key Findings, ## Risks or Unknowns, ## Recommended Next Steps, ## Sources."
+        "You are Beyond Chat's Research Studio. Produce a concise, source-backed markdown report with these sections: "
+        "## Executive Summary, ## Key Findings, ## Competitor or Landscape Matrix, ## Opportunity/Risk Matrix, "
+        "## Recommended Next Steps, ## Sources. Use markdown tables for both matrices when the evidence supports them. "
+        "Be explicit about source limits and unknowns instead of inventing facts."
     )
     if studio == "finance":
         system_prompt = (
@@ -174,8 +348,6 @@ async def _run_search_backed_report(
         "searchAnswer": search_answer,
         "artifactType": options.get("artifact_type", "report"),
     }
-    if search_note:
-        output["warning"] = search_note
     _record_step(data_store, workspace_id, run_id, "synthesize", "openrouter", "completed", synthesis_prompt, output)
     return output
 

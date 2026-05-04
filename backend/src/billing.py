@@ -55,6 +55,17 @@ def _get_or_create_plan(user_id: str) -> dict[str, Any]:
     }
 
 
+def _free_plan(user_id: str) -> dict[str, Any]:
+    return {
+        "user_id": user_id,
+        "plan": "free",
+        "status": "active",
+        "stripe_customer_id": None,
+        "stripe_subscription_id": None,
+        "current_period_end": None,
+    }
+
+
 def _monthly_usage(user_id: str) -> dict[str, Any]:
     db = _db()
     month_start = datetime.now(timezone.utc).replace(
@@ -162,13 +173,32 @@ def record_usage_event(
 
 @router.get("/status")
 def billing_status(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    plan = _get_or_create_plan(context.user_id)
-    usage = _monthly_usage(context.user_id)
+    billing_storage = "available"
+    try:
+        plan = _get_or_create_plan(context.user_id)
+    except HTTPException:
+        billing_storage = "unavailable"
+        plan = _free_plan(context.user_id)
+    except APIError as exc:
+        billing_storage = "unavailable"
+        LOGGER.warning("billing plan lookup failed user_id=%s error=%s", context.user_id, exc)
+        plan = _free_plan(context.user_id)
+
+    try:
+        usage = _monthly_usage(context.user_id) if billing_storage == "available" else {"requests": 0, "spend_usd": 0.0}
+    except APIError as exc:
+        billing_storage = "unavailable"
+        LOGGER.warning("billing usage lookup failed user_id=%s error=%s", context.user_id, exc)
+        usage = {"requests": 0, "spend_usd": 0.0}
+
     active_plan = plan.get("plan") or "free"
     return {
         "plan": active_plan,
         "status": plan.get("status") or "active",
         "current_period_end": plan.get("current_period_end"),
+        "billing_storage": billing_storage,
+        "checkout_configured": bool(settings.stripe_secret_key and settings.stripe_pro_price_id),
+        "portal_configured": bool(settings.stripe_secret_key and plan.get("stripe_customer_id")),
         "usage": usage,
         "limits": {
             "requests": FREE_REQUEST_LIMIT if active_plan == "free" else None,

@@ -8,7 +8,31 @@ Run the SQL files in `backend/sql-related-files/` in order.
 
 Treat that directory as the live schema source of truth.
 
-Do not treat `backend/supabase/migrations/` as canonical for the current runtime.
+The current hosted Supabase project was intentionally wiped/rebuilt from this canonical SQL on May 4, 2026 because project data was disposable. The rebuilt schema was applied through linked Supabase SQL/MCP access because the Supabase CLI temp-login path hit a remote `cli_login_postgres` circuit breaker.
+
+The hosted project has these applied migrations mirrored locally under `supabase/migrations/` with the remote-recorded versions:
+
+- `20260226175054_initial_schema.sql`
+- `20260226175754_artifacts_and_runs.sql`
+- `20260402205948_000_workspace_membership_schema.sql`
+- `20260402210012_001_users_workspaces_members.sql`
+- `20260402210048_002_chat_tables.sql`
+- `20260402210101_003_integrations_tables.sql`
+- `20260402210116_004_artifacts_runs_steps_base.sql`
+- `20260402210127_005_run_extensions.sql`
+- `20260402210137_006_artifact_extensions.sql`
+- `20260402210203_007_rls_policies.sql`
+- `20260402211436_apply_008_storage_setup.sql`
+- `20260402211606_apply_008_storage_setup.sql`
+- `20260402213319_009_cleanup_and_fixes.sql`
+- `20260504043106_20260504025126_allow_excel_artifact_uploads.sql`
+- `20260504043124_20260504030340_profile_scoped_artifacts_runs.sql`
+- `20260504043209_20260504030956_billing_rls_and_rpc_hardening.sql`
+- `20260504043656_usage_events_policy_and_reminders_index.sql`
+- `20260504063424_revoke_authenticated_security_definer_rpc.sql`
+- `20260504071000_direct_membership_rls.sql`
+
+Do not treat `supabase/migrations/` as the canonical current runtime schema without also checking `backend/sql-related-files/`.
 
 ## 2. Configure Supabase Auth
 
@@ -49,7 +73,7 @@ Copy `frontend/env.example` to `frontend/.env.local` and set:
 
 ## 5. Create The Storage Bucket
 
-Create the private `artifacts` bucket in Supabase Storage.
+Create/verify the private `artifacts` and `user-uploads` buckets in Supabase Storage. The canonical SQL upserts both buckets and their storage policies.
 
 Recommended path conventions:
 
@@ -58,7 +82,7 @@ Recommended path conventions:
 
 Then confirm:
 
-1. the bucket name is `artifacts`
+1. the bucket names are `artifacts` and `user-uploads`
 2. signed URLs work
 3. workspace path isolation is enforced
 
@@ -70,7 +94,11 @@ Backend:
 cd backend
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
+Invoke-RestMethod http://127.0.0.1:8000/api/health
 ```
+
+The health response must come from the FastAPI backend and include `status:
+"ok"`. This guards the required `GET /api/health` contract.
 
 Frontend:
 
@@ -79,6 +107,11 @@ cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
+
+After the frontend dev server starts, verify the `/api/*` proxy path reaches the
+backend at `127.0.0.1:8000`. From the frontend origin, request an API route such
+as `http://127.0.0.1:5173/api/health` and confirm it returns the same backend
+health payload as `http://127.0.0.1:8000/api/health`.
 
 ## 7. Google Calendar OAuth
 

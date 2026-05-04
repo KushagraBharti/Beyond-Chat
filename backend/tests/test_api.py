@@ -1,9 +1,15 @@
 from __future__ import annotations
 
+import asyncio
+import io
+from dataclasses import replace
+
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from src.artifact_drafts import build_run_artifact_payload
-from src.providers import EXA_NOT_CONFIGURED
+from src.main import settings as main_settings
+from src.providers import EXA_NOT_CONFIGURED, compare_models, provider_statuses
 
 
 def test_health_endpoint(client: TestClient):
@@ -19,6 +25,33 @@ def test_provider_status_contract(client: TestClient):
     assert "providers" in payload
     assert "openrouter" in payload["providers"]
     assert "googleCalendar" in payload["providers"]
+    assert "notion" in payload["providers"]
+    assert "googleDrive" in payload["providers"]
+    assert "slack" in payload["providers"]
+
+
+def test_provider_status_reports_local_dexter_runtime(monkeypatch):
+    monkeypatch.setattr("src.providers.local_dexter_runtime_available", lambda: True)
+    monkeypatch.setattr(
+        "src.providers.settings",
+        replace(
+            main_settings,
+            dexter_runner_url=None,
+            openrouter_api_key="test-openrouter-key",
+            financial_datasets_api_key="test-financial-key",
+        ),
+    )
+
+    providers = provider_statuses()
+
+    assert providers["dexter"]["status"] == "connected"
+    assert providers["dexter"]["details"] == "Local finance agent runtime"
+
+
+def test_google_calendar_events_do_not_return_demo_fallbacks(client: TestClient):
+    response = client.get("/api/integrations/google-calendar/events")
+    assert response.status_code == 200
+    assert response.json()["items"] == []
 
 
 def test_bootstrap_auth_returns_workspace_payload(client: TestClient):
@@ -27,6 +60,27 @@ def test_bootstrap_auth_returns_workspace_payload(client: TestClient):
     payload = response.json()["data"]
     assert payload["workspace"]["id"]
     assert payload["role"] == "admin"
+
+
+def test_billing_status_degrades_to_free_when_storage_unavailable(client: TestClient, monkeypatch):
+    def unavailable_plan(_user_id: str):
+        raise HTTPException(status_code=503, detail="Supabase is not configured.")
+
+    monkeypatch.setattr("src.billing._get_or_create_plan", unavailable_plan)
+    monkeypatch.setattr(
+        "src.billing.settings",
+        replace(main_settings, stripe_secret_key=None, stripe_pro_price_id=None),
+    )
+
+    response = client.get("/api/billing/status")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["plan"] == "free"
+    assert payload["status"] == "active"
+    assert payload["billing_storage"] == "unavailable"
+    assert payload["checkout_configured"] is False
+    assert payload["usage"] == {"requests": 0, "spend_usd": 0.0}
 
 
 def test_artifact_search_returns_seeded_items(client: TestClient):
@@ -73,6 +127,42 @@ def test_artifact_create_read_and_export_cycle(client: TestClient):
     )
     assert export_response.status_code == 200
     assert export_response.headers["content-type"].startswith("text/markdown")
+
+
+def test_artifact_bundle_export_combines_owned_artifacts(client: TestClient):
+    created_ids: list[str] = []
+    for title, studio, body in (
+        ("Research Report", "research", "Market synthesis body."),
+        ("Finance Memo", "finance", "Financial read body."),
+    ):
+        response = client.post(
+            "/api/artifact",
+            json={
+                "title": title,
+                "type": "report",
+                "studio": studio,
+                "content": body,
+                "summary": body,
+                "content_format": "markdown",
+                "tags": ["launch-kit"],
+            },
+        )
+        assert response.status_code == 200
+        created_ids.append(response.json()["data"]["id"])
+
+    export_response = client.post(
+        "/api/artifacts/export-bundle",
+        json={"title": "Launch Kit", "artifact_ids": created_ids},
+    )
+
+    assert export_response.status_code == 200
+    assert export_response.headers["content-type"].startswith("text/markdown")
+    content = export_response.text
+    assert "# Launch Kit" in content
+    assert "Research Report" in content
+    assert "Market synthesis body." in content
+    assert "Finance Memo" in content
+    assert "Financial read body." in content
 
 
 def test_storage_signed_url_requires_supabase_configuration(client: TestClient, monkeypatch):
@@ -263,10 +353,68 @@ def test_create_run_delegates_to_workflow_module(client: TestClient, monkeypatch
     assert [step["step_name"] for step in run["steps"]][:1] == ["prepare"]
 
 
+def test_writing_multi_output_run_returns_documents(client: TestClient, monkeypatch):
+    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
+        assert "strict JSON" in messages[0]["content"]
+        assert "Executive Launch Brief" in messages[1]["content"]
+        return """
+        {
+          "documents": [
+            {
+              "title": "Executive Launch Brief",
+              "summary": "Decision brief",
+              "content": "# Executive Launch Brief\\n\\nPilot the product with clear risk gates."
+            },
+            {
+              "title": "Launch Email",
+              "summary": "Email draft",
+              "content": "# Launch Email\\n\\nSubject: Pilot readout ready"
+            }
+          ]
+        }
+        """
+
+    monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
+
+    response = client.post(
+        "/api/runs",
+        json={
+            "studio": "writing",
+            "title": "Launch kit",
+            "prompt": "Use the attached research and finance notes.",
+            "model": "openai/gpt-4o-mini",
+            "options": {
+                "mode": "multi_output",
+                "documents": [
+                    {"title": "Executive Launch Brief", "brief": "Summarize the decision."},
+                    {"title": "Launch Email", "brief": "Draft a concise launch email."},
+                ],
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    run = response.json()["run"]
+    assert run["status"] == "completed"
+    assert run["output"]["mode"] == "multi_output"
+    assert [document["title"] for document in run["output"]["documents"]] == [
+        "Executive Launch Brief",
+        "Launch Email",
+    ]
+    assert [step["step_name"] for step in run["steps"]] == [
+        "prepare",
+        "prepare_multi_output",
+        "draft_multi_output",
+        "draft_multi_output",
+    ]
+
+
 def test_compare_endpoint_returns_normalized_results(client: TestClient, monkeypatch):
-    async def fake_compare_models(prompt, models):
+    async def fake_compare_models(prompt, models, tools=None, tool_choice=None):
         assert prompt == "Compare these three models."
         assert models == ["a", "b", "c"]
+        assert tools is None
+        assert tool_choice is None
         return [
             {"model": "a", "status": "completed", "content": "alpha", "latencyMs": 12, "error": None},
             {"model": "b", "status": "completed", "content": "beta", "latencyMs": 18, "error": None},
@@ -284,6 +432,109 @@ def test_compare_endpoint_returns_normalized_results(client: TestClient, monkeyp
     assert isinstance(payload["results"], list)
     assert payload["results"][0]["model"] == "a"
     assert payload["results"][1]["content"] == "beta"
+
+
+def test_compare_preserves_openrouter_tool_calls(monkeypatch):
+    async def fake_post_openrouter_json(*, url, payload, timeout, retries=3, error_provider="OpenRouter"):
+        assert url.endswith("/chat/completions")
+        assert payload["tools"][0]["function"]["name"] == "search_sources"
+        assert payload["tool_choice"] == "auto"
+        return {
+            "choices": [
+                {
+                    "finish_reason": "tool_calls",
+                    "message": {
+                        "content": "I need source lookup before answering.",
+                        "tool_calls": [
+                            {
+                                "id": "call_1",
+                                "type": "function",
+                                "function": {
+                                    "name": "search_sources",
+                                    "arguments": "{\"query\":\"seasonal coffee\"}",
+                                },
+                            }
+                        ],
+                    },
+                }
+            ]
+        }
+
+    monkeypatch.setattr("src.providers.settings", replace(main_settings, openrouter_api_key="test-key"))
+    monkeypatch.setattr("src.providers._post_openrouter_json", fake_post_openrouter_json)
+
+    results = asyncio.run(
+        compare_models(
+            "Compare live research approaches.",
+            ["openai/gpt-4o-mini"],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "search_sources",
+                        "description": "Search for source material.",
+                        "parameters": {"type": "object", "properties": {"query": {"type": "string"}}},
+                    },
+                }
+            ],
+            tool_choice="auto",
+        )
+    )
+
+    assert results[0]["status"] == "completed"
+    assert results[0]["finishReason"] == "tool_calls"
+    assert results[0]["toolCalls"][0]["function"]["name"] == "search_sources"
+
+
+def test_chat_message_merges_selected_artifact_context(client: TestClient, monkeypatch):
+    monkeypatch.setattr("src.main.settings", replace(main_settings, openrouter_api_key="test-key"))
+
+    create_thread_response = client.post(
+        "/api/chat/threads",
+        json={"title": "Context chat", "studio": "chat", "model": "openai/gpt-4o-mini"},
+    )
+    assert create_thread_response.status_code == 200
+    thread = create_thread_response.json()["thread"]
+
+    artifact_response = client.post(
+        "/api/artifact",
+        json={
+            "title": "Pilot data memo",
+            "type": "report",
+            "studio": "data",
+            "content": "Northwest region has the highest repeat rate.",
+            "summary": "Regional repeat-rate signal.",
+            "content_format": "markdown",
+            "tags": ["data"],
+        },
+    )
+    assert artifact_response.status_code == 200
+    artifact = artifact_response.json()["data"]
+
+    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
+        assert model == "openai/gpt-4o-mini"
+        assert messages[-1]["content"].startswith("Attached workspace context:")
+        assert "Pilot data memo" in messages[-1]["content"]
+        assert "Northwest region has the highest repeat rate." in messages[-1]["content"]
+        assert "User request:\nWhat should we do next?" in messages[-1]["content"]
+        return "Use the Northwest signal in the next analysis."
+
+    monkeypatch.setattr("src.main.call_openrouter", fake_call_openrouter)
+
+    response = client.post(
+        f"/api/chat/threads/{thread['id']}/messages",
+        json={
+            "content": "What should we do next?",
+            "model": "openai/gpt-4o-mini",
+            "context_ids": [artifact["id"]],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["userMessage"]["content"] == "What should we do next?"
+    assert payload["userMessage"]["metadata"]["contextIds"] == [artifact["id"]]
+    assert payload["assistantMessage"]["content"] == "Use the Northwest signal in the next analysis."
 
 
 def test_writing_workflow_records_brief_and_draft_steps(client: TestClient, monkeypatch):
@@ -313,15 +564,53 @@ def test_writing_workflow_records_brief_and_draft_steps(client: TestClient, monk
     assert [step["status"] for step in run["steps"]] == ["completed", "completed", "running", "completed"]
 
 
-def test_research_workflow_records_tool_runner_steps_without_exa(client: TestClient, monkeypatch):
+def test_writing_workflow_targeted_edit_only_sends_selected_range(client: TestClient, monkeypatch):
+    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
+        user_prompt = messages[1]["content"]
+        assert "Selected range to edit:" in user_prompt
+        assert "Weak paragraph" in user_prompt
+        assert "Opening context" in user_prompt
+        assert "Closing context" in user_prompt
+        assert "Full document" not in user_prompt
+        return "Sharper replacement paragraph."
+
+    monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
+
+    response = client.post(
+        "/api/runs",
+        json={
+            "studio": "writing",
+            "title": "Targeted edit test",
+            "prompt": "Make this paragraph more executive.",
+            "model": "openai/gpt-4o-mini",
+            "options": {
+                "mode": "targeted_edit",
+                "selected_text": "Weak paragraph",
+                "before_context": "Opening context",
+                "after_context": "Closing context",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    run = response.json()["run"]
+    assert run["status"] == "completed"
+    assert run["output"]["mode"] == "targeted_edit"
+    assert run["output"]["content"] == "Sharper replacement paragraph."
+    assert run["output"]["selection"]["original"] == "Weak paragraph"
+    assert [step["step_name"] for step in run["steps"]] == [
+        "prepare",
+        "prepare_targeted_edit",
+        "targeted_edit",
+        "targeted_edit",
+    ]
+
+
+def test_research_workflow_fails_without_live_exa(client: TestClient, monkeypatch):
     async def fake_exa_search(_query: str):
         raise RuntimeError(EXA_NOT_CONFIGURED)
 
-    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
-        return "## Executive Summary\nFallback report."
-
     monkeypatch.setattr("src.workflows.exa_search", fake_exa_search)
-    monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
 
     response = client.post(
         "/api/runs",
@@ -335,17 +624,75 @@ def test_research_workflow_records_tool_runner_steps_without_exa(client: TestCli
 
     assert response.status_code == 200
     run = response.json()["run"]
-    assert run["status"] == "completed"
-    assert run["output"]["workflow"] == "research"
-    assert "warning" in run["output"]
+    assert run["status"] == "failed"
+    assert "requires live Exa search" in run["error_message"]
     assert [step["step_name"] for step in run["steps"]] == [
         "prepare",
         "plan",
         "search",
         "search",
-        "synthesize",
-        "synthesize",
+        "failed",
     ]
+    assert run["steps"][3]["status"] == "failed"
+
+
+def test_research_workflow_requests_structured_matrices(client: TestClient, monkeypatch):
+    captured: dict[str, object] = {}
+
+    async def fake_exa_search(query: str):
+        captured["query"] = query
+        return {
+            "answer": "Seasonal beverages compete on novelty, channel reach, and price cues.",
+            "results": [
+                {
+                    "title": "Seasonal beverage launch",
+                    "url": "https://example.com/seasonal",
+                    "snippet": "A recent seasonal ready-to-drink beverage launch.",
+                }
+            ],
+        }
+
+    async def fake_call_openrouter(model, messages, temperature=0.4, max_tokens=900):
+        captured["model"] = model
+        captured["messages"] = messages
+        captured["temperature"] = temperature
+        captured["max_tokens"] = max_tokens
+        return (
+            "## Executive Summary\n\n"
+            "Source-backed summary.\n\n"
+            "## Competitor or Landscape Matrix\n\n"
+            "| Competitor | Signal |\n| --- | --- |\n| Example | Launch |\n\n"
+            "## Opportunity/Risk Matrix\n\n"
+            "| Opportunity | Risk |\n| --- | --- |\n| Novelty | Source limits |\n\n"
+            "## Sources\n\n- https://example.com/seasonal"
+        )
+
+    monkeypatch.setattr("src.workflows.exa_search", fake_exa_search)
+    monkeypatch.setattr("src.workflows.call_openrouter", fake_call_openrouter)
+
+    response = client.post(
+        "/api/runs",
+        json={
+            "studio": "research",
+            "title": "Research workflow test",
+            "prompt": "Compare seasonal coffee competitors.",
+            "model": "openai/gpt-4o-mini",
+        },
+    )
+
+    assert response.status_code == 200
+    run = response.json()["run"]
+    assert run["status"] == "completed"
+    assert run["output"]["workflow"] == "research"
+    assert "Competitor or Landscape Matrix" in run["output"]["content"]
+    assert "Opportunity/Risk Matrix" in run["output"]["content"]
+    assert captured["query"] == "Compare seasonal coffee competitors."
+    messages = captured["messages"]
+    assert isinstance(messages, list)
+    system_prompt = messages[0]["content"]
+    assert "Competitor or Landscape Matrix" in system_prompt
+    assert "Opportunity/Risk Matrix" in system_prompt
+    assert "markdown tables" in system_prompt
 
 
 def test_finance_workflow_records_dexter_steps(client: TestClient, monkeypatch):
@@ -435,6 +782,80 @@ def test_data_workflow_profiles_dataset_before_analysis(client: TestClient, monk
     assert run["output"]["workflow"] == "data"
     assert run["output"]["profile"]["rowCount"] == 12
     assert [step["step_name"] for step in run["steps"]] == ["prepare", "profile_dataset", "analyze", "analyze"]
+
+
+def test_data_preview_supports_excel_uploads(client: TestClient, monkeypatch):
+    import pandas as pd
+
+    workspace_id = client.app.state.test_workspace_id
+    excel_buffer = io.BytesIO()
+    pd.DataFrame(
+        [
+            {"region": "North", "revenue": 1200, "repeat_rate": 0.42},
+            {"region": "South", "revenue": 950, "repeat_rate": 0.37},
+        ]
+    ).to_excel(excel_buffer, index=False)
+
+    monkeypatch.setattr(
+        "src.main.supabase_service.download_artifact_file",
+        lambda path, access_token: excel_buffer.getvalue(),
+    )
+
+    response = client.post(
+        "/api/data/preview",
+        json={"storage_path": f"{workspace_id}/uploads/pilot-results.xlsx"},
+    )
+
+    assert response.status_code == 200
+    preview = response.json()["data"]
+    assert preview["fileType"] == "excel"
+    assert preview["headers"] == ["region", "revenue", "repeat_rate"]
+    assert preview["rows"][0] == ["North", "1200", "0.42"]
+    assert preview["profile"]["rowCount"] == 2
+
+
+def test_data_analyze_supports_csv_and_records_file_type(client: TestClient, monkeypatch):
+    workspace_id = client.app.state.test_workspace_id
+    csv_bytes = b"region,revenue\nNorth,1200\nSouth,950\n"
+
+    monkeypatch.setattr(
+        "src.main.supabase_service.download_artifact_file",
+        lambda path, access_token: csv_bytes,
+    )
+
+    async def fake_call_openrouter(*, model, messages, temperature, max_tokens):
+        assert "File type: CSV" in messages[0]["content"]
+        assert '"metrics"' in messages[0]["content"]
+        assert '"risks"' in messages[0]["content"]
+        assert '"recommendations"' in messages[0]["content"]
+        return """
+        {
+          "insight": "North leads revenue in the sample.",
+          "metrics": [{"label": "Top region", "value": "North", "note": "Highest revenue in the sample."}],
+          "risks": [{"risk": "Small sample", "severity": "medium", "evidence": "Only two rows were provided."}],
+          "recommendations": ["Validate the North signal against a larger dataset."],
+          "chart_type": "bar",
+          "chart_data": {"labels": ["North", "South"], "datasets": [{"label": "Revenue", "data": [1200, 950]}]},
+          "table": {"headers": ["region", "revenue"], "rows": [["North", "1200"], ["South", "950"]]}
+        }
+        """
+
+    monkeypatch.setattr("src.main.call_openrouter", fake_call_openrouter)
+
+    response = client.post(
+        "/api/data/analyze",
+        json={"storage_path": f"{workspace_id}/uploads/pilot-results.csv", "prompt": "Find revenue leaders."},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()["data"]
+    assert payload["result"]["insight"] == "North leads revenue in the sample."
+    assert payload["result"]["metrics"][0]["label"] == "Top region"
+    assert payload["result"]["risks"][0]["severity"] == "medium"
+    assert payload["result"]["recommendations"] == ["Validate the North signal against a larger dataset."]
+    run = client.get(f"/api/runs/{payload['run_id']}").json()["run"]
+    assert run["options"]["file_type"] == "CSV"
+    assert run["steps"][0]["output"]["fileType"] == "CSV"
 
 
 def test_image_workflow_records_enhance_generate_and_upload_steps(client: TestClient, monkeypatch):

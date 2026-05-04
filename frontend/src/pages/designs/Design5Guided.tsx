@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { STUDIOS, useDashboardData } from "./useDashboardData";
+import { useDashboardData } from "./useDashboardData";
 
 const css = `
 .guide {

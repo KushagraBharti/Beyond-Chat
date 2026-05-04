@@ -18,7 +18,12 @@ from .config import settings
 
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
 DEXTER_ROOT = BACKEND_ROOT / "dexter"
+TSX_CLI = DEXTER_ROOT / "node_modules" / "tsx" / "dist" / "cli.mjs"
 LOGGER = logging.getLogger("beyond_chat.dexter")
+
+
+def local_dexter_runtime_available() -> bool:
+    return DEXTER_ROOT.exists() and TSX_CLI.exists()
 
 
 def _tail(value: str, limit: int = 4000) -> str:
@@ -98,9 +103,8 @@ async def _run_local_dexter(*, prompt: str, model: str, on_event: EventCallback 
         raise RuntimeError(f"Dexter runtime is missing at {DEXTER_ROOT}.")
 
     node_command = which("node") or ("node.exe" if sys.platform.startswith("win") else "node")
-    tsx_cli = DEXTER_ROOT / "node_modules" / "tsx" / "dist" / "cli.mjs"
-    if not tsx_cli.exists():
-        raise RuntimeError(f"Dexter tsx runtime is missing at {tsx_cli}. Run npm install in {DEXTER_ROOT}.")
+    if not TSX_CLI.exists():
+        raise RuntimeError(f"Dexter tsx runtime is missing at {TSX_CLI}. Run npm install in {DEXTER_ROOT}.")
     env = os.environ.copy()
     if settings.openrouter_api_key:
         env["OPENROUTER_API_KEY"] = settings.openrouter_api_key
@@ -131,7 +135,7 @@ async def _run_local_dexter(*, prompt: str, model: str, on_event: EventCallback 
 
     command_args = [
         node_command,
-        str(tsx_cli),
+        str(TSX_CLI),
         "src/run.ts",
         "--prompt",
         prompt,

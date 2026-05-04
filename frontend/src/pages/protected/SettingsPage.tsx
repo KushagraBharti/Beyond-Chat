@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createCheckoutSession,
   createPortalSession,
   getBillingStatus,
   getCachedProviderStatuses,
   getProviderStatuses,
-  getWorkspace,
   startGoogleCalendarConnect,
   type BillingStatus,
   type ProviderRecord,
@@ -23,14 +22,27 @@ import {
 
 export default function SettingsPage() {
   const { user, updateProfileName } = useAuth();
-  const [workspaceName, setWorkspaceName] = useState("Beyond Chat");
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>(() => getCachedProviderStatuses() ?? {});
+  const hasCachedProvidersRef = useRef(Object.keys(providers).length > 0);
   const [status, setStatus] = useState("Ready");
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingFetching, setBillingFetching] = useState(true);
   const [billingLoading, setBillingLoading] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [nameStatus, setNameStatus] = useState("Saved");
+  const billingActionDisabled =
+    billingLoading ||
+    billingFetching ||
+    !billing ||
+    (billing?.plan === "pro" ? billing.portal_configured === false : billing?.checkout_configured === false);
+  const billingSetupMessage =
+    billing?.billing_storage === "unavailable"
+      ? "Billing storage is not configured yet; the account remains on the free plan."
+      : billing?.plan === "pro" && billing.portal_configured === false
+        ? "Stripe portal is not configured for this account."
+        : billing?.plan !== "pro" && billing?.checkout_configured === false
+          ? "Stripe checkout is not configured yet."
+          : null;
 
   const displayName = useMemo(() => {
     const metadata = user?.user_metadata;
@@ -50,26 +62,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     let active = true;
-    void (async () => {
-      try {
-        const workspaceResponse = await getWorkspace();
-        if (active) {
-          setWorkspaceName(workspaceResponse.workspace.name);
-        }
-      } catch (err) {
-        if (active) {
-          setStatus(err instanceof Error ? err.message : "Failed to load settings.");
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
 
     void (async () => {
       try {
@@ -78,7 +70,7 @@ export default function SettingsPage() {
           setProviders(providersResponse.providers);
         }
       } catch (err) {
-        if (active && !Object.keys(providers).length) {
+        if (active && !hasCachedProvidersRef.current) {
           setStatus(err instanceof Error ? err.message : "Failed to load settings.");
         }
       }
@@ -162,16 +154,16 @@ export default function SettingsPage() {
     <div className="page-wrap">
       <PageSection
         eyebrow="Settings"
-        title="Workspace and provider configuration"
-        description="A setup surface for workspace info, connected providers, auth mode, and future model preferences."
+        title="Account and provider configuration"
+        description="A setup surface for profile info, connected providers, auth mode, and future model preferences."
       />
 
       <div className="dashboard-grid dashboard-grid-three">
         <MotionCard>
           <div className="context-builder-head">
             <div>
-              <h3>Workspace</h3>
-              <p>Current protected shell identity and account state.</p>
+              <h3>Account</h3>
+              <p>Current protected shell identity and profile state.</p>
             </div>
           </div>
           <div className="stack-sm">
@@ -187,12 +179,6 @@ export default function SettingsPage() {
                   />
                   <div className="meta-placeholder mt-2">{nameStatus}</div>
                 </div>
-              </div>
-            </div>
-            <div className="list-row">
-              <div>
-                <strong>Workspace</strong>
-                <p>{workspaceName}</p>
               </div>
             </div>
             <div className="list-row">
@@ -246,7 +232,11 @@ export default function SettingsPage() {
                   {billingFetching ? "Loading..." : billing?.plan ?? "Free"}
                 </p>
               </div>
-              {!billingFetching ? <StatusBadge status={billing?.plan === "pro" ? "connected" : "disconnected"} /> : null}
+              {!billingFetching ? (
+                <StatusBadge
+                  status={billing?.billing_storage === "unavailable" ? "not_configured" : billing?.plan === "pro" ? "connected" : "disconnected"}
+                />
+              ) : null}
             </div>
             {billing ? (
               <div className="list-row">
@@ -260,8 +250,15 @@ export default function SettingsPage() {
                 </div>
               </div>
             ) : null}
-            <PrimaryButton type="button" onClick={handleBillingAction} disabled={billingLoading || billingFetching}>
-              {billingLoading ? "Redirecting..." : billing?.plan === "pro" ? "Manage subscription" : "Upgrade to Pro - $10/mo"}
+            {billingSetupMessage ? <div className="meta-placeholder">{billingSetupMessage}</div> : null}
+            <PrimaryButton type="button" onClick={handleBillingAction} disabled={billingActionDisabled}>
+              {billingLoading
+                ? "Redirecting..."
+                : billing?.plan === "pro"
+                  ? "Manage subscription"
+                  : billing?.checkout_configured === false
+                    ? "Upgrade unavailable"
+                    : "Upgrade to Pro - $10/mo"}
             </PrimaryButton>
           </div>
         </MotionCard>
@@ -278,7 +275,7 @@ export default function SettingsPage() {
               Connect Google Calendar
             </PrimaryButton>
             <SecondaryButton type="button">Model Preferences</SecondaryButton>
-            <SecondaryButton type="button">Workspace Metadata</SecondaryButton>
+            <SecondaryButton type="button">Profile Metadata</SecondaryButton>
           </div>
           <div className="meta-placeholder">{status}</div>
         </MotionCard>

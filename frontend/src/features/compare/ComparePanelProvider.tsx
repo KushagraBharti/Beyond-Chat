@@ -11,6 +11,8 @@ type ComparePanelLaunch = {
   prompt?: string;
   contextIds?: string[];
   studio?: string;
+  onUseResult?: (result: CompareResult) => void;
+  useResultLabel?: string;
 };
 
 type ComparePanelContextValue = {
@@ -32,6 +34,8 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studio, setStudio] = useState("chat");
+  const [onUseResult, setOnUseResult] = useState<((result: CompareResult) => void) | null>(null);
+  const [useResultLabel, setUseResultLabel] = useState("Use Result");
 
   const value = useMemo<ComparePanelContextValue>(
     () => ({
@@ -42,6 +46,8 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
         setResults([]);
         setError(null);
         setSelectedModels(defaultCompareModels);
+        setOnUseResult(() => launch?.onUseResult ?? null);
+        setUseResultLabel(launch?.useResultLabel ?? "Use Result");
         setIsOpen(true);
       },
       closeComparePanel: () => setIsOpen(false),
@@ -210,7 +216,48 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
                         <p className="whitespace-pre-wrap rounded-[1.25rem] bg-stone-50 p-4 text-sm leading-7 text-stone-700">
                           {result.content || result.error || "No response returned."}
                         </p>
+                        {result.toolCalls?.length ? (
+                          <div className="mt-3 rounded-[1.25rem] border border-stone-200 bg-stone-50 p-4">
+                            <div className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-stone-500">
+                              Tool calls requested
+                            </div>
+                            <div className="grid gap-2">
+                              {result.toolCalls.map((toolCall, index) => {
+                                const call = toolCall as {
+                                  function?: { name?: string; arguments?: string };
+                                  type?: string;
+                                  id?: string;
+                                };
+                                return (
+                                  <div key={call.id ?? index} className="rounded-2xl bg-white px-3 py-2 text-xs text-stone-600">
+                                    <div className="font-semibold text-stone-900">
+                                      {call.function?.name ?? call.type ?? `Tool call ${index + 1}`}
+                                    </div>
+                                    {call.function?.arguments ? (
+                                      <pre className="mt-1 max-h-28 overflow-auto whitespace-pre-wrap break-words text-[0.7rem] leading-5 text-stone-500">
+                                        {call.function.arguments}
+                                      </pre>
+                                    ) : null}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ) : null}
                         <div className="mt-4 flex justify-end">
+                          {onUseResult ? (
+                            <button
+                              type="button"
+                              disabled={!result.content || result.status === "failed"}
+                              onClick={() => {
+                                onUseResult(result);
+                                setIsOpen(false);
+                              }}
+                              className="mr-2 rounded-2xl border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:text-stone-400"
+                            >
+                              {useResultLabel}
+                            </button>
+                          ) : null}
                           <ArtifactSaveButton
                             buildPayload={() =>
                               buildCompareArtifactInput({
@@ -244,6 +291,7 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useComparePanel() {
   return useContext(ComparePanelContext);
 }

@@ -43,9 +43,14 @@ class SupabaseService:
         email: str | None,
         access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client(access_token)
+        # Bootstrap uses the backend service-role client so the helper RPC does
+        # not need to remain directly executable by authenticated API callers.
+        client = self.client()
         if client is None:
-            return None
+            raise RuntimeError(
+                "SupabaseService.ensure_workspace_for_user could not create a service-role client. "
+                "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for workspace bootstrap."
+            )
 
         display_name = email.split("@")[0] if email else "Beyond Chat User"
         response = (
@@ -86,7 +91,7 @@ class SupabaseService:
         requested_workspace_id: str | None = None,
         access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client(access_token)
+        client = self.client() or self.client(access_token)
         if client is None:
             return None
 
@@ -137,7 +142,7 @@ class SupabaseService:
         file_bytes: bytes,
         access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client(access_token)
+        client = self.client() or self.client(access_token)
         if client is None:
             return None
 

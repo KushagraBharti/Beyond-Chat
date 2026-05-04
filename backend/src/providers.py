@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any, AsyncIterator
 
 import httpx
 
 from .config import settings
+from .dexter_client import local_dexter_runtime_available
 
 OPENROUTER_NOT_CONFIGURED = "OPENROUTER_NOT_CONFIGURED"
 EXA_NOT_CONFIGURED = "EXA_NOT_CONFIGURED"
@@ -91,6 +92,62 @@ async def call_openrouter(
         return ""
     content = message.get("content", "")
     return content if isinstance(content, str) else ""
+
+
+def _normalize_openrouter_content(content: Any) -> str:
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        text_parts = [
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and isinstance(part.get("text"), str)
+        ]
+        return "".join(text_parts)
+    return ""
+
+
+async def call_openrouter_with_tools(
+    model: str,
+    messages: list[dict[str, str]],
+    temperature: float = 0.4,
+    max_tokens: int = 900,
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: str | dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    if not settings.openrouter_api_key:
+        raise RuntimeError(OPENROUTER_NOT_CONFIGURED)
+
+    request_payload: dict[str, Any] = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+    if tools:
+        request_payload["tools"] = tools
+    if tool_choice is not None:
+        request_payload["tool_choice"] = tool_choice
+
+    payload = await _post_openrouter_json(
+        url="https://openrouter.ai/api/v1/chat/completions",
+        payload=request_payload,
+        timeout=settings.openrouter_timeout_seconds,
+        error_provider="OpenRouter compare",
+    )
+
+    choices = payload.get("choices") or []
+    first_choice = choices[0] if choices and isinstance(choices[0], dict) else {}
+    message = first_choice.get("message") if isinstance(first_choice, dict) else {}
+    if not isinstance(message, dict):
+        message = {}
+
+    tool_calls = message.get("tool_calls") or []
+    return {
+        "content": _normalize_openrouter_content(message.get("content", "")),
+        "toolCalls": tool_calls if isinstance(tool_calls, list) else [],
+        "finishReason": first_choice.get("finish_reason") if isinstance(first_choice, dict) else None,
+    }
 
 
 async def call_openrouter_stream(
@@ -239,11 +296,16 @@ async def call_openrouter_image(
     return results
 
 
-async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]:
+async def compare_models(
+    prompt: str,
+    models: list[str],
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: str | dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     async def run_single_model(model: str) -> dict[str, Any]:
         started = datetime.now(timezone.utc)
         try:
-            content = await call_openrouter(
+            response = await call_openrouter_with_tools(
                 model=model,
                 messages=[
                     {
@@ -254,14 +316,18 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                 ],
                 temperature=0.3,
                 max_tokens=1000,
+                tools=tools,
+                tool_choice=tool_choice,
             )
             latency_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
             return {
                 "model": model,
                 "status": "completed",
-                "content": content,
+                "content": response["content"],
                 "latencyMs": latency_ms,
                 "error": None,
+                "toolCalls": response["toolCalls"],
+                "finishReason": response["finishReason"],
             }
         except RuntimeError as exc:
             if str(exc) == OPENROUTER_NOT_CONFIGURED:
@@ -271,6 +337,8 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                     "content": "",
                     "latencyMs": 0,
                     "error": "OpenRouter is not configured.",
+                    "toolCalls": [],
+                    "finishReason": None,
                 }
             raise
         except Exception as exc:
@@ -281,6 +349,8 @@ async def compare_models(prompt: str, models: list[str]) -> list[dict[str, Any]]
                 "content": "",
                 "latencyMs": latency_ms,
                 "error": str(exc),
+                "toolCalls": [],
+                "finishReason": None,
             }
 
     return list(await asyncio.gather(*(run_single_model(model) for model in models)))
@@ -328,6 +398,17 @@ async def exa_search(query: str) -> dict[str, Any]:
 
 def provider_statuses() -> dict[str, Any]:
     google_ready = bool(settings.google_client_id and settings.google_client_secret)
+    local_dexter_ready = (
+        local_dexter_runtime_available()
+        and bool(settings.openrouter_api_key)
+        and bool(settings.financial_datasets_api_key)
+    )
+    dexter_ready = bool(settings.dexter_runner_url) or local_dexter_ready
+    dexter_details = (
+        "Sandboxed finance agent runtime"
+        if settings.dexter_runner_url
+        else "Local finance agent runtime"
+    )
     return {
         "openrouter": {
             "status": "connected" if settings.openrouter_api_key else "not_configured",
@@ -340,9 +421,9 @@ def provider_statuses() -> dict[str, Any]:
             "details": "Web search for research and Dexter",
         },
         "dexter": {
-            "status": "connected" if settings.dexter_runner_url else "not_configured",
+            "status": "connected" if dexter_ready else "not_configured",
             "label": "Dexter Finance",
-            "details": "Sandboxed finance agent runtime",
+            "details": dexter_details,
         },
         "financialDatasets": {
             "status": "connected" if settings.financial_datasets_api_key else "not_configured",
@@ -369,31 +450,26 @@ def provider_statuses() -> dict[str, Any]:
             "label": "Supabase Storage",
             "details": f"Bucket target: {settings.supabase_storage_bucket}",
         },
+        "notion": {
+            "status": "not_configured",
+            "label": "Notion",
+            "details": "Company knowledge context connector",
+        },
+        "googleDrive": {
+            "status": "not_configured",
+            "label": "Google Drive",
+            "details": "Uploaded briefs, decks, documents, and spreadsheets",
+        },
+        "slack": {
+            "status": "not_configured",
+            "label": "Slack",
+            "details": "Team discussion context connector",
+        },
     }
 
 
 def google_calendar_events() -> list[dict[str, str]]:
-    now = datetime.now(timezone.utc)
-    return [
-        {
-            "id": "preview-1",
-            "title": "Design review",
-            "startsAt": (now + timedelta(hours=2)).isoformat(),
-            "location": "Google Meet",
-        },
-        {
-            "id": "preview-2",
-            "title": "Research sync",
-            "startsAt": (now + timedelta(hours=5)).isoformat(),
-            "location": "Workspace calendar",
-        },
-        {
-            "id": "preview-3",
-            "title": "Artifact cleanup",
-            "startsAt": (now + timedelta(days=1, hours=1)).isoformat(),
-            "location": "Beyond Chat",
-        },
-    ]
+    return []
 
 
 def build_google_connect_url() -> str | None:

@@ -69,6 +69,8 @@ export interface CompareResult {
   content: string;
   latencyMs: number;
   error: string | null;
+  toolCalls?: unknown[];
+  finishReason?: string | null;
 }
 
 export interface RunStep {
@@ -85,6 +87,8 @@ export interface RunStep {
 export interface RunRecord {
   id: string;
   workspace_id: string;
+  ownerProfileId?: string | null;
+  createdBy?: string | null;
   studio: string;
   title: string;
   prompt: string;
@@ -102,6 +106,8 @@ export interface RunRecord {
 export interface ArtifactRecord {
   id: string;
   workspace_id: string;
+  ownerProfileId?: string | null;
+  createdBy?: string | null;
   type: string;
   title: string;
   content: string;
@@ -275,7 +281,10 @@ export async function deleteThread(threadId: string) {
   });
 }
 
-export async function sendThreadMessage(threadId: string, payload: { content: string; model: string }) {
+export async function sendThreadMessage(
+  threadId: string,
+  payload: { content: string; model: string; context_ids?: string[] },
+) {
   return api<{ userMessage: ChatMessage; assistantMessage: ChatMessage }>(`/api/chat/threads/${threadId}/messages`, {
     method: "POST",
     body: JSON.stringify(payload),
@@ -284,7 +293,7 @@ export async function sendThreadMessage(threadId: string, payload: { content: st
 
 export async function streamThreadMessage(
   threadId: string,
-  payload: { content: string; model: string },
+  payload: { content: string; model: string; context_ids?: string[] },
   handlers: { onDelta?: (chunk: string, fullText: string) => void } = {},
 ) {
   const session = supabase ? await supabase.auth.getSession() : null;
@@ -382,7 +391,13 @@ export async function streamThreadMessage(
   throw new Error("Chat stream ended before a final response was received.");
 }
 
-export async function comparePrompt(payload: { prompt: string; models: string[]; context_ids?: string[] }) {
+export async function comparePrompt(payload: {
+  prompt: string;
+  models: string[];
+  context_ids?: string[];
+  tools?: Array<Record<string, unknown>>;
+  tool_choice?: string | Record<string, unknown> | null;
+}) {
   return api<{ results: CompareResult[] }>("/api/chat/compare", {
     method: "POST",
     body: JSON.stringify(payload),
@@ -435,6 +450,9 @@ export interface BillingStatus {
   plan: "free" | "pro";
   status: string;
   current_period_end: string | null;
+  billing_storage?: "available" | "unavailable";
+  checkout_configured?: boolean;
+  portal_configured?: boolean;
   usage: { requests: number; spend_usd: number };
   limits: { requests: number | null; spend_usd: number };
 }
@@ -513,14 +531,51 @@ export async function exportArtifact(artifactId: string, format: "markdown" | "p
   return response.blob();
 }
 
+export async function exportArtifactBundle(payload: { title: string; artifact_ids: string[] }) {
+  const session = supabase ? await supabase.auth.getSession() : null;
+  const accessToken = session?.data.session?.access_token;
+  const workspaceId = getStoredWorkspaceId();
+  const response = await fetch(`${apiBaseUrl}/api/artifacts/export-bundle`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    const detail = maybeJson?.detail ?? response.statusText;
+    throw new Error(typeof detail === "string" ? detail : "Bundle export failed.");
+  }
+
+  return response.blob();
+}
+
 export interface DataAnalysisResult {
   insight: string;
+  metrics?: Array<{ label: string; value: string; note?: string }>;
+  risks?: Array<{ risk: string; severity: "low" | "medium" | "high" | string; evidence?: string }>;
+  recommendations?: string[];
   chart_type: "bar" | "line" | "pie" | "scatter";
   chart_data: {
     labels: string[];
     datasets: Array<{ label: string; data: number[] }>;
   };
   table: { headers: string[]; rows: string[][] };
+}
+
+export interface DataPreviewResult {
+  headers: string[];
+  rows: string[][];
+  fileType: "csv" | "excel";
+  profile: {
+    rowCount: number;
+    columnCount: number;
+    columns: Array<{ name: string; dtype: string; missing: number }>;
+  };
 }
 
 export async function uploadArtifactFile(
@@ -551,6 +606,13 @@ export async function uploadArtifactFile(
   const payload = await response.json();
   const data = (payload?.data ?? payload) as { artifactId: string; path: string; signedUrl: string };
   return { artifactId: data.artifactId, path: data.path, signedUrl: data.signedUrl };
+}
+
+export async function previewData(payload: { storage_path: string }): Promise<DataPreviewResult> {
+  return api<DataPreviewResult>("/api/data/preview", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function analyzeData(payload: {

@@ -10,8 +10,8 @@ create table if not exists public.reminders (
     status text not null default 'open' check (status in ('open', 'completed', 'dismissed')),
     source text not null default 'internal',
     metadata jsonb not null default '{}'::jsonb,
-    created_at timestamptz not null default timezone('utc', now()),
-    updated_at timestamptz not null default timezone('utc', now())
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
 );
 
 create index if not exists reminders_workspace_due_idx

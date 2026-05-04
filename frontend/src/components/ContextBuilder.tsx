@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
-import type { ArtifactRecord } from "../lib/api";
-import { listArtifacts } from "../lib/api";
+import type { ArtifactRecord, ProviderRecord } from "../lib/api";
+import { getCachedProviderStatuses, getProviderStatuses, listArtifacts } from "../lib/api";
 import { EmptyState, FieldLabel, GhostButton, MotionCard, SecondaryButton, StatusBadge, TextInput } from "./protectedUi";
+
+const sourceTabs = [
+  { key: "artifacts", label: "Artifacts", providerKey: null },
+  { key: "notion", label: "Notion", providerKey: "notion" },
+  { key: "files", label: "Files", providerKey: "googleDrive" },
+  { key: "calendar", label: "Calendar", providerKey: "googleCalendar" },
+  { key: "slack", label: "Slack", providerKey: "slack" },
+] as const;
 
 export default function ContextBuilder({
   selectedIds,
@@ -17,6 +25,8 @@ export default function ContextBuilder({
   const [items, setItems] = useState<ArtifactRecord[]>([]);
   const [suggestedItems, setSuggestedItems] = useState<ArtifactRecord[]>([]);
   const [query, setQuery] = useState("");
+  const [activeSource, setActiveSource] = useState<(typeof sourceTabs)[number]["key"]>("artifacts");
+  const [providers, setProviders] = useState<Record<string, ProviderRecord>>(() => getCachedProviderStatuses() ?? {});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,6 +56,25 @@ export default function ContextBuilder({
 
   useEffect(() => {
     let active = true;
+    void getProviderStatuses()
+      .then((response) => {
+        if (active) setProviders(response.providers);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (activeSource !== "artifacts") {
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
+    let active = true;
 
     const load = async () => {
       setLoading(true);
@@ -70,7 +99,7 @@ export default function ContextBuilder({
     return () => {
       active = false;
     };
-  }, [query]);
+  }, [activeSource, query]);
 
   const allKnownItems = [...suggestedItems, ...items].filter(
     (item, index, allItems) => allItems.findIndex((candidate) => candidate.id === item.id) === index,
@@ -95,14 +124,36 @@ export default function ContextBuilder({
         <StatusBadge status={selectedIds.length ? "connected" : "disconnected"} label={`${selectedIds.length} included`} />
       </div>
 
-      <div className="stack-sm">
-        <FieldLabel>Search artifacts</FieldLabel>
-        <TextInput
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by title, summary, or content..."
-        />
+      <div className="context-source-tabs" role="tablist" aria-label="Context sources">
+        {sourceTabs.map((tab) => {
+          const status = tab.providerKey ? providers[tab.providerKey]?.status ?? "not_configured" : null;
+          const active = activeSource === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              className={`context-source-tab ${active ? "is-active" : ""}`}
+              onClick={() => setActiveSource(tab.key)}
+            >
+              <span>{tab.label}</span>
+              {status ? <span>{status.replace("_", " ")}</span> : null}
+            </button>
+          );
+        })}
       </div>
+
+      {activeSource === "artifacts" ? (
+        <div className="stack-sm">
+          <FieldLabel>Search artifacts</FieldLabel>
+          <TextInput
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search by title, summary, or content..."
+          />
+        </div>
+      ) : null}
 
       {selectedIds.length ? (
         <div className="selected-context-list">
@@ -115,10 +166,17 @@ export default function ContextBuilder({
         </div>
       ) : null}
 
-      {loading ? <div className="meta-placeholder">Loading context options...</div> : null}
+      {activeSource !== "artifacts" ? (
+        <EmptyState
+          title={`${sourceTabs.find((tab) => tab.key === activeSource)?.label ?? "Source"} is not available yet`}
+          body="This source will become selectable after its real connector is implemented and configured. Beyond Chat does not fabricate connector data."
+        />
+      ) : null}
+
+      {activeSource === "artifacts" && loading ? <div className="meta-placeholder">Loading context options...</div> : null}
       {error ? <div className="error-copy">{error}</div> : null}
 
-      {suggestedItems.length > 0 ? (
+      {activeSource === "artifacts" && suggestedItems.length > 0 ? (
         <div>
           <div
             style={{
@@ -174,13 +232,13 @@ export default function ContextBuilder({
         </div>
       ) : null}
 
-      {!loading && !items.length ? (
+      {activeSource === "artifacts" && !loading && !items.length ? (
         <EmptyState
           title="No matching artifacts yet"
           body="Save outputs from writing, research, image, or finance and they will appear here for reuse."
           action={<SecondaryButton onClick={() => setQuery("")}>Clear search</SecondaryButton>}
         />
-      ) : (
+      ) : activeSource === "artifacts" ? (
         <div className="context-grid">
           {items.map((item) => {
             const selected = selectedIds.includes(item.id);
@@ -205,7 +263,7 @@ export default function ContextBuilder({
             );
           })}
         </div>
-      )}
+      ) : null}
 
       <div className="inline-actions">
         <GhostButton onClick={() => onChange([])} type="button">
