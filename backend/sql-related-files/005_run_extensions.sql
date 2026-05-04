@@ -27,6 +27,7 @@ alter table if exists public.runs
     add column if not exists error_message text,
     add column if not exists provider_status text,
     add column if not exists completed_at timestamptz,
+    add column if not exists owner_profile_id uuid references public.user_profiles(id) on delete cascade,
     add column if not exists metadata jsonb not null default '{}'::jsonb;
 
 create index if not exists runs_workspace_studio_idx

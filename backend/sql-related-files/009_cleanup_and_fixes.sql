@@ -38,6 +38,7 @@ set
         'text/plain',
         'text/csv',
         'application/json',
+        'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ]
@@ -133,6 +134,10 @@ create index if not exists artifacts_created_by_idx
     on public.artifacts (created_by)
     where created_by is not null;
 
+create index if not exists artifacts_owner_profile_updated_idx
+    on public.artifacts (owner_profile_id, updated_at desc)
+    where owner_profile_id is not null;
+
 create index if not exists artifacts_source_run_id_idx
     on public.artifacts (source_run_id)
     where source_run_id is not null;
@@ -159,3 +164,7 @@ create index if not exists integration_sync_logs_connection_id_idx
 create index if not exists runs_created_by_idx
     on public.runs (created_by)
     where created_by is not null;
+
+create index if not exists runs_owner_profile_created_idx
+    on public.runs (owner_profile_id, created_at desc)
+    where owner_profile_id is not null;

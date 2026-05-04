@@ -68,5 +68,6 @@ __pycache__/
 backend/.env
 frontend/.env.local
 api-credentials.txt
+supabase/.temp/
 
 .presentation-workspace

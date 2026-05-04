@@ -11,7 +11,9 @@ values (
         'application/pdf',
         'text/markdown',
         'text/plain',
-        'text/csv'
+        'text/csv',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ]
 )
 on conflict (id) do update

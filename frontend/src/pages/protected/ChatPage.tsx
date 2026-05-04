@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
   type ChatMessage,
@@ -16,8 +16,11 @@ import {
 } from "../../lib/api";
 import { supabase } from "../../lib/supabaseClient";
 import { AppBrand } from "../../components/protectedUi";
+import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import ContextBuilder from "../../components/ContextBuilder";
 import { useComparePanel } from "../../features/compare/ComparePanelProvider";
 import { activeModelCatalog, defaultChatModel } from "../../lib/modelCatalog";
+import { buildChatMessageArtifactInput } from "../../lib/artifactDrafts";
 
 const availableModels = [
   ...activeModelCatalog.map((entry) => ({
@@ -26,8 +29,12 @@ const availableModels = [
   })),
 ];
 
+const launchPlanPrompt =
+  "Create an artifact-ready launch plan from the attached context. Include the core decision, research questions, data needed, finance assumptions, writing deliverables, image needs, risks, and the next studio to use for each workstream.";
+
 export default function ChatPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { openComparePanel } = useComparePanel();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,12 +47,40 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [contextIds, setContextIds] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [threadMenu, setThreadMenu] = useState<{ threadId: string; x: number; y: number } | null>(null);
+
+  const movePromptToComposer = (nextPrompt: string) => {
+    setMessage(nextPrompt);
+    window.setTimeout(handleTextareaInput, 0);
+  };
+
+  const assistantHandoffPrompt = (msg: ChatMessage) =>
+    [
+      "Use this assistant output as source context.",
+      "",
+      msg.content,
+      "",
+      "Produce a concrete artifact-ready next step that preserves the important context, decisions, risks, and recommendations.",
+    ].join("\n");
 
   useEffect(() => {
     void refreshThreads();
   }, []);
+
+  useEffect(() => {
+    const state = location.state as { prompt?: string; contextIds?: string[] } | null;
+    if (!state) return;
+    if (state.prompt) {
+      setMessage(state.prompt);
+      window.setTimeout(handleTextareaInput, 0);
+    }
+    if (state.contextIds?.length) {
+      setContextIds(state.contextIds);
+    }
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   useEffect(() => {
     if (!threadMenu) return;
@@ -205,6 +240,7 @@ export default function ChatPage() {
       const response = await streamThreadMessage(thread.id, {
         content: outboundMessage,
         model,
+        context_ids: contextIds,
       }, {
         onDelta: (_chunk, fullText) => {
           setActiveThread((current) =>
@@ -334,6 +370,14 @@ export default function ChatPage() {
           />
         </div>
 
+        <div className="cs-context-panel">
+          <ContextBuilder
+            selectedIds={contextIds}
+            onChange={setContextIds}
+            title="Chat Context"
+          />
+        </div>
+
         <div className="cs-threads">
           {filteredThreads.length > 0 && (
             <div className="cs-threads-label">Recents</div>
@@ -366,7 +410,7 @@ export default function ChatPage() {
             </div>
             <div className="cs-user-info">
               <span className="cs-user-name">
-                {user?.email ?? "Workspace user"}
+                {user?.email ?? "Authenticated user"}
               </span>
             </div>
             <button
@@ -404,8 +448,13 @@ export default function ChatPage() {
             onClick={() =>
               openComparePanel({
                 prompt: message || activeThread?.prompt || "",
-                contextIds: [],
+                contextIds,
                 studio: "chat",
+                onUseResult: (result) => {
+                  setMessage(result.content);
+                  window.setTimeout(handleTextareaInput, 0);
+                },
+                useResultLabel: "Use in Composer",
               })
             }
             type="button"
@@ -424,6 +473,22 @@ export default function ChatPage() {
               Hello{user?.email ? `, ${user.email.split("@")[0]}` : ""}
             </h1>
             <p className="cs-welcome-sub">How can I help you today?</p>
+            <div className="cs-welcome-actions">
+              <button className="cs-quick-action" type="button" onClick={() => movePromptToComposer(launchPlanPrompt)}>
+                Create Launch Plan
+              </button>
+              <button
+                className="cs-quick-action"
+                type="button"
+                onClick={() =>
+                  movePromptToComposer(
+                    "Review the attached artifacts and suggest what to research, analyze, finance, write, and create next. Return the answer as an artifact-ready action plan.",
+                  )
+                }
+              >
+                Plan Next Studios
+              </button>
+            </div>
           </div>
         ) : (
           <div className="cs-messages">
@@ -437,6 +502,62 @@ export default function ChatPage() {
                   <div className="cs-markdown">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                   </div>
+                  {msg.role === "assistant" && msg.content.trim() && !msg.metadata?.streaming ? (
+                    <div className="cs-msg-actions">
+                      <ArtifactSaveButton
+                        buildPayload={() =>
+                          buildChatMessageArtifactInput({
+                            threadTitle: activeThread.title,
+                            message: msg,
+                          })
+                        }
+                        label="Save"
+                        savedLabel="Saved"
+                        saveKey={msg.id}
+                        onError={setError}
+                      />
+                      <button
+                        className="cs-msg-action-btn"
+                        type="button"
+                        onClick={() => navigate("/research", { state: { prompt: assistantHandoffPrompt(msg), contextIds } })}
+                      >
+                        Research
+                      </button>
+                      <button
+                        className="cs-msg-action-btn"
+                        type="button"
+                        onClick={() =>
+                          navigate("/writing/new", {
+                            state: {
+                              prompt: "Turn this chat output into a polished writing artifact.",
+                              contextIds,
+                              template: {
+                                title: `${activeThread.title} draft`,
+                                content: msg.content,
+                              },
+                            },
+                          })
+                        }
+                      >
+                        Writing
+                      </button>
+                      <button
+                        className="cs-msg-action-btn"
+                        type="button"
+                        onClick={() =>
+                          openComparePanel({
+                            prompt: assistantHandoffPrompt(msg),
+                            contextIds,
+                            studio: "chat",
+                            useResultLabel: "Use in Composer",
+                            onUseResult: (result) => movePromptToComposer(result.content),
+                          })
+                        }
+                      >
+                        Compare
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -490,7 +611,7 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="cs-composer-hint">
-            {activeModelLabel} &middot; Enter to send, Shift+Enter for new line
+            {activeModelLabel} &middot; {contextIds.length} artifact{contextIds.length === 1 ? "" : "s"} attached &middot; Enter to send, Shift+Enter for new line
           </div>
         </div>
       </main>

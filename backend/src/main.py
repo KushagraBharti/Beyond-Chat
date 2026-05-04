@@ -128,6 +128,7 @@ class CreateThreadRequest(BaseModel):
 class CreateMessageRequest(BaseModel):
     content: str
     model: str = settings.openrouter_default_model
+    context_ids: list[str] = Field(default_factory=list)
 
 
 class RenameThreadRequest(BaseModel):
@@ -142,6 +143,8 @@ class CompareRequest(BaseModel):
     prompt: str
     models: list[str] = Field(min_length=1, max_length=4)
     context_ids: list[str] = Field(default_factory=list)
+    tools: list[dict[str, Any]] = Field(default_factory=list)
+    tool_choice: str | dict[str, Any] | None = None
 
 
 class RunRequest(BaseModel):
@@ -151,6 +154,24 @@ class RunRequest(BaseModel):
     model: str = settings.openrouter_default_model
     context_ids: list[str] = Field(default_factory=list)
     options: dict[str, Any] = Field(default_factory=dict)
+
+
+def chat_messages_with_context(
+    thread_messages: list[dict[str, Any]],
+    user_message: dict[str, Any],
+    context_artifacts: list[dict[str, Any]],
+) -> list[dict[str, str]]:
+    messages = [
+        {"role": message["role"], "content": message["content"]}
+        for message in thread_messages
+    ]
+    messages.append(
+        {
+            "role": user_message["role"],
+            "content": merge_prompt_with_context(user_message["content"], context_artifacts),
+        }
+    )
+    return messages
 
 
 class ArtifactRequest(BaseModel):
@@ -181,6 +202,11 @@ class ExportRequest(BaseModel):
     format: str = Field(pattern="^(markdown|pdf)$")
 
 
+class BundleExportRequest(BaseModel):
+    artifact_ids: list[str] = Field(min_length=1, max_length=40)
+    title: str = Field(default="Beyond Chat Artifact Bundle", min_length=1, max_length=160)
+
+
 class LegacyExportRequest(ExportRequest):
     artifact_id: str
 
@@ -200,6 +226,10 @@ class DataAnalyzeRequest(BaseModel):
     storage_path: str
     prompt: str = ""
     model: str = settings.openrouter_default_model
+
+
+class DataPreviewRequest(BaseModel):
+    storage_path: str
 
 # Push
 
@@ -318,6 +348,74 @@ def resolve_storage_path_from_payload(payload: ArtifactRequest | dict[str, Any])
         if isinstance(storage_path, str) and storage_path.strip():
             return storage_path
     return None
+
+
+def _is_excel_path(storage_path: str) -> bool:
+    return Path(storage_path.split("?")[0]).suffix.lower() in {".xlsx", ".xls"}
+
+
+def _parse_tabular_file(storage_path: str, file_bytes: bytes):
+    if not _PANDAS_AVAILABLE:
+        raise HTTPException(status_code=503, detail="pandas is not installed on this backend.")
+
+    suffix = Path(storage_path.split("?")[0]).suffix.lower()
+    try:
+        if suffix in {".csv", ".txt"}:
+            return pd.read_csv(io.BytesIO(file_bytes))
+        if suffix in {".xlsx", ".xls"}:
+            return pd.read_excel(io.BytesIO(file_bytes))
+    except Exception as exc:
+        file_type = "Excel workbook" if suffix in {".xlsx", ".xls"} else "CSV"
+        raise HTTPException(status_code=422, detail=f"Could not parse {file_type}: {exc}") from exc
+
+    raise HTTPException(status_code=415, detail="Unsupported data file type. Upload a CSV, XLSX, or XLS file.")
+
+
+def _stringify_cell(value: Any) -> str:
+    try:
+        if pd.isna(value):
+            return ""
+    except Exception:
+        pass
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
+def build_dataframe_preview(df, limit: int = 10) -> dict[str, Any]:
+    preview = df.head(limit)
+    missing = df.isna().sum()
+    return {
+        "headers": [str(column) for column in df.columns],
+        "rows": [
+            [_stringify_cell(value) for value in row]
+            for row in preview.itertuples(index=False, name=None)
+        ],
+        "profile": {
+            "rowCount": int(len(df)),
+            "columnCount": int(len(df.columns)),
+            "columns": [
+                {
+                    "name": str(column),
+                    "dtype": str(df[column].dtype),
+                    "missing": int(missing[column]),
+                }
+                for column in df.columns
+            ],
+        },
+    }
+
+
+def load_user_data_file(storage_path: str, context: RequestContext):
+    workspace_prefix = f"{context.workspace_id}/"
+    if not storage_path.startswith(workspace_prefix):
+        raise HTTPException(status_code=403, detail="Storage path is outside the active workspace.")
+
+    file_bytes = supabase_service.download_artifact_file(storage_path, context.access_token)
+    if file_bytes is None:
+        raise HTTPException(status_code=404, detail="File not found in storage.")
+
+    return file_bytes, _parse_tabular_file(storage_path, file_bytes)
 
 
 async def execute_run(
@@ -589,16 +687,29 @@ async def add_message(
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content)
+    try:
+        context_artifacts = resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    message_metadata = (
+        {
+            "contextIds": payload.context_ids,
+            "contextArtifacts": [
+                {"id": artifact["id"], "title": artifact.get("title"), "type": artifact.get("type")}
+                for artifact in context_artifacts
+            ],
+        }
+        if context_artifacts
+        else {}
+    )
+    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content, message_metadata)
     assistant_content = (
         "OpenRouter is not configured yet. Add `OPENROUTER_API_KEY` to enable live chat responses."
     )
 
     if settings.openrouter_api_key:
-        messages = [
-            {"role": message["role"], "content": message["content"]}
-            for message in thread["messages"] + [user_message]
-        ]
+        messages = chat_messages_with_context(thread["messages"], user_message, context_artifacts)
         try:
             assistant_content = await call_openrouter(
                 model=payload.model,
@@ -625,7 +736,23 @@ async def add_message_stream(
     if thread is None:
         raise HTTPException(status_code=404, detail="Thread not found")
 
-    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content)
+    try:
+        context_artifacts = resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    message_metadata = (
+        {
+            "contextIds": payload.context_ids,
+            "contextArtifacts": [
+                {"id": artifact["id"], "title": artifact.get("title"), "type": artifact.get("type")}
+                for artifact in context_artifacts
+            ],
+        }
+        if context_artifacts
+        else {}
+    )
+    user_message = data_store.add_message(context.workspace_id, thread_id, "user", payload.content, message_metadata)
 
     def sse(event: str, data: dict[str, Any]) -> str:
         return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=True)}\n\n"
@@ -634,10 +761,7 @@ async def add_message_stream(
         assistant_content = ""
 
         if settings.openrouter_api_key:
-            messages = [
-                {"role": message["role"], "content": message["content"]}
-                for message in thread["messages"] + [user_message]
-            ]
+            messages = chat_messages_with_context(thread["messages"], user_message, context_artifacts)
             try:
                 async for chunk in call_openrouter_stream(
                     model=payload.model,
@@ -682,7 +806,12 @@ async def compare(
     try:
         context_artifacts = resolve_context_artifacts(data_store, context.workspace_id, payload.context_ids)
         effective_prompt = merge_prompt_with_context(payload.prompt, context_artifacts)
-        results = await compare_models(effective_prompt, payload.models)
+        results = await compare_models(
+            effective_prompt,
+            payload.models,
+            tools=payload.tools or None,
+            tool_choice=payload.tool_choice,
+        )
         for model in payload.models:
             record_usage_event(context, event_type="model_compare", model=model)
     except RuntimeError as exc:
@@ -1004,6 +1133,64 @@ def export_artifact_legacy(
     return export_artifact(payload.artifact_id, ExportRequest(format=payload.format), context)
 
 
+@app.post("/api/artifacts/export-bundle")
+def export_artifact_bundle(
+    payload: BundleExportRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> Response:
+    data_store = get_runtime_store(context)
+    seen: set[str] = set()
+    artifacts: list[dict[str, Any]] = []
+
+    for artifact_id in payload.artifact_ids:
+        if artifact_id in seen:
+            continue
+        seen.add(artifact_id)
+        artifact = data_store.get_artifact(context.workspace_id, artifact_id)
+        if artifact is None:
+            raise HTTPException(status_code=404, detail=f"Artifact not found: {artifact_id}")
+        artifacts.append(artifact)
+
+    sections = [
+        f"# {payload.title.strip()}",
+        "",
+        f"Exported artifacts: {len(artifacts)}",
+        "",
+        "## Contents",
+        "",
+        *[
+            f"- {index}. {artifact.get('title') or 'Untitled'} ({artifact.get('studio') or 'unknown'} / {artifact.get('type') or 'unknown'})"
+            for index, artifact in enumerate(artifacts, start=1)
+        ],
+    ]
+
+    for index, artifact in enumerate(artifacts, start=1):
+        title = artifact.get("title") or "Untitled"
+        content = str(artifact.get("content") or "").strip()
+        sections.extend(
+            [
+                "",
+                "---",
+                "",
+                f"## {index}. {title}",
+                "",
+                f"- Studio: {artifact.get('studio') or 'unknown'}",
+                f"- Type: {artifact.get('type') or 'unknown'}",
+                f"- Created: {artifact.get('created_at') or 'unknown'}",
+                f"- Source run: {artifact.get('source_run_id') or artifact.get('metadata', {}).get('runId') or 'none'}",
+                "",
+                content or "_No text content stored for this artifact._",
+            ]
+        )
+
+    filename = re.sub(r"[^a-zA-Z0-9._-]+", "-", payload.title.strip()).strip("-") or "artifact-bundle"
+    return Response(
+        content="\n".join(sections),
+        media_type="text/markdown",
+        headers={"Content-Disposition": f'inline; filename="{filename}.md"'},
+    )
+
+
 @app.post("/api/storage/artifacts/upload")
 async def upload_artifact_file(
     file: UploadFile = File(...),
@@ -1074,34 +1261,33 @@ def create_storage_signed_url(
     )
 
 
+@app.post("/api/data/preview")
+async def preview_data_file(
+    payload: DataPreviewRequest,
+    context: RequestContext = Depends(require_request_context),
+) -> dict[str, Any]:
+    _file_bytes, df = load_user_data_file(payload.storage_path, context)
+    preview = build_dataframe_preview(df, limit=10)
+    preview["fileType"] = "excel" if _is_excel_path(payload.storage_path) else "csv"
+    return api_success(preview)
+
+
 @app.post("/api/data/analyze")
 async def analyze_data(
     payload: DataAnalyzeRequest,
     context: RequestContext = Depends(require_request_context),
 ) -> dict[str, Any]:
-    if not _PANDAS_AVAILABLE:
-        raise HTTPException(status_code=503, detail="pandas is not installed on this backend.")
-
-    workspace_prefix = f"{context.workspace_id}/"
-    if not payload.storage_path.startswith(workspace_prefix):
-        raise HTTPException(status_code=403, detail="Storage path is outside the active workspace.")
-
-    file_bytes = supabase_service.download_artifact_file(payload.storage_path, context.access_token)
-    if file_bytes is None:
-        raise HTTPException(status_code=404, detail="File not found in storage.")
-
-    try:
-        df = pd.read_csv(io.BytesIO(file_bytes))
-    except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"Could not parse CSV: {exc}") from exc
+    file_bytes, df = load_user_data_file(payload.storage_path, context)
 
     columns_info = ", ".join(f"{col} ({str(df[col].dtype)})" for col in df.columns)
     preview_md = df.head(10).to_markdown(index=False)
     describe_str = df.describe(include="all").fillna("").to_string()
+    file_type = "Excel workbook" if _is_excel_path(payload.storage_path) else "CSV"
 
-    analysis_prompt = f"""You are a data analyst. Analyze this dataset and answer the user's question.
+    analysis_prompt = f"""You are a data analyst. Analyze this {file_type} dataset and answer the user's question.
 
 ## Dataset info
+File type: {file_type}
 Columns: {columns_info}
 Shape: {len(df)} rows x {len(df.columns)} columns
 
@@ -1117,6 +1303,15 @@ Shape: {len(df)} rows x {len(df.columns)} columns
 Return ONLY a valid JSON object — no markdown fences, no text outside the JSON — with exactly this shape:
 {{
   "insight": "<one paragraph plain English finding>",
+  "metrics": [
+    {{"label": "<metric label>", "value": "<metric value>", "note": "<short interpretation>"}}
+  ],
+  "risks": [
+    {{"risk": "<risk or anomaly>", "severity": "low|medium|high", "evidence": "<dataset evidence>"}}
+  ],
+  "recommendations": [
+    "<specific recommendation grounded in the dataset>"
+  ],
   "chart_type": "bar",
   "chart_data": {{
     "labels": ["<label1>", "<label2>"],
@@ -1129,6 +1324,9 @@ Return ONLY a valid JSON object — no markdown fences, no text outside the JSON
 }}
 chart_type must be one of: bar, line, pie, scatter.
 chart_data.labels and chart_data.datasets[0].data must have the same length (max 20 items).
+metrics should contain 3-5 decision metrics.
+risks should contain 2-5 concrete risks, anomalies, or caveats with severity.
+recommendations should contain 2-5 concrete next actions.
 table.rows should contain at most 10 rows of the most relevant data."""
 
     data_store = get_runtime_store(context)
@@ -1139,7 +1337,7 @@ table.rows should contain at most 10 rows of the most relevant data."""
         title=f"Data analysis: {filename}",
         prompt=payload.prompt or "Summarize and find insights",
         model=payload.model,
-        options={"storage_path": payload.storage_path},
+        options={"storage_path": payload.storage_path, "file_type": file_type},
     )
 
     data_store.add_run_step(
@@ -1148,7 +1346,12 @@ table.rows should contain at most 10 rows of the most relevant data."""
         tool_used="supabase-storage",
         status="completed",
         input_payload={"path": payload.storage_path},
-        output_payload={"bytes": len(file_bytes), "rows": len(df), "columns": len(df.columns)},
+        output_payload={
+            "bytes": len(file_bytes),
+            "fileType": file_type,
+            "rows": len(df),
+            "columns": len(df.columns),
+        },
     )
 
     try:
@@ -1172,6 +1375,14 @@ table.rows should contain at most 10 rows of the most relevant data."""
     except json.JSONDecodeError as exc:
         data_store.complete_run(context.workspace_id, run["id"], status="failed", error=str(exc))
         raise HTTPException(status_code=502, detail=f"Could not parse model JSON: {exc}") from exc
+
+    if not isinstance(result, dict):
+        data_store.complete_run(context.workspace_id, run["id"], status="failed", error="Model did not return a JSON object")
+        raise HTTPException(status_code=502, detail="Model did not return a valid JSON object.")
+
+    result.setdefault("metrics", [])
+    result.setdefault("risks", [])
+    result.setdefault("recommendations", [])
 
     data_store.add_run_step(
         context.workspace_id, run["id"],

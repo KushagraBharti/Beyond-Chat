@@ -4,12 +4,14 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ArtifactSaveButton from "../../components/ArtifactSaveButton";
+import ContextBuilder from "../../components/ContextBuilder";
 import { createRun, getArtifact } from "../../lib/api";
 import { buildWritingArtifactInput } from "../../lib/artifactDrafts";
 import { markdownToHtml } from "../../lib/editor";
 import { activeModelCatalog, defaultChatModel } from "../../lib/modelCatalog";
+import { useComparePanel } from "../../features/compare/ComparePanelProvider";
 import {
   EmptyState,
   FieldLabel,
@@ -26,15 +28,29 @@ import {
 const modelOptions = activeModelCatalog;
 
 const colorOptions = ["#0D0D0D", "#4F3FE8", "#E55613", "#0E7AE6", "#30A46C"];
+const TARGET_CONTEXT_CHARS = 1200;
+
+interface AssistantSelection {
+  from: number;
+  to: number;
+  text: string;
+  before: string;
+  after: string;
+}
 
 export default function WritingEditorPage() {
   const { documentId = "new" } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { openComparePanel } = useComparePanel();
   const [title, setTitle] = useState("Untitled Document");
   const [assistantPrompt, setAssistantPrompt] = useState("");
   const [assistantScope, setAssistantScope] = useState<"selection" | "document" | "insert">("selection");
   const [assistantModel, setAssistantModel] = useState(defaultChatModel);
   const [assistantDraft, setAssistantDraft] = useState("");
+  const [assistantRunId, setAssistantRunId] = useState<string | null>(null);
+  const [assistantSelection, setAssistantSelection] = useState<AssistantSelection | null>(null);
+  const [contextIds, setContextIds] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState("Ready");
   const [loading, setLoading] = useState(false);
 
@@ -54,6 +70,34 @@ export default function WritingEditorPage() {
       },
     },
   });
+
+  useEffect(() => {
+    if (!editor) {
+      return;
+    }
+
+    const state = location.state as {
+      template?: { title?: string; content?: string };
+      prompt?: string;
+      contextIds?: string[];
+    } | null;
+    if (!state) {
+      return;
+    }
+
+    const template = state.template;
+    if (documentId === "new" && template) {
+      setTitle(template.title?.trim() || "Untitled Document");
+      editor.commands.setContent(markdownToHtml(template.content?.trim() || ""));
+    }
+    if (state.prompt) {
+      setAssistantPrompt(state.prompt);
+    }
+    if (state.contextIds?.length) {
+      setContextIds(state.contextIds);
+    }
+    navigate(location.pathname, { replace: true, state: null });
+  }, [documentId, editor, location.pathname, location.state, navigate]);
 
   useEffect(() => {
     let active = true;
@@ -85,31 +129,80 @@ export default function WritingEditorPage() {
     };
   }, [documentId, editor]);
 
-  const activeSelection = (() => {
-    const { from, to } = editor.state.selection;
-    if (from === to) {
-      return "";
+  useEffect(() => {
+    if (!editor) {
+      return;
     }
-    return editor.state.doc.textBetween(from, to, "\n");
-  })();
+
+    const updateAssistantSelection = () => {
+      const { from, to } = editor.state.selection;
+      if (from === to) {
+        setAssistantSelection(null);
+        return;
+      }
+
+      const text = editor.state.doc.textBetween(from, to, "\n").trim();
+      if (!text) {
+        setAssistantSelection(null);
+        return;
+      }
+
+      setAssistantSelection({
+        from,
+        to,
+        text,
+        before: editor.state.doc.textBetween(Math.max(0, from - TARGET_CONTEXT_CHARS), from, "\n"),
+        after: editor.state.doc.textBetween(to, Math.min(editor.state.doc.content.size, to + TARGET_CONTEXT_CHARS), "\n"),
+      });
+    };
+
+    updateAssistantSelection();
+    editor.on("selectionUpdate", updateAssistantSelection);
+    editor.on("transaction", updateAssistantSelection);
+    return () => {
+      editor.off("selectionUpdate", updateAssistantSelection);
+      editor.off("transaction", updateAssistantSelection);
+    };
+  }, [editor]);
 
   const handleAssistantRun = async () => {
     if (!editor || !assistantPrompt.trim()) {
       return;
     }
+    if (assistantScope === "selection" && !assistantSelection) {
+      setStatusMessage("Select a document range before running a targeted edit.");
+      return;
+    }
     setLoading(true);
     try {
       const sourceText =
-        assistantScope === "selection" && activeSelection
-          ? activeSelection
+        assistantScope === "selection" && assistantSelection
+          ? assistantSelection.text
           : editor.getText();
+      const options =
+        assistantScope === "selection" && assistantSelection
+          ? {
+              mode: "targeted_edit",
+              selected_text: assistantSelection.text,
+              before_context: assistantSelection.before,
+              after_context: assistantSelection.after,
+              selection_from: assistantSelection.from,
+              selection_to: assistantSelection.to,
+            }
+          : {};
       const response = await createRun({
         studio: "writing",
         title: `${title} assistant draft`,
-        prompt: `Instruction: ${assistantPrompt}\n\nScope: ${assistantScope}\n\nDocument content:\n${sourceText}`,
+        prompt:
+          assistantScope === "selection" && assistantSelection
+            ? assistantPrompt
+            : `Instruction: ${assistantPrompt}\n\nScope: ${assistantScope}\n\nDocument content:\n${sourceText}`,
         model: assistantModel,
+        context_ids: contextIds,
+        options,
       });
       const content = String(response.run.output.content ?? "");
+      setAssistantRunId(response.run.id);
       setAssistantDraft(content);
       setStatusMessage("Assistant suggestion generated. Review it before applying.");
     } catch (err) {
@@ -127,8 +220,8 @@ export default function WritingEditorPage() {
     const html = markdownToHtml(assistantDraft);
     if (assistantScope === "document") {
       editor.commands.setContent(html);
-    } else if (assistantScope === "selection" && activeSelection) {
-      editor.chain().focus().deleteSelection().insertContent(html).run();
+    } else if (assistantScope === "selection" && assistantSelection) {
+      editor.chain().focus().setTextSelection({ from: assistantSelection.from, to: assistantSelection.to }).deleteSelection().insertContent(html).run();
     } else {
       editor.chain().focus().insertContent(html).run();
     }
@@ -160,6 +253,7 @@ export default function WritingEditorPage() {
                   title,
                   content: editor.getText(),
                   summary: editor.getText().slice(0, 180),
+                  contextIds,
                 });
                 if (!payload) {
                   return null;
@@ -175,6 +269,7 @@ export default function WritingEditorPage() {
                     tiptap: editor.getJSON(),
                     html: editor.getHTML(),
                     assistantDraft,
+                    contextIds,
                   },
                 };
               }}
@@ -238,11 +333,14 @@ export default function WritingEditorPage() {
           <EditorContent editor={editor} />
         </MotionCard>
 
-        <MotionCard className="writing-assistant-card">
+        <div className="writing-side-panel">
+          <ContextBuilder selectedIds={contextIds} onChange={setContextIds} title="Writing Context" />
+
+          <MotionCard className="writing-assistant-card">
           <div className="context-builder-head">
             <div>
               <h3>@assistant</h3>
-              <p>Selection, document-wide rewrite, and insertion workflows using the writing run API.</p>
+              <p>Targeted selection edits, document-wide rewrites, and insertion workflows using the writing run API.</p>
             </div>
             <StatusBadge status={assistantDraft ? "completed" : "disconnected"} label={statusMessage} />
           </div>
@@ -277,7 +375,28 @@ export default function WritingEditorPage() {
           </div>
 
           <div className="inline-actions">
-            <PrimaryButton type="button" disabled={loading} onClick={handleAssistantRun}>
+            <SecondaryButton
+              type="button"
+              onClick={() =>
+                openComparePanel({
+                  prompt: assistantPrompt || editor.getText().slice(0, 2000),
+                  contextIds: [...new Set([...(documentId !== "new" ? [documentId] : []), ...contextIds])],
+                  studio: "writing",
+                  onUseResult: (result) => {
+                    setAssistantDraft(result.content);
+                    setStatusMessage("Compare result loaded as the assistant draft.");
+                  },
+                  useResultLabel: "Use as Draft",
+                })
+              }
+            >
+              Compare Drafts
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={loading || !assistantPrompt.trim() || (assistantScope === "selection" && !assistantSelection)}
+              onClick={handleAssistantRun}
+            >
               {loading ? "Generating..." : "Generate Suggestion"}
             </PrimaryButton>
             <SecondaryButton type="button" disabled={!assistantDraft} onClick={applyAssistantDraft}>
@@ -285,16 +404,38 @@ export default function WritingEditorPage() {
             </SecondaryButton>
           </div>
 
-          {activeSelection ? (
+          {assistantScope === "selection" && !assistantSelection ? (
+            <div className="meta-placeholder">Select a document range before running a targeted edit.</div>
+          ) : null}
+
+          {assistantSelection ? (
             <div className="assistant-selection-preview">
               <strong>Selected text</strong>
-              <p>{activeSelection}</p>
+              <p>{assistantSelection.text}</p>
             </div>
           ) : null}
 
           {assistantDraft ? (
             <div className="assistant-output">
-              <strong>Assistant output</strong>
+              <div className="assistant-output-head">
+                <strong>Assistant output</strong>
+                <ArtifactSaveButton
+                  buildPayload={() =>
+                    buildWritingArtifactInput({
+                      title: `${title} assistant suggestion`,
+                      content: assistantDraft,
+                      summary: assistantPrompt || assistantDraft,
+                      runId: assistantRunId,
+                      contextIds,
+                    })
+                  }
+                  label="Save Suggestion"
+                  savedLabel="Saved"
+                  saveKey={assistantRunId ?? assistantDraft}
+                  onSaved={() => setStatusMessage("Assistant suggestion saved to artifacts.")}
+                  onError={setStatusMessage}
+                />
+              </div>
               <pre>{assistantDraft}</pre>
             </div>
           ) : (
@@ -303,7 +444,8 @@ export default function WritingEditorPage() {
               body="Run an instruction to preview the generated draft before you apply it to the document."
             />
           )}
-        </MotionCard>
+          </MotionCard>
+        </div>
       </div>
     </div>
   );

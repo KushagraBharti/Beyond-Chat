@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import ArtifactSaveButton from "./ArtifactSaveButton";
 import ContextBuilder from "./ContextBuilder";
 import StepTimeline from "./StepTimeline";
@@ -27,6 +28,7 @@ export default function RunStudioWorkspace({
   description,
   promptPlaceholder,
   suggestedStudio,
+  promptPresets = [],
 }: {
   studio: "research" | "finance";
   title: string;
@@ -34,8 +36,11 @@ export default function RunStudioWorkspace({
   description: string;
   promptPlaceholder: string;
   suggestedStudio?: string;
+  promptPresets?: Array<{ label: string; prompt: string }>;
 }) {
   const { openComparePanel } = useComparePanel();
+  const location = useLocation();
+  const navigate = useNavigate();
   const isFinance = studio === "finance";
   const [prompt, setPrompt] = useState(promptPlaceholder);
   const [model, setModel] = useState(defaultChatModel);
@@ -55,6 +60,16 @@ export default function RunStudioWorkspace({
         "Run failed without an error message."
       : null;
   const runTraceback = typeof runOutputDetails?.traceback === "string" ? runOutputDetails.traceback : null;
+  const runContent = typeof run?.output.content === "string" ? run.output.content : "";
+  const outputHandoffPrompt = runContent
+    ? [
+        `Use this ${studio === "finance" ? "Finance Studio" : "Research Studio"} output as source context.`,
+        "",
+        runContent,
+        "",
+        "Produce a concrete artifact-ready next step that preserves the evidence, assumptions, risks, and recommendations.",
+      ].join("\n")
+    : "";
 
   useEffect(() => {
     if (!run?.id || run.status !== "running") {
@@ -88,6 +103,18 @@ export default function RunStudioWorkspace({
       window.clearInterval(interval);
     };
   }, [run?.id, run?.status]);
+
+  useEffect(() => {
+    const state = location.state as { prompt?: string; contextIds?: string[] } | null;
+    if (!state) return;
+    if (state.prompt) {
+      setPrompt(state.prompt);
+    }
+    if (state.contextIds?.length) {
+      setContextIds(state.contextIds);
+    }
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.pathname, location.state, navigate]);
 
   const handleRun = async () => {
     if (!prompt.trim()) {
@@ -128,6 +155,11 @@ export default function RunStudioWorkspace({
                   prompt,
                   contextIds,
                   studio,
+                  onUseResult: (result) => {
+                    setPrompt(result.content);
+                    setStatus("Compare result moved into the prompt editor.");
+                  },
+                  useResultLabel: "Use as Prompt",
                 })
               }
             >
@@ -185,6 +217,20 @@ export default function RunStudioWorkspace({
             </div>
             <div className="stack-sm">
               <FieldLabel>{isFinance ? "Dexter finance prompt" : "Research brief"}</FieldLabel>
+              {promptPresets.length ? (
+                <div className="prompt-preset-row" aria-label={`${title} prompt presets`}>
+                  {promptPresets.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      className="prompt-preset-button"
+                      onClick={() => setPrompt(preset.prompt)}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <TextArea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder={promptPlaceholder} />
             </div>
           </MotionCard>
@@ -209,6 +255,60 @@ export default function RunStudioWorkspace({
                 <h3>{isFinance ? "Dexter Answer" : "Structured Output"}</h3>
                 <p>{isFinance ? "Final markdown answer returned by Dexter." : "Stable report sections, citations, and save flow."}</p>
               </div>
+              {runContent ? (
+                <div className="inline-actions">
+                  {!isFinance ? (
+                    <>
+                      <SecondaryButton
+                        type="button"
+                        onClick={() => navigate("/data", { state: { prompt: outputHandoffPrompt } })}
+                      >
+                        Data
+                      </SecondaryButton>
+                      <SecondaryButton
+                        type="button"
+                        onClick={() => navigate("/finance", { state: { prompt: outputHandoffPrompt, contextIds } })}
+                      >
+                        Finance
+                      </SecondaryButton>
+                    </>
+                  ) : null}
+                  <SecondaryButton
+                    type="button"
+                    onClick={() =>
+                      navigate("/writing/new", {
+                        state: {
+                          prompt: `Turn this ${studio} output into an executive-ready artifact.`,
+                          contextIds,
+                          template: {
+                            title: `${title} brief`,
+                            content: runContent,
+                          },
+                        },
+                      })
+                    }
+                  >
+                    Writing
+                  </SecondaryButton>
+                  <SecondaryButton
+                    type="button"
+                    onClick={() =>
+                      openComparePanel({
+                        prompt: outputHandoffPrompt,
+                        contextIds,
+                        studio,
+                        useResultLabel: "Use as Prompt",
+                        onUseResult: (result) => {
+                          setPrompt(result.content);
+                          setStatus("Compare result moved into the prompt editor.");
+                        },
+                      })
+                    }
+                  >
+                    Compare
+                  </SecondaryButton>
+                </div>
+              ) : null}
             </div>
             {runError ? (
               <div className="error-copy run-error">

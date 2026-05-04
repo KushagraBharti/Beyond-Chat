@@ -109,15 +109,6 @@ function FinanceGlyph() {
   );
 }
 
-function CompareGlyph() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="8" height="18" rx="1.5" />
-      <rect x="13" y="3" width="8" height="18" rx="1.5" />
-    </svg>
-  );
-}
-
 function ArchiveGlyph() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -165,7 +156,6 @@ const primaryNav: NavItem[] = [
   { label: "Image", path: "/image", icon: <ImageGlyph />, accent: "#E5484D" },
   { label: "Data", path: "/data", icon: <DataGlyph />, accent: "#30A46C" },
   { label: "Finance", path: "/finance", icon: <FinanceGlyph />, accent: "#E55613" },
-  { label: "Compare", path: "/compare", icon: <CompareGlyph />, accent: "#8B5CF6" },
 ];
 
 const secondaryNav: NavItem[] = [
@@ -235,7 +225,7 @@ export default function DashboardLayout() {
               </button>
             </div>
 
-            {expanded ? <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Workspace</div> : null}
+            {expanded ? <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Studios</div> : null}
             <nav className="flex flex-col gap-1.5">
               {primaryNav.map((item) => (
                 <NavLink

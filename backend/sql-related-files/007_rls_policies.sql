@@ -141,19 +141,54 @@ using (public.is_workspace_member(workspace_id))
 with check (public.is_workspace_member(workspace_id));
 
 drop policy if exists artifacts_workspace_access on public.artifacts;
-create policy artifacts_workspace_access on public.artifacts
+drop policy if exists artifacts_profile_access on public.artifacts;
+create policy artifacts_profile_access on public.artifacts
 for all
-using (public.is_workspace_member(workspace_id))
-with check (public.is_workspace_member(workspace_id));
+using (
+    owner_profile_id = (select auth.uid())
+    or (owner_profile_id is null and created_by = (select auth.uid()))
+)
+with check (
+    owner_profile_id = (select auth.uid())
+    or (owner_profile_id is null and created_by = (select auth.uid()))
+);
 
 drop policy if exists runs_workspace_access on public.runs;
-create policy runs_workspace_access on public.runs
+drop policy if exists runs_profile_access on public.runs;
+create policy runs_profile_access on public.runs
 for all
-using (public.is_workspace_member(workspace_id))
-with check (public.is_workspace_member(workspace_id));
+using (
+    owner_profile_id = (select auth.uid())
+    or (owner_profile_id is null and created_by = (select auth.uid()))
+)
+with check (
+    owner_profile_id = (select auth.uid())
+    or (owner_profile_id is null and created_by = (select auth.uid()))
+);
 
 drop policy if exists run_steps_workspace_access on public.run_steps;
-create policy run_steps_workspace_access on public.run_steps
+drop policy if exists run_steps_profile_access on public.run_steps;
+create policy run_steps_profile_access on public.run_steps
 for all
-using (public.is_workspace_member(workspace_id))
-with check (public.is_workspace_member(workspace_id));
+using (
+    exists (
+        select 1
+        from public.runs r
+        where r.id = run_steps.run_id
+          and (
+            r.owner_profile_id = (select auth.uid())
+            or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+          )
+    )
+)
+with check (
+    exists (
+        select 1
+        from public.runs r
+        where r.id = run_steps.run_id
+          and (
+            r.owner_profile_id = (select auth.uid())
+            or (r.owner_profile_id is null and r.created_by = (select auth.uid()))
+          )
+    )
+);

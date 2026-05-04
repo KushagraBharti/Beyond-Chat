@@ -217,6 +217,8 @@ class SupabaseDataStore:
         return {
             "id": row["id"],
             "workspace_id": row["workspace_id"],
+            "ownerProfileId": row.get("owner_profile_id") or row.get("created_by"),
+            "createdBy": row.get("created_by"),
             "type": row["type"],
             "title": row["title"],
             "content": row["content"],
@@ -247,6 +249,8 @@ class SupabaseDataStore:
         return {
             "id": row["id"],
             "workspace_id": row["workspace_id"],
+            "ownerProfileId": row.get("owner_profile_id") or row.get("created_by"),
+            "createdBy": row.get("created_by"),
             "studio": row["studio"],
             "title": row.get("title") or "Untitled Run",
             "prompt": row["prompt"],
@@ -516,10 +520,12 @@ class SupabaseDataStore:
         statement = (
             self.client.table("artifacts")
             .select(
-                "id,workspace_id,type,title,content,content_json,content_format,summary,preview_image,tags,studio,metadata,created_at,updated_at,storage_path,source_run_id"
+                "id,workspace_id,created_by,owner_profile_id,type,title,content,content_json,content_format,summary,preview_image,tags,studio,metadata,created_at,updated_at,storage_path,source_run_id"
             )
             .eq("workspace_id", workspace_id)
         )
+        if self.user_id:
+            statement = statement.or_(f"owner_profile_id.eq.{self.user_id},created_by.eq.{self.user_id}")
         if studio:
             statement = statement.eq("studio", studio)
         if artifact_type:
@@ -548,13 +554,14 @@ class SupabaseDataStore:
             response = (
                 self.client.table("artifacts")
                 .select(
-                    "id,workspace_id,type,title,content,content_json,content_format,summary,preview_image,tags,studio,metadata,created_at,updated_at,storage_path,source_run_id"
+                    "id,workspace_id,created_by,owner_profile_id,type,title,content,content_json,content_format,summary,preview_image,tags,studio,metadata,created_at,updated_at,storage_path,source_run_id"
                 )
                 .eq("workspace_id", workspace_id)
                 .eq("id", artifact_id)
-                .maybe_single()
-                .execute()
             )
+            if self.user_id:
+                statement = statement.or_(f"owner_profile_id.eq.{self.user_id},created_by.eq.{self.user_id}")
+            response = statement.maybe_single().execute()
         except APIError as exc:
             raise self._handle_api_error("Artifact lookup", exc) from exc
 
@@ -584,6 +591,7 @@ class SupabaseDataStore:
         payload = {
             "workspace_id": workspace_id,
             "created_by": self.user_id,
+            "owner_profile_id": self.user_id,
             "type": artifact_type,
             "title": title,
             "content": content,
@@ -659,6 +667,7 @@ class SupabaseDataStore:
         payload = {
             "workspace_id": workspace_id,
             "created_by": self.user_id,
+            "owner_profile_id": self.user_id,
             "studio": studio,
             "title": title,
             "prompt": prompt,
@@ -738,12 +747,13 @@ class SupabaseDataStore:
         try:
             run_response = (
                 self.client.table("runs")
-                .select("id,workspace_id,studio,title,prompt,status,model,options,output,error_message,created_at,completed_at,metadata")
+                .select("id,workspace_id,created_by,owner_profile_id,studio,title,prompt,status,model,options,output,error_message,created_at,completed_at,metadata")
                 .eq("workspace_id", workspace_id)
                 .eq("id", run_id)
-                .maybe_single()
-                .execute()
             )
+            if self.user_id:
+                statement = statement.or_(f"owner_profile_id.eq.{self.user_id},created_by.eq.{self.user_id}")
+            run_response = statement.maybe_single().execute()
         except APIError as exc:
             raise self._handle_api_error("Run lookup", exc) from exc
 
