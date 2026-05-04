@@ -15,6 +15,7 @@ export default function GlobalCursor() {
       return;
     }
 
+    const animationFrame = rafRef.current;
     const media = window.matchMedia("(pointer: fine)");
     const syncEnabled = () => {
       const active = media.matches;
@@ -59,8 +60,8 @@ export default function GlobalCursor() {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerover", handlePointerOver);
       document.documentElement.classList.remove("global-custom-cursor");
-      if (rafRef.current !== null) {
-        cancelAnimationFrame(rafRef.current);
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
       }
     };
   }, [x, y]);

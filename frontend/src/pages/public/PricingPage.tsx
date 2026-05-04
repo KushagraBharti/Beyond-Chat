@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, AnimatePresence, type Variants } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { createCheckoutSession } from "../../lib/api";
 
@@ -22,7 +22,7 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-const fadeUp: any = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 };
@@ -101,7 +101,9 @@ const CustomCursor = ({ variant }: { variant: "default" | "play" | "rotate" }) =
   );
 };
 
-const ROICalculator = ({ setCursorVariant }: { setCursorVariant: any }) => {
+type CursorVariant = "default" | "play" | "rotate";
+
+const ROICalculator = ({ setCursorVariant }: { setCursorVariant: Dispatch<SetStateAction<CursorVariant>> }) => {
   const [hours, setHours] = useState(15);
   const costPerHour = 75; // Average skilled knowledge worker rate
   const weeks = 4;
@@ -155,14 +157,14 @@ const ROICalculator = ({ setCursorVariant }: { setCursorVariant: any }) => {
 }
 
 export default function AtelierPlusPricing() {
-  const [cursorVariant, setCursorVariant] = useState<"default" | "play" | "rotate">("default");
+  const [cursorVariant, setCursorVariant] = useState<CursorVariant>("default");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = useCallback(async () => {
     if (!user) {
       window.sessionStorage.setItem("upgrade_intent", "1");
       navigate("/login?mode=signup");
@@ -178,14 +180,14 @@ export default function AtelierPlusPricing() {
       setCheckoutError(err instanceof Error ? err.message : "Checkout failed. Please try again.");
       setCheckoutLoading(false);
     }
-  };
+  }, [navigate, user]);
 
   useEffect(() => {
     if (user && window.sessionStorage.getItem("upgrade_intent") === "1") {
       window.sessionStorage.removeItem("upgrade_intent");
-      void handleUpgrade();
+      window.setTimeout(() => void handleUpgrade(), 0);
     }
-  }, [user]);
+  }, [handleUpgrade, user]);
 
   return (
     <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>

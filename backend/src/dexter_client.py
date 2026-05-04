@@ -21,6 +21,11 @@ DEXTER_ROOT = BACKEND_ROOT / "dexter"
 LOGGER = logging.getLogger("beyond_chat.dexter")
 
 
+def local_dexter_runtime_available() -> bool:
+    tsx_cli = DEXTER_ROOT / "node_modules" / "tsx" / "dist" / "cli.mjs"
+    return DEXTER_ROOT.exists() and tsx_cli.exists()
+
+
 def _tail(value: str, limit: int = 4000) -> str:
     if len(value) <= limit:
         return value

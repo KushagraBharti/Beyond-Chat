@@ -43,7 +43,9 @@ class SupabaseService:
         email: str | None,
         access_token: str | None = None,
     ) -> dict[str, Any] | None:
-        client = self.client(access_token)
+        # Bootstrap uses the backend service-role client so the helper RPC does
+        # not need to remain directly executable by authenticated API callers.
+        client = self.client()
         if client is None:
             return None
 

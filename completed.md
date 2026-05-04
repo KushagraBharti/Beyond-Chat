@@ -38,7 +38,10 @@
 - Added storage upload and signed URL backend contracts for the `artifacts` bucket.
 - Added Supabase migration and SQL source updates allowing CSV/XLS/XLSX uploads in artifact storage.
 - Added Supabase security hardening migration/source for billing RLS policy drift and anonymous SECURITY DEFINER RPC execution.
+- Added Supabase RPC hardening that moves workspace bootstrap to the backend service-role client and revokes direct authenticated execution from public SECURITY DEFINER helper functions.
 - Applied the pending Supabase storage, profile-scope, billing/RPC hardening, and reminders FK index migrations to the linked project through Supabase MCP after CLI push was blocked by older remote migration-history drift.
+- Applied the SECURITY DEFINER authenticated RPC hardening migration to the linked project through Supabase MCP; the security advisor now only reports leaked password protection as a dashboard-level warning.
+- Wiped and rebuilt the disposable linked Supabase app schema from canonical SQL, repaired the helper-function RLS break with direct membership policies, and mirrored older remote migration versions locally.
 - Verified the linked Supabase project has private `artifacts` and `user-uploads` storage buckets, workspace-scoped storage object policies, and Excel MIME types enabled.
 - Tightened Research Studio to require live Exa search and fail runs explicitly when Exa is missing instead of generating fallback research.
 - Added OpenRouter retry handling and parallel compare execution.
@@ -64,6 +67,7 @@
 
 - Backend health route verified at `GET /api/health`.
 - Backend pytest suite passes with Python 3.11 via `uv run --python 3.11 pytest`.
+- Frontend `bun run lint`, `bun run test`, and `bun run build` pass after the Supabase rebuild/RLS repair.
 - Browser QA completed locally against the backend-served frontend build for:
   - login bypass
   - dashboard rendering

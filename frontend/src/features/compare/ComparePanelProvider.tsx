@@ -291,6 +291,7 @@ export function ComparePanelProvider({ children }: PropsWithChildren) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useComparePanel() {
   return useContext(ComparePanelContext);
 }

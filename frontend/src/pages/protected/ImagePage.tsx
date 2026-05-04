@@ -4,9 +4,6 @@ import ArtifactSaveButton from "../../components/ArtifactSaveButton";
 import ContextBuilder from "../../components/ContextBuilder";
 import { createRun, listArtifacts, type ArtifactRecord } from "../../lib/api";
 import { buildImageArtifactInput } from "../../lib/artifactDrafts";
-import { useAuth } from "../../context/AuthContext";
-import { setStoredWorkspaceId } from "../../lib/api";
-import { supabase } from "../../lib/supabaseClient";
 import { AppBrand } from "../../components/protectedUi";
 
 const imageModels = [
@@ -91,7 +88,6 @@ interface DetailTarget {
 export default function ImagePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
 
   const [prompt, setPrompt] = useState("");
   const [selectedModels, setSelectedModels] = useState<string[]>([imageModels[0].value]);
@@ -267,14 +263,6 @@ export default function ImagePage() {
         artifact: a,
       });
     }
-  };
-
-  const handleSignOut = async () => {
-    setStoredWorkspaceId(null);
-    if (supabase) {
-      await supabase.auth.signOut();
-    }
-    navigate("/login");
   };
 
   const detailIndex = detail
@@ -474,7 +462,7 @@ export default function ImagePage() {
 
         {allItems.length > 0 ? (
           <div className="is-gallery">
-            {allItems.map((item, index) => {
+            {allItems.map((item) => {
               const isFresh = item.kind === "fresh";
               const imgUrl = isFresh ? item.data.url : item.data.previewImage;
               const title = isFresh

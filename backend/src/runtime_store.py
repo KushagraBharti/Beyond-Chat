@@ -159,6 +159,11 @@ class SupabaseDataStore:
         message = getattr(exc, "message", None) or str(exc)
         return RuntimeStoreError(f"{action} failed: {message}")
 
+    def _scope_owned_statement(self, statement: Any) -> Any:
+        if self.user_id:
+            return statement.or_(f"owner_profile_id.eq.{self.user_id},created_by.eq.{self.user_id}")
+        return statement
+
     def _normalize_workspace(self, row: dict[str, Any]) -> dict[str, Any]:
         return {
             "id": row["id"],
@@ -551,7 +556,7 @@ class SupabaseDataStore:
 
     def get_artifact(self, workspace_id: str, artifact_id: str) -> dict[str, Any] | None:
         try:
-            response = (
+            statement = (
                 self.client.table("artifacts")
                 .select(
                     "id,workspace_id,created_by,owner_profile_id,type,title,content,content_json,content_format,summary,preview_image,tags,studio,metadata,created_at,updated_at,storage_path,source_run_id"
@@ -610,7 +615,10 @@ class SupabaseDataStore:
 
         try:
             if artifact_id and self.get_artifact(workspace_id, artifact_id):
-                self.client.table("artifacts").update(payload).eq("id", artifact_id).eq("workspace_id", workspace_id).execute()
+                statement = self.client.table("artifacts").update(payload).eq("id", artifact_id).eq(
+                    "workspace_id", workspace_id
+                )
+                self._scope_owned_statement(statement).execute()
                 row_id = artifact_id
             else:
                 response = self.client.table("artifacts").insert(payload).execute()
@@ -628,9 +636,10 @@ class SupabaseDataStore:
 
     def rename_artifact(self, workspace_id: str, artifact_id: str, *, title: str) -> dict[str, Any]:
         try:
-            self.client.table("artifacts").update({"title": title, "updated_at": utc_now()}).eq("id", artifact_id).eq(
-                "workspace_id", workspace_id
-            ).execute()
+            statement = self.client.table("artifacts").update({"title": title, "updated_at": utc_now()}).eq(
+                "id", artifact_id
+            ).eq("workspace_id", workspace_id)
+            self._scope_owned_statement(statement).execute()
         except APIError as exc:
             raise self._handle_api_error("Artifact rename", exc) from exc
 
@@ -641,13 +650,8 @@ class SupabaseDataStore:
 
     def delete_artifact(self, workspace_id: str, artifact_id: str) -> None:
         try:
-            response = (
-                self.client.table("artifacts")
-                .delete()
-                .eq("workspace_id", workspace_id)
-                .eq("id", artifact_id)
-                .execute()
-            )
+            statement = self.client.table("artifacts").delete().eq("workspace_id", workspace_id).eq("id", artifact_id)
+            response = self._scope_owned_statement(statement).execute()
         except APIError as exc:
             raise self._handle_api_error("Artifact deletion", exc) from exc
 
@@ -734,7 +738,8 @@ class SupabaseDataStore:
             "completed_at": utc_now(),
         }
         try:
-            self.client.table("runs").update(payload).eq("id", run_id).eq("workspace_id", workspace_id).execute()
+            statement = self.client.table("runs").update(payload).eq("id", run_id).eq("workspace_id", workspace_id)
+            self._scope_owned_statement(statement).execute()
         except APIError as exc:
             raise self._handle_api_error("Run completion", exc) from exc
 
@@ -745,7 +750,7 @@ class SupabaseDataStore:
 
     def get_run(self, workspace_id: str, run_id: str) -> dict[str, Any] | None:
         try:
-            run_response = (
+            statement = (
                 self.client.table("runs")
                 .select("id,workspace_id,created_by,owner_profile_id,studio,title,prompt,status,model,options,output,error_message,created_at,completed_at,metadata")
                 .eq("workspace_id", workspace_id)

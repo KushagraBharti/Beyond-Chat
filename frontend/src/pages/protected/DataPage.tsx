@@ -71,13 +71,18 @@ function DataChart({ type, data }: { type: DataAnalysisResult["chart_type"]; dat
 
   if (type === "pie") {
     const total = values.reduce((sum, value) => sum + Math.max(0, value), 0);
-    let cursor = 0;
+    const slices = values.map((value, index) => {
+      const start = values
+        .slice(0, index)
+        .reduce((sum, previous) => sum + (total > 0 ? (Math.max(0, previous) / total) * 360 : 360 / values.length), 0);
+      const size = total > 0 ? (Math.max(0, value) / total) * 360 : 360 / values.length;
+      return { start, end: start + size };
+    });
     return (
       <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto" }} aria-label="Pie chart">
         {values.map((value, index) => {
-          const size = total > 0 ? (Math.max(0, value) / total) * 360 : 360 / values.length;
-          const path = piePath(120, 96, 72, cursor, cursor + size);
-          cursor += size;
+          const slice = slices[index];
+          const path = piePath(120, 96, 72, slice.start, slice.end);
           return <path key={labels[index]} d={path} fill={chartPalette[index % chartPalette.length]} opacity="0.88" />;
         })}
         {labels.slice(0, 6).map((label, index) => (

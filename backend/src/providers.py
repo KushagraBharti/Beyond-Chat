@@ -9,6 +9,7 @@ from typing import Any, AsyncIterator
 import httpx
 
 from .config import settings
+from .dexter_client import local_dexter_runtime_available
 
 OPENROUTER_NOT_CONFIGURED = "OPENROUTER_NOT_CONFIGURED"
 EXA_NOT_CONFIGURED = "EXA_NOT_CONFIGURED"
@@ -397,6 +398,17 @@ async def exa_search(query: str) -> dict[str, Any]:
 
 def provider_statuses() -> dict[str, Any]:
     google_ready = bool(settings.google_client_id and settings.google_client_secret)
+    local_dexter_ready = (
+        local_dexter_runtime_available()
+        and bool(settings.openrouter_api_key)
+        and bool(settings.financial_datasets_api_key)
+    )
+    dexter_ready = bool(settings.dexter_runner_url) or local_dexter_ready
+    dexter_details = (
+        "Sandboxed finance agent runtime"
+        if settings.dexter_runner_url
+        else "Local finance agent runtime"
+    )
     return {
         "openrouter": {
             "status": "connected" if settings.openrouter_api_key else "not_configured",
@@ -409,9 +421,9 @@ def provider_statuses() -> dict[str, Any]:
             "details": "Web search for research and Dexter",
         },
         "dexter": {
-            "status": "connected" if settings.dexter_runner_url else "not_configured",
+            "status": "connected" if dexter_ready else "not_configured",
             "label": "Dexter Finance",
-            "details": "Sandboxed finance agent runtime",
+            "details": dexter_details,
         },
         "financialDatasets": {
             "status": "connected" if settings.financial_datasets_api_key else "not_configured",

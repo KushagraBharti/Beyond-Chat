@@ -1,6 +1,6 @@
-import { lazy, Suspense, useRef, useEffect, useState } from "react";
+import { lazy, Suspense, useRef, useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { motion, useScroll, useTransform, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, AnimatePresence, type MotionValue, type Variants } from "framer-motion";
 
 const LandingScene3D = lazy(() => import("./LandingScene3D"));
 
@@ -44,7 +44,7 @@ const stagger = {
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
-const fadeUp: any = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 };
@@ -129,7 +129,7 @@ const CustomCursor = ({ variant }: { variant: "default" | "play" | "rotate" }) =
 
 // --- INTERACTIVE MOCKUPS ---
 
-const UIFrame = ({ children, isHovered }: any) => (
+const UIFrame = ({ children, isHovered }: { children: ReactNode; isHovered: boolean }) => (
   <motion.div 
     style={{ marginTop: "1.5rem", background: c.surface, borderRadius: "16px", border: `1px solid ${c.border}`, height: "140px", overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: isHovered ? "0 10px 30px rgba(0,0,0,0.08)" : "0 4px 12px rgba(0,0,0,0.02)", transition: "all 0.4s ease", position: "relative" }}
   >
@@ -349,7 +349,9 @@ const CompareStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
   </UIFrame>
 );
 
-const BentoItem = ({ s, i }: any) => {
+type StudioCard = (typeof studios)[number];
+
+const BentoItem = ({ s, i }: { s: StudioCard; i: number }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   let gridColumn = "span 4";
@@ -420,6 +422,33 @@ const BentoItem = ({ s, i }: any) => {
 }
 
 // --- SCROLLYTELLING COMPONENT ---
+function ManifestoWord({
+  word,
+  index,
+  total,
+  scrollYProgress,
+}: {
+  word: string;
+  index: number;
+  total: number;
+  scrollYProgress: MotionValue<number>;
+}) {
+  const start = index / total;
+  const end = start + 1 / total;
+  const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
+  const isHighlight =
+    word.toLowerCase().includes("building.") ||
+    word.toLowerCase().includes("start") ||
+    word.toLowerCase().includes("stop");
+  const color = isHighlight ? c.primary : c.surface;
+
+  return (
+    <motion.span style={{ opacity, color }}>
+      {word}
+    </motion.span>
+  );
+}
+
 const ManifestoScrollytelling = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -435,16 +464,8 @@ const ManifestoScrollytelling = () => {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <h2 style={{ fontFamily: heading, fontSize: "clamp(2rem, 5vw, 5rem)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.04em", display: "flex", flexWrap: "wrap", gap: "0.2em 0.4em" }}>
           {words.map((word, i) => {
-            const start = i / words.length;
-            const end = start + (1 / words.length);
-            const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
-            const isHighlight = word.toLowerCase().includes("building.") || word.toLowerCase().includes("start") || word.toLowerCase().includes("stop");
-            const color = isHighlight ? c.primary : c.surface;
-            
             return (
-              <motion.span key={i} style={{ opacity, color }}>
-                {word}
-              </motion.span>
+              <ManifestoWord key={`${word}-${i}`} word={word} index={i} total={words.length} scrollYProgress={scrollYProgress} />
             )
           })}
         </h2>
@@ -589,7 +610,7 @@ export default function AtelierPlusLanding() {
             whileInView="visible" 
             viewport={{ once: true, margin: "-100px" }} 
             variants={stagger}
-            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.5rem", autoRows: "minmax(280px, auto)" } as any}
+            style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.5rem", autoRows: "minmax(280px, auto)" } satisfies CSSProperties}
             className="bento-grid"
           >
             {studios.map((s, i) => (

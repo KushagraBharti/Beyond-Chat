@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createCheckoutSession,
   createPortalSession,
@@ -23,6 +23,7 @@ import {
 export default function SettingsPage() {
   const { user, updateProfileName } = useAuth();
   const [providers, setProviders] = useState<Record<string, ProviderRecord>>(() => getCachedProviderStatuses() ?? {});
+  const hasCachedProvidersRef = useRef(Object.keys(providers).length > 0);
   const [status, setStatus] = useState("Ready");
   const [billing, setBilling] = useState<BillingStatus | null>(null);
   const [billingFetching, setBillingFetching] = useState(true);
@@ -69,7 +70,7 @@ export default function SettingsPage() {
           setProviders(providersResponse.providers);
         }
       } catch (err) {
-        if (active && !Object.keys(providers).length) {
+        if (active && !hasCachedProvidersRef.current) {
           setStatus(err instanceof Error ? err.message : "Failed to load settings.");
         }
       }

@@ -108,6 +108,7 @@ export default function RunStudioWorkspace({
     const state = location.state as { prompt?: string; contextIds?: string[] } | null;
     if (!state) return;
     if (state.prompt) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPrompt(state.prompt);
     }
     if (state.contextIds?.length) {

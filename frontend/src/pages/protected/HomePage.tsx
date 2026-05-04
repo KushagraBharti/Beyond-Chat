@@ -15,7 +15,7 @@ import {
   type Reminder,
 } from "../../lib/api";
 import { fadeUp, stagger, studioColors } from "../../lib/theme";
-import { MotionCard, PageSection, StatusBadge } from "../../components/protectedUi";
+import { MotionCard, PageSection } from "../../components/protectedUi";
 import { useAuth } from "../../context/AuthContext";
 
 type CalendarEvent = { id: string; title: string; startsAt: string; location: string };

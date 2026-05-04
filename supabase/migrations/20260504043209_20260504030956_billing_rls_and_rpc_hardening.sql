@@ -17,7 +17,7 @@ drop policy if exists usage_events_workspace_select on public.usage_events;
 create policy usage_events_workspace_select on public.usage_events
 for select
 using (
-    workspace_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    workspace_id::text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
     and public.is_workspace_member(workspace_id::uuid)
 );
 

@@ -7,7 +7,7 @@ for select
 using (
     user_id = (select auth.uid())
     or (
-        workspace_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        workspace_id::text ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
         and public.is_workspace_member(workspace_id::uuid)
     )
 );

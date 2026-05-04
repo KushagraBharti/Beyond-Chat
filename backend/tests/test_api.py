@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from src.artifact_drafts import build_run_artifact_payload
 from src.main import settings as main_settings
-from src.providers import EXA_NOT_CONFIGURED, compare_models
+from src.providers import EXA_NOT_CONFIGURED, compare_models, provider_statuses
 
 
 def test_health_endpoint(client: TestClient):
@@ -28,6 +28,24 @@ def test_provider_status_contract(client: TestClient):
     assert "notion" in payload["providers"]
     assert "googleDrive" in payload["providers"]
     assert "slack" in payload["providers"]
+
+
+def test_provider_status_reports_local_dexter_runtime(monkeypatch):
+    monkeypatch.setattr("src.providers.local_dexter_runtime_available", lambda: True)
+    monkeypatch.setattr(
+        "src.providers.settings",
+        replace(
+            main_settings,
+            dexter_runner_url=None,
+            openrouter_api_key="test-openrouter-key",
+            financial_datasets_api_key="test-financial-key",
+        ),
+    )
+
+    providers = provider_statuses()
+
+    assert providers["dexter"]["status"] == "connected"
+    assert providers["dexter"]["details"] == "Local finance agent runtime"
 
 
 def test_google_calendar_events_do_not_return_demo_fallbacks(client: TestClient):
