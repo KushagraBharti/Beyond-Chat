@@ -652,7 +652,7 @@ export default function HomePage() {
                 placeholder="Add a reminder"
                 className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
               />
-              <div className="flex items-center gap-2" style={{ marginTop: "1.5rem" }}>
+              <div className="mt-6 flex items-center gap-2">
                 <input
                   type="datetime-local"
                   value={newReminderDueAt}
@@ -671,12 +671,11 @@ export default function HomePage() {
             </div>
 
             {reminders.length ? (
-              <div style={{ marginTop: "2.5rem" }}>
-                {reminders.map((reminder, index) => (
+              <div className="mt-10 space-y-3">
+                {reminders.map((reminder) => (
                   <div
                     key={reminder.id}
                     className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4"
-                    style={index === 0 ? undefined : { marginTop: "0.75rem" }}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <strong className="text-sm text-stone-950">{reminder.title}</strong>

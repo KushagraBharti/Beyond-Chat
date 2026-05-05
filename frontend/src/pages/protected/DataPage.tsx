@@ -301,13 +301,11 @@ export default function DataPage() {
               </div>
               <input className="field" type="file" accept=".csv,.xlsx,.xls" onChange={handleUpload} />
               <div
-                className="meta-placeholder"
-                style={{
-                  color:
-                    uploadStatus === "done" ? "#30A46C" :
-                    uploadStatus === "error" ? "#E5484D" :
-                    undefined,
-                }}
+                className={`meta-placeholder ${
+                  uploadStatus === "done" ? "text-emerald-600" :
+                  uploadStatus === "error" ? "text-rose-600" :
+                  ""
+                }`}
               >
                 {uploadIndicator}
               </div>
@@ -383,7 +381,7 @@ export default function DataPage() {
             </div>
             {analysisResult ? (
               <div className="stack-sm">
-                <p style={{ fontSize: "0.9rem", lineHeight: 1.65, margin: 0 }}>
+                <p className="m-0 text-sm leading-relaxed text-stone-800">
                   {analysisResult.insight}
                 </p>
                 {analysisResult.metrics?.length ? (
@@ -473,7 +471,7 @@ export default function DataPage() {
               <div className="context-builder-head">
                 <div>
                   <h3>Chart</h3>
-                  <p style={{ textTransform: "capitalize" }}>{analysisResult.chart_type} chart</p>
+                  <p className="capitalize">{analysisResult.chart_type} chart</p>
                 </div>
                 <ArtifactSaveButton
                   buildPayload={() =>
