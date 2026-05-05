@@ -20,7 +20,7 @@ except ImportError:
     _PANDAS_AVAILABLE = False
 
 from dotenv import load_dotenv
-from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response, StreamingResponse
 from pydantic import BaseModel, Field
@@ -28,7 +28,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 from .ai_context import merge_prompt_with_context, resolve_context_artifacts
-from .auth import RequestContext, require_request_context, resolve_request_context
+from .auth import RequestContext, require_request_context, resolve_request_context, resolve_token_only
 from .artifact_drafts import build_run_artifact_payload
 from .billing import record_usage_event, router as billing_router
 from .config import settings
@@ -536,8 +536,30 @@ def provider_status() -> dict[str, Any]:
 
 
 @app.post("/api/auth/bootstrap")
-def bootstrap_auth(context: RequestContext = Depends(require_request_context)) -> dict[str, Any]:
-    return api_success(get_workspace_payload(context, bootstrap=True))
+def bootstrap_auth(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user_id, email, token = resolve_token_only(authorization)
+    # Use service role (no access_token) so the RPC has permission to create the workspace
+    bootstrapped = supabase_service.ensure_workspace_for_user(user_id, email)
+    if not bootstrapped or not isinstance(bootstrapped.get("workspace"), dict):
+        raise HTTPException(status_code=503, detail="Workspace bootstrap failed.")
+    workspace_id = bootstrapped["workspace"]["id"]
+    context = RequestContext(
+        user_id=user_id,
+        workspace_id=workspace_id,
+        email=email,
+        source="supabase_jwt",
+        access_token=token,
+    )
+    data_store = get_runtime_store(context)
+    workspace = data_store.get_workspace(workspace_id)
+    if workspace is None:
+        raise HTTPException(status_code=503, detail="Workspace bootstrap succeeded but could not be reloaded.")
+    return api_success({
+        "workspace": workspace,
+        "role": bootstrapped.get("role", "admin"),
+        "created": bool(bootstrapped.get("created")),
+        "source": "supabase_jwt",
+    })
 
 
 @app.get("/api/workspace")
