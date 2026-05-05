@@ -23,12 +23,12 @@ function SidebarIcon({
 }) {
   return (
     <span
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition ${
-        active
-          ? "border-white/20 bg-white/10 text-white"
-          : "border-stone-200 group-hover:border-stone-300 group-hover:bg-white"
-      }`}
-      style={active ? undefined : { background: `${accent}14`, color: accent }}
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition"
+      style={{
+        borderColor: active ? `${accent}50` : "#e7e5e4",
+        backgroundColor: `${accent}${active ? "22" : "12"}`,
+        color: accent,
+      }}
     >
       {children}
     </span>
@@ -205,7 +205,7 @@ export default function DashboardLayout() {
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,114,182,0.10),transparent_34%),#f5f5f4] text-stone-950">
       <div className="flex min-h-screen w-full gap-4 px-3 py-3 md:px-4">
         <aside
-          className={`sticky top-3 hidden h-[calc(100vh-1.5rem)] flex-col rounded-[2rem] border border-white/70 bg-white/80 px-4 pt-4 pb-7 shadow-[0_24px_80px_rgba(28,25,23,0.08)] backdrop-blur xl:flex ${
+          className={`sticky top-3 hidden h-[calc(100vh-1.5rem)] flex-col rounded-[2rem] border border-white/70 bg-white/80 px-4 pt-4 pb-7 shadow-[0_24px_80px_rgba(28,25,23,0.08)] backdrop-blur transition-[width] duration-200 ease-in-out xl:flex ${
             expanded ? "w-64" : "w-24"
           }`}
         >
@@ -235,7 +235,10 @@ export default function DashboardLayout() {
                   className={({ isActive }) =>
                     `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
                       collapsed ? "justify-center" : "gap-3"
-                    } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                    } ${isActive ? "" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                  }
+                  style={({ isActive }) =>
+                    isActive ? { backgroundColor: `${item.accent}12`, color: item.accent } : undefined
                   }
                 >
                   {({ isActive }) => (
@@ -243,14 +246,15 @@ export default function DashboardLayout() {
                       <SidebarIcon active={isActive} accent={item.accent}>
                         {item.icon}
                       </SidebarIcon>
-                      {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
+                      {expanded ? <span className={isActive ? "font-semibold" : ""}>{item.label}</span> : null}
                     </>
                   )}
                 </NavLink>
               ))}
             </nav>
 
-            {expanded ? <div className="mt-6 px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
+            <div className="my-3 border-t border-stone-200" />
+            {expanded ? <div className="pb-2 px-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
             <nav className="flex flex-col gap-1.5">
               {secondaryNav.map((item) => (
                 <NavLink
@@ -260,7 +264,10 @@ export default function DashboardLayout() {
                   className={({ isActive }) =>
                     `group flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition ${
                       collapsed ? "justify-center" : "gap-3"
-                    } ${isActive ? "bg-stone-950 text-white shadow-lg" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                    } ${isActive ? "" : "text-stone-600 hover:bg-stone-100 hover:text-stone-950"}`
+                  }
+                  style={({ isActive }) =>
+                    isActive ? { backgroundColor: `${item.accent}12`, color: item.accent } : undefined
                   }
                 >
                   {({ isActive }) => (
@@ -268,7 +275,7 @@ export default function DashboardLayout() {
                       <SidebarIcon active={isActive} accent={item.accent}>
                         {item.icon}
                       </SidebarIcon>
-                      {expanded ? <span className={isActive ? "text-white" : "text-inherit"}>{item.label}</span> : null}
+                      {expanded ? <span className={isActive ? "font-semibold" : ""}>{item.label}</span> : null}
                     </>
                   )}
                 </NavLink>

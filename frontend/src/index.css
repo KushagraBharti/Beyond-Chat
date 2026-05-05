@@ -1969,6 +1969,34 @@ a {
   color: #b42318;
 }
 
+.cs-thread-menu-input,
+.bc-context-menu-input {
+  display: block;
+  width: calc(100% - 1rem);
+  margin: 0.25rem 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: white;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 120ms ease;
+}
+
+.cs-thread-menu-input:focus,
+.bc-context-menu-input:focus {
+  border-color: var(--primary);
+}
+
+.cs-thread-menu-label,
+.bc-context-menu-label {
+  padding: 0.35rem 0.75rem 0.1rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .cs-thread-item.is-active {
   background: rgba(255, 255, 255, 0.9);
   font-weight: 600;

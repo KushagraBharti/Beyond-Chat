@@ -154,7 +154,13 @@ export default function WritingHomePage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [loading, setLoading] = useState(() => writingDocumentsCache === null);
-  const [docMenu, setDocMenu] = useState<{ documentId: string; x: number; y: number } | null>(null);
+  const [docMenu, setDocMenu] = useState<{
+    documentId: string;
+    x: number;
+    y: number;
+    phase: "default" | "rename" | "confirm";
+    renameValue: string;
+  } | null>(null);
   const [kitPrompt, setKitPrompt] = useState(
     "Using the attached artifacts and current launch context, create a launch kit with an executive brief, retail pilot summary, landing page copy, and launch email. Keep each document concise, evidence-backed, and ready to save.",
   );
@@ -290,19 +296,20 @@ export default function WritingHomePage() {
   const handleDocumentContextMenu = (event: React.MouseEvent, documentId: string) => {
     event.preventDefault();
     event.stopPropagation();
-    setDocMenu({ documentId, x: event.clientX, y: event.clientY });
+    const doc = documents.find((d) => d.id === documentId);
+    setDocMenu({ documentId, x: event.clientX, y: event.clientY, phase: "default", renameValue: doc?.title ?? "" });
   };
 
-  const handleRenameDocument = async (document: ArtifactRecord) => {
-    const nextTitle = window.prompt("Rename document", document.title)?.trim();
+  const handleRenameDocument = async (document: ArtifactRecord, nextTitle: string) => {
     setDocMenu(null);
-    if (!nextTitle || nextTitle === document.title) return;
+    const trimmed = nextTitle.trim();
+    if (!trimmed || trimmed === document.title) return;
 
     const previous = documents;
-    syncDocuments((current) => current.map((item) => (item.id === document.id ? { ...item, title: nextTitle } : item)));
+    syncDocuments((current) => current.map((item) => (item.id === document.id ? { ...item, title: trimmed } : item)));
 
     try {
-      const response = await renameArtifact(document.id, { title: nextTitle });
+      const response = await renameArtifact(document.id, { title: trimmed });
       syncDocuments((current) =>
         current.map((item) => (item.id === document.id ? { ...item, title: response.artifact.title } : item)),
       );
@@ -314,10 +321,7 @@ export default function WritingHomePage() {
   };
 
   const handleDeleteDocument = async (document: ArtifactRecord) => {
-    const confirmed = window.confirm(`Delete "${document.title}"? This document will be lost forever.`);
     setDocMenu(null);
-    if (!confirmed) return;
-
     const previous = documents;
     syncDocuments((current) => current.filter((item) => item.id !== document.id));
 
@@ -557,15 +561,53 @@ export default function WritingHomePage() {
           {(() => {
             const document = documents.find((item) => item.id === docMenu.documentId);
             if (!document) return null;
+
+            if (docMenu.phase === "rename") {
+              return (
+                <>
+                  <input
+                    className="bc-context-menu-input"
+                    value={docMenu.renameValue}
+                    onChange={(e) => setDocMenu((m) => m ? { ...m, renameValue: e.target.value } : null)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void handleRenameDocument(document, docMenu.renameValue);
+                      if (e.key === "Escape") setDocMenu((m) => m ? { ...m, phase: "default" } : null);
+                    }}
+                    autoFocus
+                  />
+                  <button className="bc-context-menu-item" type="button" onClick={() => void handleRenameDocument(document, docMenu.renameValue)}>
+                    Save
+                  </button>
+                  <button className="bc-context-menu-item" type="button" onClick={() => setDocMenu((m) => m ? { ...m, phase: "default" } : null)}>
+                    Cancel
+                  </button>
+                </>
+              );
+            }
+
+            if (docMenu.phase === "confirm") {
+              return (
+                <>
+                  <div className="bc-context-menu-label">Delete this document?</div>
+                  <button className="bc-context-menu-item is-danger" type="button" onClick={() => void handleDeleteDocument(document)}>
+                    Yes, delete
+                  </button>
+                  <button className="bc-context-menu-item" type="button" onClick={() => setDocMenu((m) => m ? { ...m, phase: "default" } : null)}>
+                    Cancel
+                  </button>
+                </>
+              );
+            }
+
             return (
               <>
                 <button className="bc-context-menu-item" type="button" onClick={() => navigate(`/writing/${document.id}`)}>
                   Edit
                 </button>
-                <button className="bc-context-menu-item" type="button" onClick={() => void handleRenameDocument(document)}>
+                <button className="bc-context-menu-item" type="button" onClick={() => setDocMenu((m) => m ? { ...m, phase: "rename" } : null)}>
                   Rename
                 </button>
-                <button className="bc-context-menu-item is-danger" type="button" onClick={() => void handleDeleteDocument(document)}>
+                <button className="bc-context-menu-item is-danger" type="button" onClick={() => setDocMenu((m) => m ? { ...m, phase: "confirm" } : null)}>
                   Delete
                 </button>
               </>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import ArtifactSaveButton from "./ArtifactSaveButton";
 import ContextBuilder from "./ContextBuilder";
 import StepTimeline from "./StepTimeline";
@@ -318,7 +320,9 @@ export default function RunStudioWorkspace({
                 {runTraceback ? <pre>{runTraceback}</pre> : null}
               </div>
             ) : runContent ? (
-              <article className="report-output">{runContent}</article>
+              <article className="report-output">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{runContent}</ReactMarkdown>
+              </article>
             ) : (
               <EmptyState
                 title={isFinance ? "No Dexter answer yet" : "No report generated yet"}
