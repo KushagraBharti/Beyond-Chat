@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import ArtifactSaveButton from "../../components/ArtifactSaveButton";
-import StepTimeline from "../../components/StepTimeline";
 import { analyzeData, uploadArtifactFile, type DataAnalysisResult } from "../../lib/api";
 import { buildDataArtifactInput } from "../../lib/artifactDrafts";
 import {
@@ -179,13 +178,11 @@ export default function DataPage() {
               <FieldLabel>Data file</FieldLabel>
               <input className="field" type="file" accept=".csv" onChange={handleUpload} />
               <div
-                className="meta-placeholder"
-                style={{
-                  color:
-                    uploadStatus === "done" ? "#30A46C" :
-                    uploadStatus === "error" ? "#E5484D" :
-                    undefined,
-                }}
+                className={`meta-placeholder ${
+                  uploadStatus === "done" ? "text-emerald-600" :
+                  uploadStatus === "error" ? "text-rose-600" :
+                  ""
+                }`}
               >
                 {uploadIndicator}
               </div>
@@ -246,7 +243,7 @@ export default function DataPage() {
               </div>
             </div>
             {analysisResult ? (
-              <p style={{ fontSize: "0.9rem", lineHeight: 1.65, margin: 0 }}>
+              <p className="m-0 text-sm leading-relaxed text-stone-800">
                 {analysisResult.insight}
               </p>
             ) : (
@@ -259,7 +256,7 @@ export default function DataPage() {
               <div className="context-builder-head">
                 <div>
                   <h3>Chart</h3>
-                  <p style={{ textTransform: "capitalize" }}>{analysisResult.chart_type} chart</p>
+                  <p className="capitalize">{analysisResult.chart_type} chart</p>
                 </div>
               </div>
               <DataChart data={analysisResult.chart_data} />
@@ -296,8 +293,6 @@ export default function DataPage() {
             </MotionCard>
           )}
 
-          {/* Step timeline is rendered once we have a run_id */}
-          {runId && <StepTimeline steps={[]} />}
         </div>
       </div>
     </div>

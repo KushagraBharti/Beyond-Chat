@@ -142,22 +142,25 @@ function TrashGlyph() {
 }
 
 function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
-  const palette: Record<ProviderStatus, string> = {
+  const dot: Record<ProviderStatus, string> = {
     connected: "bg-emerald-500",
     disconnected: "bg-stone-400",
     not_configured: "bg-stone-400",
     error: "bg-rose-500",
   };
+  const pill: Record<ProviderStatus, string> = {
+    connected: "bg-emerald-50 text-emerald-700",
+    disconnected: "bg-stone-100 text-stone-500",
+    not_configured: "bg-stone-100 text-stone-500",
+    error: "bg-rose-50 text-rose-600",
+  };
 
   return (
-    <div className="mt-5">
-      <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-        <span>Status</span>
-        <span>{status.replaceAll("_", " ")}</span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-stone-200">
-        <div className={`h-full rounded-full ${palette[status]}`} style={{ width: status === "connected" ? "100%" : "100%" }} />
-      </div>
+    <div className="mt-4 flex items-center gap-2">
+      <div className={`h-2 w-2 shrink-0 rounded-full ${dot[status]}`} />
+      <span className={`rounded-full px-2 py-0.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] ${pill[status]}`}>
+        {status.replaceAll("_", " ")}
+      </span>
     </div>
   );
 }
@@ -227,11 +230,13 @@ function ToolCard({
 
 function StudioShortcut({
   label,
+  description,
   color,
   icon,
   onClick,
 }: {
   label: string;
+  description: string;
   color: string;
   icon: ReactNode;
   onClick: () => void;
@@ -247,6 +252,7 @@ function StudioShortcut({
       </div>
       <div>
         <strong className="block text-base text-stone-950">{label}</strong>
+        <span className="mt-0.5 block text-[0.78rem] text-stone-500">{description}</span>
       </div>
     </button>
   );
@@ -504,8 +510,6 @@ export default function HomePage() {
             </MotionCard>
           </div>
 
-          <div style={{ height: "3.5rem" }} aria-hidden="true" />
-
           <MotionCard>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
@@ -514,12 +518,12 @@ export default function HomePage() {
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <StudioShortcut label="Chat" color={studioColors.chat} icon={<ChatGlyph />} onClick={() => navigate("/chat")} />
-              <StudioShortcut label="Writing" color={studioColors.writing} icon={<PencilGlyph />} onClick={() => navigate("/writing")} />
-              <StudioShortcut label="Research" color={studioColors.research} icon={<NotebookGlyph />} onClick={() => navigate("/research")} />
-              <StudioShortcut label="Image" color={studioColors.image} icon={<ImageGlyph />} onClick={() => navigate("/image")} />
-              <StudioShortcut label="Data" color={studioColors.data} icon={<DataGlyph />} onClick={() => navigate("/data")} />
-              <StudioShortcut label="Finance" color={studioColors.finance} icon={<FinanceGlyph />} onClick={() => navigate("/finance")} />
+              <StudioShortcut label="Chat" description="Talk with an AI model." color={studioColors.chat} icon={<ChatGlyph />} onClick={() => navigate("/chat")} />
+              <StudioShortcut label="Writing" description="Draft and refine content." color={studioColors.writing} icon={<PencilGlyph />} onClick={() => navigate("/writing")} />
+              <StudioShortcut label="Research" description="Deep-dive any topic." color={studioColors.research} icon={<NotebookGlyph />} onClick={() => navigate("/research")} />
+              <StudioShortcut label="Image" description="Generate visuals with AI." color={studioColors.image} icon={<ImageGlyph />} onClick={() => navigate("/image")} />
+              <StudioShortcut label="Data" description="Analyze CSV files instantly." color={studioColors.data} icon={<DataGlyph />} onClick={() => navigate("/data")} />
+              <StudioShortcut label="Finance" description="Track markets and stocks." color={studioColors.finance} icon={<FinanceGlyph />} onClick={() => navigate("/finance")} />
             </div>
           </MotionCard>
         </motion.div>
@@ -542,14 +546,14 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="mb-4" style={{ paddingTop: "2.25rem" }}>
+            <div className="mb-4 pt-9">
               <input
                 value={newReminderTitle}
                 onChange={(event) => setNewReminderTitle(event.target.value)}
                 placeholder="Add a reminder"
                 className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-[#4F3FE8] focus:ring-2 focus:ring-[#4F3FE8]/10"
               />
-              <div className="flex items-center gap-2" style={{ marginTop: "1.5rem" }}>
+              <div className="mt-6 flex items-center gap-2">
                 <input
                   type="datetime-local"
                   value={newReminderDueAt}
@@ -568,12 +572,11 @@ export default function HomePage() {
             </div>
 
             {reminders.length ? (
-              <div style={{ marginTop: "2.5rem" }}>
-                {reminders.map((reminder, index) => (
+              <div className="mt-10 space-y-3">
+                {reminders.map((reminder) => (
                   <div
                     key={reminder.id}
                     className="rounded-[1.35rem] border border-stone-200 bg-white/80 p-4"
-                    style={index === 0 ? undefined : { marginTop: "0.75rem" }}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <strong className="text-sm text-stone-950">{reminder.title}</strong>

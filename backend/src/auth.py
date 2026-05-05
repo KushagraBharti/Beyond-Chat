@@ -86,6 +86,25 @@ def _workspace_from_claims(claims: dict[str, Any], requested_workspace_id: str |
     return None
 
 
+def resolve_token_only(authorization: str | None) -> tuple[str, str | None, str]:
+    """Resolve user_id and email from a JWT without requiring a pre-existing workspace."""
+    token = _extract_token(authorization)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication is required for this endpoint.",
+        )
+    claims = _load_supabase_user(token)
+    user_id = claims.get("id") or claims.get("sub")
+    if not isinstance(user_id, str) or not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Supabase user data is missing the user identifier.",
+        )
+    email = claims.get("email")
+    return user_id, email if isinstance(email, str) else None, token
+
+
 async def require_request_context(
     request: Request,
     authorization: str | None = Header(default=None),
