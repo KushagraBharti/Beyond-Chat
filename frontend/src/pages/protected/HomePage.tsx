@@ -145,22 +145,31 @@ function TrashGlyph() {
 }
 
 function IntegrationStatusLine({ status }: { status: ProviderStatus }) {
-  const palette: Record<ProviderStatus, string> = {
+  const dot: Record<ProviderStatus, string> = {
     connected: "bg-emerald-500",
-    disconnected: "bg-stone-400",
-    not_configured: "bg-stone-400",
+    disconnected: "bg-stone-300",
+    not_configured: "bg-stone-300",
     error: "bg-rose-500",
+  };
+  const badge: Record<ProviderStatus, string> = {
+    connected: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    disconnected: "text-stone-500 bg-stone-50 border-stone-200",
+    not_configured: "text-stone-400 bg-stone-50 border-stone-200",
+    error: "text-rose-700 bg-rose-50 border-rose-200",
+  };
+  const label: Record<ProviderStatus, string> = {
+    connected: "Connected",
+    disconnected: "Disconnected",
+    not_configured: "Not configured",
+    error: "Error",
   };
 
   return (
-    <div className="mt-5">
-      <div className="mb-2 flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-        <span>Status</span>
-        <span>{status.replaceAll("_", " ")}</span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-stone-200">
-        <div className={`h-full rounded-full ${palette[status]}`} style={{ width: status === "connected" ? "100%" : "100%" }} />
-      </div>
+    <div className="mt-4 flex items-center gap-2">
+      <span className={`h-2 w-2 shrink-0 rounded-full ${dot[status]}`} />
+      <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${badge[status]}`}>
+        {label[status]}
+      </span>
     </div>
   );
 }
@@ -230,11 +239,13 @@ function ToolCard({
 
 function StudioShortcut({
   label,
+  description,
   color,
   icon,
   onClick,
 }: {
   label: string;
+  description: string;
   color: string;
   icon: ReactNode;
   onClick: () => void;
@@ -250,6 +261,7 @@ function StudioShortcut({
       </div>
       <div>
         <strong className="block text-base text-stone-950">{label}</strong>
+        <span className="mt-0.5 block text-xs text-stone-400">{description}</span>
       </div>
     </button>
   );
@@ -540,8 +552,6 @@ export default function HomePage() {
             </MotionCard>
           </div>
 
-          <div style={{ height: "3.5rem" }} aria-hidden="true" />
-
           <MotionCard>
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
@@ -607,12 +617,12 @@ export default function HomePage() {
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-3">
-              <StudioShortcut label="Chat" color={studioColors.chat} icon={<ChatGlyph />} onClick={() => navigate("/chat")} />
-              <StudioShortcut label="Writing" color={studioColors.writing} icon={<PencilGlyph />} onClick={() => navigate("/writing")} />
-              <StudioShortcut label="Research" color={studioColors.research} icon={<NotebookGlyph />} onClick={() => navigate("/research")} />
-              <StudioShortcut label="Image" color={studioColors.image} icon={<ImageGlyph />} onClick={() => navigate("/image")} />
-              <StudioShortcut label="Data" color={studioColors.data} icon={<DataGlyph />} onClick={() => navigate("/data")} />
-              <StudioShortcut label="Finance" color={studioColors.finance} icon={<FinanceGlyph />} onClick={() => navigate("/finance")} />
+              <StudioShortcut label="Chat" description="AI conversation" color={studioColors.chat} icon={<ChatGlyph />} onClick={() => navigate("/chat")} />
+              <StudioShortcut label="Writing" description="Draft & edit" color={studioColors.writing} icon={<PencilGlyph />} onClick={() => navigate("/writing")} />
+              <StudioShortcut label="Research" description="Deep dives" color={studioColors.research} icon={<NotebookGlyph />} onClick={() => navigate("/research")} />
+              <StudioShortcut label="Image" description="Generate visuals" color={studioColors.image} icon={<ImageGlyph />} onClick={() => navigate("/image")} />
+              <StudioShortcut label="Data" description="Analyze data" color={studioColors.data} icon={<DataGlyph />} onClick={() => navigate("/data")} />
+              <StudioShortcut label="Finance" description="Market insights" color={studioColors.finance} icon={<FinanceGlyph />} onClick={() => navigate("/finance")} />
             </div>
           </MotionCard>
         </motion.div>
@@ -635,7 +645,7 @@ export default function HomePage() {
               )}
             </div>
 
-            <div className="mb-4" style={{ paddingTop: "2.25rem" }}>
+            <div className="mb-4 pt-6">
               <input
                 value={newReminderTitle}
                 onChange={(event) => setNewReminderTitle(event.target.value)}
