@@ -1,5 +1,9 @@
 # Retail Pilot Requirements
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as the pilot constraint source for Research, Data, Finance, Writing, and Compare handoffs.
+
 Source type: Notion company knowledge
 
 ## Pilot Scope
@@ -38,4 +42,3 @@ Required before launch:
 - repeat rate stays below 20%
 - cannibalization index exceeds 25%
 - margin falls below 65%
-

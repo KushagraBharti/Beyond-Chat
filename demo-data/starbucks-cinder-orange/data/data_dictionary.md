@@ -1,5 +1,9 @@
 # Data Dictionary
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this alongside the CSV upload when validating Data Studio preview/profile, OpenRouter-backed analysis, chart/table rendering, and save-to-artifact actions.
+
 File: `starbucks_seasonal_beverage_pilots.csv`
 
 ## Purpose
@@ -34,4 +38,3 @@ This large mock dataset powers the Data Studio demo. It represents prior seasona
 - Which channel has the strongest margin-adjusted demand?
 - Is cannibalization acceptable?
 - What operational thresholds should trigger a no-go?
-

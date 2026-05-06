@@ -1,5 +1,7 @@
 # Beyond Chat Investor Demo Plan
 
+Status: acceptance-story document, refreshed May 4, 2026. This is not permission to hardcode Starbucks behavior; it describes a demo path that should use the same live product routes and artifact flows available to any account.
+
 ## Current Product Direction
 
 This document remains a useful acceptance story, but it is no longer the implementation target by itself. The product target is broader and is defined in `agentic-artifact-workspace-plan.md`.
@@ -69,6 +71,7 @@ Needed features:
 - Calendar agenda card where real integration exists
 - Integration/provider status tiles that reflect real configured providers
 - Dashboard artifact activity is backed by the authenticated user's real saved artifacts and per-studio counts; it does not seed or fabricate demo artifacts.
+- Billing/provider cards must render safely when optional services are not configured.
 
 ### 2. Chat
 
@@ -103,6 +106,7 @@ Needed features:
 - Chat action button: Create Launch Plan, implemented as a composer quick action that uses live chat generation.
 - Save chat-derived plan as artifact
 - Button to continue the same context into Research Studio
+- Streaming assistant output, Save as artifact, and Continue to Writing/Compare should be shown from the same live response.
 - Assistant chat outputs can continue directly into Research, Writing, or Compare using the generated content.
 
 ### 3. Research Studio

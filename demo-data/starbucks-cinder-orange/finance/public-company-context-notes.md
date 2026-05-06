@@ -1,5 +1,9 @@
 # Public Company Context Notes
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as finance context for public-company grounding, but prefer live Finance/Dexter provider calls for current market reasoning.
+
 Source type: Finance Studio artifact seed
 
 ## Starbucks Context
@@ -24,4 +28,3 @@ Sources:
 - https://investor.starbucks.com/news/financial-releases/news-details/2024/Starbucks-Reports-Q4-and-Full-Fiscal-Year-2024-Results/default.aspx
 - https://about.starbucks.com/press/2026/cold-is-rising-how-global-demand-is-shaping-the-future-of-starbucks-beverages/
 - https://about.starbucks.com/annual-impact-report/
-

@@ -1,5 +1,9 @@
 # Creative Review Digest
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a saved Image artifact seed when testing creative context handoff, image prompt enhancement, and artifact bundle export.
+
 Artifact type: saved Beyond Chat artifact
 Studio: Image
 
@@ -29,4 +33,3 @@ The creative system should communicate:
 - coffee beans
 - morning sunlight
 - green, white, warm orange
-

@@ -1,5 +1,9 @@
 # KUSHAGRA
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 4 was a major execution week focused on turning Beyond Chat into a much more complete local-first product.
 - The goal was to replace partial scaffolding with real routes, real backend contracts, real documentation, and a much clearer production handoff path.

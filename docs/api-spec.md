@@ -1,11 +1,14 @@
 # Beyond Chat API Spec
 
+Status: refreshed on May 4, 2026 against `backend/src/main.py`, `backend/src/billing.py`, and `frontend/src/lib/api.ts`.
+
 ## Runtime Contract
 
 - Public:
   - `GET /`
   - `GET /api/health`
   - `GET /api/status/providers`
+- Browser-facing product routes beyond those public endpoints require Supabase auth.
 - Protected routes require:
   - `Authorization: Bearer <supabase_access_token>`
 - Optional active-workspace header:
@@ -116,6 +119,36 @@ Ensures the authenticated user resolves to a workspace.
 }
 ```
 
+### `POST /api/reminders`
+
+```json
+{
+  "title": "Review pilot readout",
+  "note": "Check Data Studio analysis before finance memo",
+  "due_at": "2026-05-10T15:00:00Z"
+}
+```
+
+### `DELETE /api/reminders/{reminder_id}`
+
+Returns `204 No Content`.
+
+## Billing
+
+Billing routes are protected and should be safe when Stripe or billing storage is missing.
+
+### `GET /api/billing/status`
+
+Returns plan, subscription status, current period end, usage, limits, and configuration flags. If billing storage is unavailable, the backend returns a free-plan fallback with `billing_storage: "unavailable"` so Settings can still render.
+
+### `POST /api/billing/checkout`
+
+Creates a Stripe Checkout session when Stripe secret and Pro price configuration are present.
+
+### `POST /api/billing/portal`
+
+Creates a Stripe customer portal session when Stripe is configured and the account has a Stripe customer.
+
 ## Chat
 
 ### `GET /api/chat/threads`
@@ -180,6 +213,18 @@ Response:
 }
 ```
 
+### `PATCH /api/chat/threads/{thread_id}`
+
+```json
+{
+  "title": "Updated thread title"
+}
+```
+
+### `DELETE /api/chat/threads/{thread_id}`
+
+Returns `204 No Content`.
+
 ### `POST /api/chat/threads/{thread_id}/messages`
 
 ```json
@@ -203,6 +248,13 @@ Response:
 }
 ```
 
+### `POST /api/chat/threads/{thread_id}/messages/stream`
+
+Accepts the same payload as the non-streaming message route. Returns server-sent events:
+
+- `delta` events with incremental assistant content.
+- `done` event with the persisted user and assistant messages.
+
 ### `POST /api/chat/compare`
 
 ```json
@@ -214,6 +266,8 @@ Response:
   "tool_choice": null
 }
 ```
+
+Compatibility alias: `POST /api/compare`.
 
 Response:
 
@@ -266,6 +320,8 @@ Response:
   "run": {}
 }
 ```
+
+Compatibility alias: `POST /api/run`.
 
 Research runs require live Exa search. Completed Research outputs are source-backed markdown reports with Executive Summary, Key Findings, Competitor or Landscape Matrix, Opportunity/Risk Matrix, Recommended Next Steps, and Sources sections; matrix sections should use markdown tables when evidence supports them.
 
@@ -416,6 +472,20 @@ Response:
 }
 ```
 
+### `PATCH /api/artifact/{artifact_id}`
+### `PATCH /api/artifacts/{artifact_id}`
+
+```json
+{
+  "title": "Updated artifact title"
+}
+```
+
+### `DELETE /api/artifact/{artifact_id}`
+### `DELETE /api/artifacts/{artifact_id}`
+
+Returns `204 No Content`.
+
 ### `POST /api/artifact/{artifact_id}/export`
 ### `POST /api/artifacts/{artifact_id}/export`
 
@@ -457,6 +527,8 @@ Legacy export alias:
 ```
 
 ## Storage
+
+Data preview and analysis are documented in this section because they depend on Supabase Storage object paths.
 
 ### `POST /api/data/preview`
 

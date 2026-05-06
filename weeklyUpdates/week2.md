@@ -1,5 +1,9 @@
 # KUSHAGRA
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 2 was focused on UI exploration, mock design, and locking the final product direction more confidently.
 - I spent a lot of time creating and comparing interface concepts so the team would not be building blind.

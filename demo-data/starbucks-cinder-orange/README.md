@@ -1,5 +1,9 @@
 # Starbucks Cinder Orange Demo Data
 
+## Beyond Chat Alignment - May 4, 2026
+
+This dataset is demo context for the artifact-first product flow. It should be attached, uploaded, saved, and handed off through normal Beyond Chat studios rather than seeded into Supabase or hardcoded into application logic.
+
 This folder contains mock demo data for the Beyond Chat investor flow.
 
 The scenario is a Starbucks beverage innovation team evaluating whether to pilot `Cinder Orange Cold Brew`, a citrus-forward summer cold brew concept. The materials are mock internal files, but they are grounded in public Starbucks themes: cold beverage growth, menu innovation, operational throughput, loyalty/app channels, and public-company financial context.
@@ -36,4 +40,3 @@ Use this data to seed:
 - Image Studio creative assets
 - Artifacts collection
 - Compare panel
-

@@ -1,7 +1,7 @@
 # Auth Fixes + Stripe Payments + Rate Limiting Design
 
 **Date:** 2026-04-27
-**Status:** Approved
+**Status:** Approved design, partially implemented and refreshed against current routes on 2026-05-04
 
 ## Overview
 
@@ -26,7 +26,9 @@ Stack: Supabase (auth + DB + storage), FastAPI backend, React + TypeScript front
 
 **New routes:**
 - `/auth/callback` — reads Supabase URL params (`token`, `type`), exchanges token, redirects to `/dashboard` (email confirm) or `/reset-password` (password reset)
+- `/forgot-password` — collects email and starts Supabase reset email flow
 - `/reset-password` — form where user enters new password, calls `supabase.auth.updateUser({ password })`
+- `/billing/success` and `/billing/cancel` — frontend billing return routes
 
 **Modified:**
 - `LoginPage.tsx` — add "Forgot password?" link that calls `supabase.auth.resetPasswordForEmail(email)` and shows confirmation message
@@ -120,6 +122,8 @@ User clicks "Upgrade to Pro"
 - `POST /api/billing/webhook` — receive Stripe webhook, update `user_plans`
 - `GET /api/billing/status` — return current plan, status, period end, monthly usage
 - `POST /api/billing/portal` — create Stripe Customer Portal session for manage/cancel
+
+Current implementation note: Settings must remain usable when billing storage or Stripe configuration is unavailable. In that state the API returns a safe free-plan/unavailable payload and disables checkout/portal actions rather than blocking the account page.
 
 ### Frontend routes
 

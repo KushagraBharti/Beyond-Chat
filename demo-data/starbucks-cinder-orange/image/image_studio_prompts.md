@@ -1,5 +1,9 @@
 # Image Studio Prompts
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use these as prompt presets for live image generation. Saved outputs should retain the selected context IDs and prompt metadata.
+
 ## Premium Pack Shot
 
 Photorealistic ready-to-drink bottle mockup for Cinder Orange Cold Brew, premium coffee retail packaging, citrus color accent, condensation, warm summer morning light, clean shelf-ready composition.
@@ -15,4 +19,3 @@ Morning commuter holding Cinder Orange Cold Brew outside a cafe, orange peel, co
 ## Ingredient Flat Lay
 
 Flat lay of cold brew, orange peel, coffee beans, glass bottle, and clean typography space, premium seasonal beverage brand system, social ad creative.
-

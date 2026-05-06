@@ -10,11 +10,15 @@
 - Supabase security advisor now reports only leaked-password protection disabled. This requires project-owner dashboard action.
 - Supabase performance advisor now reports only unused indexes. Review unused indexes after representative production traffic exists rather than dropping them during low/no-data development.
 - Google Calendar OAuth configuration requires Google Cloud Console access.
-- OpenRouter and Exa credentials are required to verify live provider flows.
+- OpenRouter, Exa, Financial Datasets, and optional X credentials are required to verify every live provider path.
+- Stripe credentials and webhook configuration are required to verify live checkout, portal, and subscription persistence.
 - Production JWT verification depends on either the real `SUPABASE_JWT_SECRET` or the project JWKS URL from the deployed Supabase project.
-- Frontend `bun run lint`, `bun run test`, and `bun run build` pass locally after the final patch set.
+- Frontend validation should use npm by default: `npm run lint`, `npm run test`, and `npm run build`.
+- Data Studio live analysis requires both Supabase Storage and OpenRouter credentials; upload preview can be validated with storage alone.
+- Sandbox runner production validation requires `DEXTER_RUNNER_SHARED_SECRET`, OpenRouter, and Financial Datasets credentials.
 
 ## What Is Not Blocked In-Repo
 
 - The code paths, SQL assets, route structure, and setup docs now exist in the repository.
 - Local-first development can continue without waiting on all production credentials.
+- Provider-disconnected UI states can be validated without live provider credentials.

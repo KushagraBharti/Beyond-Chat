@@ -1,5 +1,9 @@
 # Operations And Cold Beverage Throughput Notes
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as operational risk context for Research, Data, Finance, and decision-brief writing.
+
 Source type: Notion company knowledge
 
 ## Operations Concern
@@ -20,4 +24,3 @@ Starbucks has publicly described cold beverage station redesign through the Sire
 Source:
 
 - https://investor.starbucks.com/news/financial-releases/news-details/2022/Starbucks-Enters-New-Era-of-Growth-Driven-by-an-Unparalleled-Reinvention-Plan/default.aspx
-

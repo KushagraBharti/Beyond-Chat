@@ -1,5 +1,9 @@
 # NISHANT
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 6 was focused on building the Image Studio handler end-to-end, connecting OpenRouter's image generation API to the backend pipeline and wiring the output through to Supabase Storage.
 - Work centered on implementing the three-step run workflow — prompt enhancement, image generation, and storage upload — and updating the frontend gallery to render actual images from signed URLs.

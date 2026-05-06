@@ -1,5 +1,9 @@
 # Research Studio Prompt
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this prompt with live Exa search enabled. Research Studio should fail explicitly when Exa is not configured instead of returning fabricated research.
+
 Research the market for citrus-forward cold brew and seasonal ready-to-drink coffee. Compare competitor positioning, likely buyer motivations, and risks for a Starbucks pilot.
 
 ## Use Attached Context
@@ -19,4 +23,3 @@ Research the market for citrus-forward cold brew and seasonal ready-to-drink cof
 - Risks and unknowns
 - Recommended research-backed launch angle
 - Sources
-

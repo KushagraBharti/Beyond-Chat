@@ -1,5 +1,9 @@
 # Product Launch Proposal
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as launch proposal context for live Exa-backed Research Studio validation and downstream artifact saves.
+
 ## Proposal
 
 Proceed with a controlled 400-store pilot of Cinder Orange Cold Brew, focused on warm-weather regions and morning commuter channels.
@@ -20,4 +24,3 @@ The concept also creates a clear test of whether Starbucks can stretch cold brew
 - Can the product preserve cold brew margin?
 - Which channel drives the best repeat behavior?
 - Does the RTD version support or dilute the in-store launch?
-
