@@ -3,8 +3,10 @@
 ## Contract Principles
 
 - Health remains publicly reachable.
+- Provider status remains publicly reachable for readiness rendering.
 - All product routes except health require authenticated context.
 - Provider-backed routes must fail gracefully with explicit status and error information.
+- Artifact-producing routes should preserve selected context IDs and provenance metadata.
 
 ## Core Endpoints
 
@@ -12,6 +14,11 @@
 
 - `GET /api/health`
 - Returns backend reachability status.
+
+### Root
+
+- `GET /`
+- Returns backend service identity and reachability status.
 
 ### Auth Bootstrap
 
@@ -49,6 +56,9 @@
 - `POST /api/chat/threads`
 - `GET /api/chat/threads/{thread_id}`
 - `POST /api/chat/threads/{thread_id}/messages`
+- `POST /api/chat/threads/{thread_id}/messages/stream`
+- `PATCH /api/chat/threads/{thread_id}`
+- `DELETE /api/chat/threads/{thread_id}`
   - Accepts optional `context_ids` so selected artifacts are merged into the provider prompt while the original user message remains stored unchanged.
   - Frontend assistant messages expose Save to artifact as `chat_response` records.
   - Frontend assistant messages can continue into Research, Writing, or Compare with the assistant response content passed forward.
@@ -102,8 +112,10 @@
 - `GET /api/artifacts`
 - `GET /api/artifact/search`
 - `GET /api/artifact/{artifact_id}`
+- `PATCH /api/artifact/{artifact_id}`
+- `DELETE /api/artifact/{artifact_id}`
 - `POST /api/artifact/{artifact_id}/export`
-  - `POST /api/artifacts/export-bundle`
+- `POST /api/artifacts/export-bundle`
   - Product-facing artifact records are owned by the authenticated user profile via `ownerProfileId`.
   - `workspace_id` may remain in responses as legacy/internal routing metadata and should not be presented as collaboration scope.
   - Bundle export accepts selected artifact IDs and returns a combined Markdown artifact bundle.
@@ -118,6 +130,8 @@
 ### Workspace Productivity
 
 - `GET /api/reminders`
+- `POST /api/reminders`
+- `DELETE /api/reminders/{reminder_id}`
 
 ### Integrations
 
@@ -130,3 +144,9 @@
 
 - `POST /api/storage/artifacts/upload`
 - `POST /api/storage/artifacts/signed-url`
+
+## Current Compatibility Aliases
+
+- `POST /api/compare` aliases `POST /api/chat/compare`.
+- `POST /api/run` aliases `POST /api/runs`.
+- Plural artifact routes under `/api/artifacts/*` mirror the singular `/api/artifact/*` routes where implemented.

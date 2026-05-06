@@ -1,5 +1,9 @@
 # Landing Page Copy
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a Writing artifact example for brand copy refinement and image/creative handoff.
+
 ## Hero
 
 A brighter cold brew for summer mornings.
@@ -15,4 +19,3 @@ Built on Starbucks cold brew and finished with a citrus note inspired by orange 
 ## CTA
 
 Find it in pilot stores
-

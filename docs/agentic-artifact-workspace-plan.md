@@ -1,5 +1,7 @@
 # Agentic Artifact Workspace Plan
 
+Status: target architecture, refreshed May 4, 2026. Current implementation has many of these paths live, but this file remains the forward-looking convergence plan rather than a point-in-time changelog.
+
 This document captures the target architecture for the autonomous goal run. It overrides older demo-only planning where there is conflict.
 
 ## Product North Star
@@ -44,6 +46,8 @@ All studios are in scope for the goal:
 
 Data is the highest-priority studio after Finance/Dexter because it should become a real data agent, not a thin CSV summarizer.
 
+Current app state: Data Studio now supports Supabase Storage uploads, CSV/XLS/XLSX preview/profile parsing, OpenRouter-backed analysis, run steps, generated chart/table outputs, and separate artifact save actions. The remaining target is a fuller agent loop with richer tool planning, not basic ingestion.
+
 ## Live Provider Rule
 
 Use live providers only:
@@ -52,6 +56,8 @@ Use live providers only:
 - Exa for research.
 - Existing image provider path for Image Studio.
 - Supabase for auth, database, storage, and user data.
+- Stripe for billing.
+- Google Calendar only where real OAuth/data access is configured.
 
 No deterministic fallback outputs. If a provider fails, the app should show a real error/status and preserve the run state.
 
@@ -110,6 +116,8 @@ Expected handoffs:
 - Writing to Image where useful
 - Any studio to Compare
 - Any studio to Artifacts
+
+Current implementation already supports major handoffs through route state, selected artifact IDs, and shared Compare callbacks. Continue preserving full prompt/output content in handoffs so downstream studios do not depend on titles alone.
 
 ## Research Studio
 

@@ -1,5 +1,9 @@
 # NISHANT
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 5 focused on completing the frontend routing and auth scaffolding that had been in progress since week 3, and beginning the groundwork for the Image Studio backend implementation.
 - The protected route layer was fully tested and stabilized this week, and I started reviewing what would be needed to wire up real image generation through OpenRouter in the following sprint.

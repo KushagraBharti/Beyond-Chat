@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart LR
-    User["User"] --> FE["React + Vite + Tailwind Frontend"]
+    User["User"] --> FE["React 19 + Vite 8 + Tailwind 4 Frontend"]
     FE --> Auth["Supabase Auth Client"]
     FE --> API["FastAPI Backend"]
 
@@ -11,6 +11,7 @@ flowchart LR
     Studios --> Compare["Shared Compare Panel"]
     Studios --> Context["Context Builder"]
     Studios --> Library["Artifact Library"]
+    Studios --> Data["CSV/XLS/XLSX Data Preview + Analysis"]
 
     API --> Runtime["Supabase Request Context + Runtime Store"]
     Runtime --> PG["Supabase Postgres"]
@@ -18,6 +19,7 @@ flowchart LR
 
     API --> OR["OpenRouter"]
     API --> Exa["Exa"]
+    API --> Stripe["Stripe Billing"]
     API --> Google["Google Calendar Scaffolding"]
 
     PG --> Profile["user_profiles as product ownership scope"]
@@ -38,6 +40,8 @@ flowchart LR
 - Product-facing artifact and run ownership is user-profile scoped through `owner_profile_id`. Workspace IDs remain in some tables as hidden legacy/internal routing and bootstrap plumbing rather than visible collaboration UX.
 - Finance/Dexter is the canonical reference for agent loop, tool calling, run steps, and artifact-producing behavior.
 - Research, Data, Writing, Image, Chat, and Compare should converge on the same agentic artifact-producing pattern.
+- Data Studio already follows the artifact path for combined analysis, chart artifacts, and table artifacts.
 - Live providers are required for product behavior: OpenRouter for LLMs, Exa for research, Supabase for persistence/storage. Do not add deterministic demo fallbacks as product behavior.
+- Billing must degrade to explicit disabled/unavailable Settings states when Stripe or billing storage is not configured.
 - Frontend work should use `high-end-visual-design`, `gpt-taste`, `design-taste-frontend`, and `frontend-design`, while preserving the current Beyond Chat theme and architecture.
 - Supabase/Postgres work should use the repo-local `supabase-postgres-best-practices` skill.

@@ -1,5 +1,9 @@
 # Cold Beverage Launch Retrospective
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as mock Notion/company knowledge when testing Context Builder source states and artifact-grounded studio runs.
+
 Source type: Notion company knowledge
 
 ## Internal Readout
@@ -30,4 +34,3 @@ Starbucks has publicly noted that roughly two-thirds of U.S. company-operated co
 Source:
 
 - https://about.starbucks.com/press/2026/cold-is-rising-how-global-demand-is-shaping-the-future-of-starbucks-beverages/
-

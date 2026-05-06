@@ -1,5 +1,9 @@
 # KUSHAGRA BHARTI
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 10 focused on defining the investor-demo direction for Beyond Chat and turning it into a concrete product plan, demo scenario, and reusable mock data package.
 - The main product decision was to center the next two weeks around one clear end-to-end demo: a Starbucks-style beverage innovation team evaluating a new product launch called `Cinder Orange Cold Brew`.

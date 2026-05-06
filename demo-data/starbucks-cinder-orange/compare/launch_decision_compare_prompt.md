@@ -1,5 +1,9 @@
 # Compare Prompt
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this prompt in the shared Compare panel from Chat, Research, Finance, or Artifacts. Compare is not a standalone product route.
+
 Given the attached research, data, finance, Notion, and prior artifact context, recommend whether Starbucks should pilot Cinder Orange Cold Brew.
 
 ## Instructions For Each Model
@@ -18,4 +22,3 @@ Given the attached research, data, finance, Notion, and prior artifact context, 
 - `../finance/peer_competitor_basket.csv`
 - `../notion/starbucks-brand-voice-notes.md`
 - `../artifacts/category-research-memo.md`
-

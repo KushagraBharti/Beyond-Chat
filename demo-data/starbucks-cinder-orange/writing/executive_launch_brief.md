@@ -1,5 +1,9 @@
 # Executive Launch Brief
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a Writing artifact example for executive-ready output, targeted edits, and bundle export.
+
 ## Decision
 
 Approve a controlled 400-store pilot of Cinder Orange Cold Brew for Summer 2026.
@@ -24,4 +28,3 @@ Cinder Orange Cold Brew gives Starbucks a seasonal cold coffee concept that is v
 ## Decision Needed
 
 Approve pilot development, creative production, and regional store readiness.
-

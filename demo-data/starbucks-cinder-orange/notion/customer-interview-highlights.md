@@ -1,5 +1,9 @@
 # Customer Interview Highlights
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as customer-language context for Writing, Research, and Compare. The product should pass this as context rather than hardcoding it.
+
 Source type: Notion company knowledge
 
 ## Positive Language
@@ -20,4 +24,3 @@ Source type: Notion company knowledge
 ## Implication
 
 The winning positioning is `bright citrus cold brew`, not `orange coffee`. The creative should show orange peel and cold brew together so the customer understands both parts quickly.
-

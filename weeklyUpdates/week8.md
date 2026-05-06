@@ -1,5 +1,9 @@
 # KUSHAGRA BHARTI
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 8 was focused on production hardening across the core chat, image, and deployment paths.
 - I centralized model metadata into a single curated catalog so Chat, Compare, and Writing all read from the same source of truth.

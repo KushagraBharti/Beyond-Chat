@@ -1,5 +1,9 @@
 # KUSHAGRA BHARTI
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 11 was the biggest production-readiness push for Beyond Chat so far, covering both product implementation and infrastructure hardening across the full app.
 - The work started as a broad "finish everything" implementation sprint across the studio system: Data, Writing, Image, Chat, Compare, Research, Finance/Dexter, Artifacts, Dashboard, Context Builder, billing, auth, and shared API contracts.

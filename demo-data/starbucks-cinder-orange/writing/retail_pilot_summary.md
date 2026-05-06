@@ -1,5 +1,9 @@
 # Retail Pilot Summary
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a Writing artifact example for operational summaries and downstream Compare review.
+
 ## Product
 
 Cinder Orange Cold Brew is a citrus-forward seasonal cold brew designed for warmer mornings.
@@ -18,4 +22,3 @@ The pilot should use a simple build, consistent citrus component, and no fragile
 ## Commercial Logic
 
 At $5.95 and an estimated $4.53 contribution margin per cup, the pilot needs roughly 210,000 cups to break even against a $950,000 launch budget.
-

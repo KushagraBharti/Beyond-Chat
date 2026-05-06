@@ -1,5 +1,9 @@
 # Category Research Memo
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a saved Research artifact seed when testing Context Builder, artifact search, compare handoffs, and downstream Finance/Writing continuation.
+
 Artifact type: saved Beyond Chat artifact
 Studio: Research
 
@@ -22,4 +26,3 @@ Proceed to data and finance analysis. The concept is strong enough for evaluatio
 
 - https://about.starbucks.com/press/2026/cold-is-rising-how-global-demand-is-shaping-the-future-of-starbucks-beverages/
 - https://about.starbucks.com/press/2026/starbucks-is-back-turning-momentum-into-long-term-sustainable-growth/
-

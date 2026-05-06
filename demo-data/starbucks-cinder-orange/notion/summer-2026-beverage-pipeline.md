@@ -1,5 +1,9 @@
 # Summer 2026 Beverage Pipeline
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as portfolio context when testing whether Research, Finance, and Compare can reason about tradeoffs across candidate launches.
+
 Source type: Notion company knowledge
 
 ## Active Concepts
@@ -30,4 +34,3 @@ Starbucks has described a disciplined innovation pipeline across coffee, espress
 Source:
 
 - https://about.starbucks.com/press/2026/starbucks-is-back-turning-momentum-into-long-term-sustainable-growth/
-

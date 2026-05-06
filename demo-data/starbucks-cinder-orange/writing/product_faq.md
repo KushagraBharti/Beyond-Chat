@@ -1,5 +1,9 @@
 # Product FAQ
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a Writing artifact example for structured customer-facing content generated from shared launch context.
+
 ## What is Cinder Orange Cold Brew?
 
 A seasonal cold brew with a bright citrus finish designed for summer mornings.
@@ -19,4 +23,3 @@ Customers may misunderstand orange and coffee unless the creative system clearly
 ## What does success look like?
 
 Strong repeat rate, limited cannibalization, attractive margin, and manageable store complexity.
-

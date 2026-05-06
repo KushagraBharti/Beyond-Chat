@@ -1,5 +1,9 @@
 # Prior Cold Brew Launch Learnings
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as reusable historical context for Chat, Research, Finance, and Writing runs. It should be selected as artifact context, not copied into application code.
+
 Artifact type: saved Beyond Chat artifact
 Studio: Research
 
@@ -17,4 +21,3 @@ Prior cold brew launches succeeded when they combined a familiar coffee base wit
 ## Launch Rule
 
 If the product cannot be explained as `cold brew plus bright citrus`, it is too complex for pilot launch.
-

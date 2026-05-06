@@ -25,9 +25,11 @@
 - Added Writing Studio launch templates for executive brief, retail pilot summary, landing page copy, and launch email that open as editable starter documents.
 - Added Writing Studio multi-output launch kit generation: one live writing run can produce multiple artifact-ready documents and save each output as a separate writing artifact.
 - Added billing status resilience so Settings still loads a free-plan account state when billing storage is unavailable and disables upgrade/manage actions when Stripe is not configured.
+- Added Stripe checkout and portal endpoints behind explicit configuration checks.
 - Added Image Studio prompt presets for product mockup, commuter ad, and retail shelf creative that feed the existing live image generation path.
 - Added artifact launch-kit matching, multi-artifact selection, and Markdown bundle export for saved artifact collections.
 - Added artifact detail handoff actions to continue saved artifacts into Chat, Research, Finance, Writing, or Compare with artifact context carried forward.
+- Added CSV/XLS/XLSX Data Studio preview and analysis contracts backed by Supabase Storage and pandas parsing.
 - Added profile-scoped artifact/run ownership with `owner_profile_id`, runtime filtering, RLS policy updates, and a Supabase migration while retaining workspace IDs as hidden legacy routing.
 - Reduced product-facing workspace language in the protected frontend so account/profile UX now matches profile-scoped artifact ownership.
 - Added authenticated and local-first backend contract coverage for health, auth bootstrap, workspace data, chat, compare, runs, artifacts, export, and integration status.
@@ -48,6 +50,7 @@
 - Added frontend auth bootstrap wiring after sign-in/sign-up and during restored sessions.
 - Added Supabase-aware API client headers and workspace-id persistence in the frontend.
 - Added frontend Vitest setup and smoke tests.
+- Added protected auth callback, forgot/reset password, billing success/cancel, and temporary dashboard design preview routes.
 - Added SQL deliverables for:
   - user/workspace/member schema
   - chat tables
@@ -67,7 +70,7 @@
 
 - Backend health route verified at `GET /api/health`.
 - Backend pytest suite passes with Python 3.11 via `uv run --python 3.11 pytest`.
-- Frontend `bun run lint`, `bun run test`, and `bun run build` pass after the Supabase rebuild/RLS repair on Windows with Bun 1.3.11 and Node v25.4.0.
+- Frontend validation should be run with npm by default: `npm run lint`, `npm run test`, and `npm run build`.
 - Browser QA completed locally against the backend-served frontend build for:
   - login bypass
   - dashboard rendering

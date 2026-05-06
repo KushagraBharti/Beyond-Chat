@@ -4,8 +4,11 @@ Beyond Chat is a studio-based AI workspace built around reusable artifacts inste
 
 ## Canonical Product Direction
 
-- Studios: Home, Chat, Writing, Research, Image, Data, Finance, Artifacts, Settings
+- Public routes: Landing, Pricing, Login, Signup, Auth Callback, Forgot Password, Reset Password, Billing Success/Cancel
+- Protected routes: Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, Settings
 - Compare is a shared panel capability, not a standalone route
+- Chat and Image use dedicated full-screen layouts; the other protected studios share the dashboard shell
+- Temporary protected dashboard design previews live under `/designs/1` through `/designs/6`
 - Hosted runtime is Supabase-only for auth, database, and storage
 - `frontend-mock/` is archived reference material, not an active product surface
 
@@ -21,6 +24,8 @@ Beyond Chat is a studio-based AI workspace built around reusable artifacts inste
 - Deployment target: Vercel
 - Frontend tooling: npm or Bun for JS surfaces; npm is the default for cloud/sandbox scripts
 - Backend tooling: uv only
+- Billing: Stripe-backed settings/checkout/portal endpoints with safe unavailable states
+- Data files: CSV, XLSX, and XLS uploads through Supabase Storage
 
 ## Repository Map
 
@@ -31,7 +36,10 @@ Beyond Chat is a studio-based AI workspace built around reusable artifacts inste
 - `backend/` production API and workflow runtime
 - `backend/sql-related-files/` canonical live schema for Supabase/Postgres
 - `docs/api-spec.md` canonical runtime/API contract
+- `docs/api-contracts.md` implementation-facing contract summary
 - `docs/system-architecture.md` canonical architecture summary
+- `docs/demo-launch-plan.md` investor/demo operating plan
+- `docs/agentic-artifact-workspace-plan.md` target architecture for agentic artifact workflows
 - `spec.md` canonical product scope and UX contract
 - `manual.md` required external setup steps
 
@@ -83,6 +91,8 @@ Do not use `pip`.
 - Backend dev server: `http://127.0.0.1:8000`
 - Backend health check: `GET /api/health`
 - Frontend dev proxy forwards `/api/*` to the backend
+- Protected API calls require a Supabase access token except for `GET /api/health` and provider status
+- The frontend stores the active workspace ID in `localStorage` as `bc.workspace_id` and sends it as `X-Workspace-Id`
 
 ## Validation
 
@@ -98,6 +108,13 @@ Backend:
 ```powershell
 cd backend
 uv run pytest
+```
+
+Sandbox runner:
+
+```powershell
+cd backend/sandbox-runner
+npm run typecheck
 ```
 
 ## Deploy To Vercel
@@ -154,9 +171,11 @@ Required frontend env on Vercel:
 ## Runtime Rules
 
 - Hosted requests must use a valid Supabase-authenticated session
+- `GET /api/status/providers` is public so the frontend can render provider readiness
 - SQLite and local auth bypass are not part of the product architecture
 - `backend/src/store.py` remains only as a legacy local test store
 - `backend/sql-related-files/` is the source of truth for the live schema
+- Profile-scoped artifact and run ownership is the product-facing model; workspace IDs remain internal routing/bootstrap plumbing where the schema still requires them
 
 ## Notes
 

@@ -1,5 +1,9 @@
 # Starbucks Brand Voice Notes
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as brand voice context for Writing and Image Studio outputs. It should shape prompts and saved artifacts without becoming application-specific logic.
+
 Source type: Notion company knowledge
 
 ## Brand Principles
@@ -44,4 +48,3 @@ Sources:
 
 - https://about.starbucks.com/press/2026/cold-is-rising-how-global-demand-is-shaping-the-future-of-starbucks-beverages/
 - https://about.starbucks.com/press/2026/starbucks-is-back-turning-momentum-into-long-term-sustainable-growth/
-

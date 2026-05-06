@@ -1,5 +1,9 @@
 # NISHANT
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 7 focused on auditing the Image Studio against its original Linear acceptance criteria and closing the remaining gaps to bring the feature to a fully complete state.
 - I reviewed the three Linear issues tied to the Image Studio (BEY-48, BEY-40, BEY-32) and traced each acceptance criterion through the codebase to confirm what was implemented and what was missing.

@@ -1,5 +1,9 @@
 # Pilot Decision Brief Draft
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a saved Writing artifact seed when testing editor reopen, targeted edits, Compare, and executive decision handoffs.
+
 Artifact type: saved Beyond Chat artifact
 Studio: Writing
 
@@ -21,4 +25,3 @@ Cold beverage demand gives Starbucks permission to test more seasonal cold coffe
 - How much core cold brew cannibalization is acceptable?
 - Can the citrus component be operationally simple?
 - Does the RTD bottle read as coffee or juice?
-

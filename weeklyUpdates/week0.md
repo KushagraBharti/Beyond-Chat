@@ -1,5 +1,9 @@
 # KUSHAGRA
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 0 was the ideation week. The main focus was figuring out what the project should actually be before locking into a bad idea too early.
 - I spent most of the time discussing different possible directions, evaluating which ones felt strongest, and helping shape the final concept that became Beyond Chat.

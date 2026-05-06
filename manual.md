@@ -63,6 +63,12 @@ Copy `backend/env.example` to `backend/.env` and set:
 - `EXASEARCH_API_KEY`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
+- `FINANCIAL_DATASETS_API_KEY`
+- `X_BEARER_TOKEN` if X research should be enabled
+- `DEXTER_RUNNER_SHARED_SECRET` if using the sandbox runner
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRO_PRICE_ID`
 
 ## 4. Configure Frontend Environment
 
@@ -113,6 +119,30 @@ backend at `127.0.0.1:8000`. From the frontend origin, request an API route such
 as `http://127.0.0.1:5173/api/health` and confirm it returns the same backend
 health payload as `http://127.0.0.1:8000/api/health`.
 
+Frontend validation:
+
+```powershell
+cd frontend
+npm run lint
+npm run test
+npm run build
+```
+
+Backend validation:
+
+```powershell
+cd backend
+uv run pytest
+```
+
+Sandbox runner validation:
+
+```powershell
+cd backend/sandbox-runner
+npm install
+npm run typecheck
+```
+
 ## 7. Google Calendar OAuth
 
 If you want the Google Calendar flow to work:
@@ -138,7 +168,18 @@ Then verify:
 - research runs
 - finance runs
 
-## 9. Production Checks
+## 9. Stripe Billing
+
+If paid-plan controls should work:
+
+1. create a Stripe product and recurring Pro price
+2. set backend Stripe env vars
+3. configure the webhook endpoint for the deployed backend
+4. verify Settings can load billing status before testing checkout
+
+If Stripe is not configured, Settings should still load and expose disabled billing actions with setup messaging.
+
+## 10. Production Checks
 
 Before deployment:
 
@@ -147,3 +188,5 @@ Before deployment:
 3. confirm chat, artifacts, runs, reminders, and storage all persist in Supabase
 4. confirm compare works from its shared panel entry points
 5. confirm artifact export works behind auth
+6. confirm Data Studio can preview and analyze CSV/XLSX/XLS uploads
+7. confirm billing status is either live or safely unavailable

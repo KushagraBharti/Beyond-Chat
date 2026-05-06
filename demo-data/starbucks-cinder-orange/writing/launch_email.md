@@ -1,5 +1,9 @@
 # Launch Email Draft
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as a Writing artifact example for shorter-form launch communications and targeted edit validation.
+
 Subject: Meet Cinder Orange Cold Brew
 
 ## Body
@@ -13,4 +17,3 @@ It is bold, refreshing, and coffee-forward, made for the moment when your day st
 Available for a limited time in select pilot stores.
 
 CTA: Try it this week
-

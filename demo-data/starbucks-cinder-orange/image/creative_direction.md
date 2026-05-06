@@ -1,5 +1,9 @@
 # Creative Direction
 
+## Beyond Chat Alignment - May 4, 2026
+
+Use this as Image Studio context so generated outputs preserve coffee-first positioning and artifact provenance.
+
 ## Visual System
 
 - Starbucks green foundation
@@ -25,4 +29,3 @@
 - energy drink
 - overly sweet dessert cue
 - generic cafe stock imagery
-

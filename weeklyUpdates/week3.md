@@ -2,6 +2,10 @@ Diya: Created frontend framework for the diff. studios, added ImageStudio.tsx + 
 
 # NISHANT
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 3 was the first week where planning turned into real implementation work across both the frontend and backend.
 - On the frontend, I focused on setting up React Router v6 and building the Protected Route wrapper so the app could reliably redirect unauthenticated users and enforce access control across all studio pages.

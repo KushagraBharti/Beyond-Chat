@@ -1,5 +1,9 @@
 # KUSHAGRA BHARTI
 
+## Documentation Refresh - May 4, 2026
+
+This weekly note is retained as historical project evidence. Current setup, architecture, API, blocker, and completion state now live in `README.md`, `spec.md`, `manual.md`, `docs/api-spec.md`, `docs/system-architecture.md`, `blocker.md`, and `completed.md`.
+
 ## Weekly Summary
 - Week 9 was dominated by building Dexter from scratch inside Beyond Chat and turning the finance studio into a Dexter-first agent workspace.
 - The main focus was assembling the agentic tooling one by one, getting finance runs to work locally, and then wiring the same event model toward the Vercel Sandbox path for production.
