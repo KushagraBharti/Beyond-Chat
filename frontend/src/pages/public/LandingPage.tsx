@@ -49,6 +49,54 @@ const fadeUp: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
 };
 
+function waitForLandingAssets(root: HTMLElement | null) {
+  const imagePromises = Array.from(root?.querySelectorAll("img") ?? []).map((image) => {
+    if (image.complete) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      image.addEventListener("load", () => resolve(), { once: true });
+      image.addEventListener("error", () => resolve(), { once: true });
+    });
+  });
+
+  const fontPromise = "fonts" in document ? document.fonts.ready.then(() => undefined) : Promise.resolve();
+  const timeoutPromise = new Promise<void>((resolve) => window.setTimeout(resolve, 2400));
+
+  return Promise.race([
+    Promise.all([fontPromise, ...imagePromises]).then(() => undefined),
+    timeoutPromise,
+  ]);
+}
+
+const LandingLoader = () => (
+  <motion.div
+    className="landing-loader"
+    initial={{ y: 0 }}
+    exit={{ y: "-105%" }}
+    transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+  >
+    <div className="landing-loader-grid" />
+    <motion.div
+      className="landing-loader-mark"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+    >
+      <div />
+    </motion.div>
+    <div className="landing-loader-copy">
+      <span>Beyond Chat</span>
+      <motion.div
+        className="landing-loader-line"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: [0, 1, 0.35, 1] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </div>
+  </motion.div>
+);
+
 // --- GLOBAL COMPONENTS ---
 const NoiseOverlay = () => (
   <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 9999, opacity: 0.35, mixBlendMode: "overlay" }}>
@@ -477,14 +525,42 @@ const ManifestoScrollytelling = () => {
 // --- MAIN COMPONENT ---
 export default function AtelierPlusLanding() {
   const [cursorVariant, setCursorVariant] = useState<"default" | "play" | "rotate">("default");
+  const [sceneReady, setSceneReady] = useState(false);
+  const [landingReady, setLandingReady] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   
   const { scrollYProgress } = useScroll();
   const y = useTransform(scrollYProgress, [0, 1], [0, 200]);
   const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
+  useEffect(() => {
+    if (!sceneReady) {
+      return;
+    }
+
+    let active = true;
+    const start = performance.now();
+
+    void waitForLandingAssets(rootRef.current).then(() => {
+      const remaining = Math.max(0, 950 - (performance.now() - start));
+      window.setTimeout(() => {
+        if (active) {
+          setLandingReady(true);
+        }
+      }, remaining);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [sceneReady]);
+
   return (
-    <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
+    <div ref={rootRef} style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
+      <AnimatePresence>
+        {!landingReady ? <LandingLoader /> : null}
+      </AnimatePresence>
       <NoiseOverlay />
       <CustomCursor variant={cursorVariant} />
 
@@ -555,7 +631,7 @@ export default function AtelierPlusLanding() {
         {/* Full-Bleed 3D Overlay */}
         <div style={{ position: "absolute", top: "0.1rem", left: 0, right: 0, bottom: "-18vh", zIndex: 20, pointerEvents: "none", overflow: "visible" }}>
           <Suspense fallback={<div style={{ width: "100%", height: "100%" }} />}>
-            <LandingScene3D />
+            <LandingScene3D onReady={() => setSceneReady(true)} />
           </Suspense>
         </div>
 

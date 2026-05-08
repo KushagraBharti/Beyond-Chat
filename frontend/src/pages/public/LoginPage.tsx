@@ -1,8 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { bootstrapAuth } from "../../lib/api";
 import { isSupabaseEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
+
+type OAuthProvider = "google" | "apple";
 
 export default function LoginPage() {
   const { session, loading: authLoading } = useAuth();
@@ -17,7 +19,10 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [remember, setRemember] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +41,31 @@ export default function LoginPage() {
     return null;
   }
 
-  async function handleSubmit() {
+  async function handleOAuth(provider: OAuthProvider) {
+    setError(null);
+    setMessage(null);
+
+    if (!supabase) {
+      setError("Supabase is not configured for this environment.");
+      return;
+    }
+
+    setOauthLoading(provider);
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (oauthError) {
+      setError(oauthError.message);
+      setOauthLoading(null);
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setLoading(true);
     setMessage(null);
     setError(null);
@@ -91,169 +120,197 @@ export default function LoginPage() {
     }
   }
 
+  const isSignup = mode === "signup";
+
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-950">
-      <div className="grid min-h-screen lg:grid-cols-[1.08fr_0.92fr]">
-        <section className="relative hidden overflow-hidden bg-stone-950 px-10 lg:block">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(79,63,232,0.22),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(229,86,19,0.18),transparent_34%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:42px_42px]" />
+    <main className="auth-mockup">
+      <section className="auth-visual" aria-label="Beyond Chat studio workspace">
+        <div className="auth-visual-grid" />
+        <div className="auth-brand">
+          <Link to="/" className="auth-brand-logo" aria-label="Beyond Chat home">
+            <span className="auth-logo-mark">
+              <span />
+            </span>
+            <span>
+              <strong>Beyond Chat</strong>
+              <small>Studio Workspace</small>
+            </span>
+          </Link>
+        </div>
 
-          <div className="relative z-10 mx-auto flex min-h-screen max-w-[38rem] flex-col px-4 pb-14 pt-12">
-            <Link to="/" className="inline-flex items-center gap-3 self-start">
-              <span className="h-7 w-7 rounded-lg bg-gradient-to-br from-violet-600 to-orange-500 p-[2px]">
-                <span className="block h-full w-full rounded-[6px] bg-stone-950 p-[5px]">
-                  <span className="block h-full w-full rounded-[3px] bg-stone-100" />
-                </span>
-              </span>
-              <span className="font-[Bricolage_Grotesque] text-xl font-extrabold tracking-[-0.04em] text-stone-50">Beyond Chat</span>
-            </Link>
+        <div className="auth-copy">
+          <h1>
+            Artifacts,
+            <br />
+            not endless
+            <br />
+            <span>transcripts.</span>
+          </h1>
+          <p>Your modular AI workspace for writing, research, image, data, finance, and more. Built for focused work. Designed for impact.</p>
+        </div>
 
-            <div className="mt-16">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-stone-400">Studio Workspace</p>
+      </section>
 
-              <div style={{ marginTop: "2.5rem" }}>
-                <h1 className="max-w-[30rem] font-[Bricolage_Grotesque] text-[3.35rem] font-extrabold leading-[0.93] tracking-[-0.065em] text-stone-50">
-                  Artifacts, not endless transcripts.
-                </h1>
-              </div>
+      <section className="auth-panel" aria-label={isSignup ? "Create your Beyond Chat account" : "Sign in to Beyond Chat"}>
+        <div className="auth-panel-lines" />
+        <div className="auth-dot-field top" />
+        <div className="auth-dot-field bottom" />
 
-              <div style={{ marginTop: "2.25rem" }}>
-                <p className="max-w-[31rem] text-[1rem] leading-8 text-stone-300">
-                  Beyond Chat organizes writing, research, image, data, and finance work into focused studios with reusable context and shared model comparison.
-                </p>
-              </div>
-
-              <div style={{ marginTop: "2.75rem" }} className="grid gap-4 sm:grid-cols-2">
-                {[
-                  "Dedicated studios for distinct workflows",
-                  "Supabase-backed auth, data, and storage",
-                  "Saved artifacts that survive across sessions",
-                  "Compare panel shared across the workspace",
-                ].map((item) => (
-                  <div key={item} className="rounded-[1.65rem] border border-white/10 bg-white/5 p-5 backdrop-blur">
-                    <div className="mb-4 h-2 w-14 rounded-full bg-gradient-to-r from-violet-400 to-orange-400" />
-                    <p className="text-sm leading-6 text-stone-200">{item}</p>
-                  </div>
-                ))}
-              </div>
+        <div className="auth-card-shell">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <h2>{isSignup ? "Create your account" : "Welcome back"} {isSignup ? "\u2728" : "\u{1F44B}"}</h2>
+              <p>{isSignup ? "Start your Beyond Chat workspace" : "Sign in to your Beyond Chat workspace"}</p>
             </div>
-          </div>
-        </section>
 
-        <section className="relative flex min-h-screen justify-center px-6 py-10 sm:px-8 lg:px-12">
-          <div className="w-full max-w-md lg:sticky lg:top-0 lg:flex lg:h-screen lg:items-center">
-            <div className="w-full rounded-[2rem] border border-stone-200 bg-white p-8 shadow-[0_30px_80px_rgba(28,25,23,0.08)]">
-              <Link to="/" className="mb-8 inline-flex items-center gap-3 lg:hidden">
-                <span className="h-6 w-6 rounded-md bg-gradient-to-br from-violet-600 to-orange-500" />
-                <span className="font-[Bricolage_Grotesque] text-lg font-extrabold">Beyond Chat</span>
-              </Link>
+            <div className="auth-social-row">
+              <button type="button" onClick={() => void handleOAuth("google")} disabled={oauthLoading !== null || !isSupabaseEnabled}>
+                <GoogleIcon />
+                {oauthLoading === "google" ? "Opening Google..." : "Continue with Google"}
+              </button>
+              <button type="button" onClick={() => void handleOAuth("apple")} disabled={oauthLoading !== null || !isSupabaseEnabled}>
+                <AppleIcon />
+                {oauthLoading === "apple" ? "Opening Apple..." : "Continue with Apple"}
+              </button>
+            </div>
 
-              <div className="space-y-2">
-                <h1 className="font-[Bricolage_Grotesque] text-4xl font-extrabold tracking-[-0.05em] text-stone-950">
-                  {mode === "signup" ? "Create your account" : "Welcome back"}
-                </h1>
-                <p className="text-sm leading-6 text-stone-600">
-                  {mode === "signup"
-                    ? "Create an account to enter your studio workspace."
-                    : "Sign in to reopen your workspace, artifacts, and recent runs."}
-                </p>
-                {!isSupabaseEnabled ? (
-                  <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                    Supabase is required for this app. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to continue.
-                  </p>
-                ) : null}
-              </div>
+            <div className="auth-divider">
+              <span />
+              <em>or</em>
+              <span />
+            </div>
 
-              <form
-                className="mt-8 space-y-5"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  void handleSubmit();
-                }}
-              >
-                <label className="block space-y-2">
-                  <span className="text-sm font-semibold text-stone-800">Email</span>
+            {!isSupabaseEnabled ? (
+              <p className="auth-alert warning">Supabase is required. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to continue.</p>
+            ) : null}
+
+            <form className="auth-form" onSubmit={(event) => void handleSubmit(event)}>
+              <label>
+                <span>Email</span>
+                <div className="auth-input-wrap">
+                  <MailIcon />
                   <input
                     type="email"
                     placeholder="name@company.com"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     required
-                    className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
                   />
-                </label>
-
-                <div className="space-y-4">
-                  <label className="block space-y-2">
-                    <span className="text-sm font-semibold text-stone-800">Password</span>
-                    <input
-                      type="password"
-                      placeholder="........"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                      className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
-                    />
-                  </label>
-
-                  {mode === "signin" ? (
-                    <div className="flex justify-end">
-                      <Link to="/forgot-password" className="text-sm font-semibold text-violet-700 hover:text-violet-900">
-                        Forgot password?
-                      </Link>
-                    </div>
-                  ) : null}
-
-                  {mode === "signup" ? (
-                    <label className="block space-y-2">
-                      <span className="text-sm font-semibold text-stone-800">Retype password</span>
-                      <input
-                        type="password"
-                        placeholder="........"
-                        value={confirmPassword}
-                        onChange={(event) => setConfirmPassword(event.target.value)}
-                        required
-                        className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
-                      />
-                    </label>
-                  ) : null}
                 </div>
+              </label>
 
-                {error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
-                {message ? (
-                  <p className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700">{message}</p>
-                ) : null}
+              <label>
+                <span className="auth-label-row">
+                  Password
+                  {!isSignup ? <Link to="/forgot-password">Forgot password?</Link> : null}
+                </span>
+                <div className="auth-input-wrap">
+                  <LockIcon />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                  <button type="button" className="auth-eye" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
+                    <EyeIcon />
+                  </button>
+                </div>
+              </label>
 
-                <button
-                  type="submit"
-                  disabled={loading || !isSupabaseEnabled}
-                  className="w-full rounded-2xl bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-                >
-                  {loading ? "Please wait..." : mode === "signup" ? "Create account" : "Sign in"}
-                </button>
-              </form>
+              {isSignup ? (
+                <label>
+                  <span>Retype password</span>
+                  <div className="auth-input-wrap">
+                    <LockIcon />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      value={confirmPassword}
+                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      required
+                    />
+                  </div>
+                </label>
+              ) : null}
 
-              <p className="text-center text-sm text-stone-600" style={{ marginTop: "2.1rem" }}>
-                {mode === "signup" ? (
-                  <>
-                    Already have an account?{" "}
-                    <Link to="/login" className="font-semibold text-violet-700 hover:text-violet-900">
-                      Sign in
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    Need an account?{" "}
-                    <Link to="/signup" className="font-semibold text-violet-700 hover:text-violet-900">
-                      Sign up
-                    </Link>
-                  </>
-                )}
-              </p>
-            </div>
+              {error ? <p className="auth-alert error">{error}</p> : null}
+              {message ? <p className="auth-alert success">{message}</p> : null}
+
+              <button type="submit" className="auth-submit" disabled={loading || !isSupabaseEnabled}>
+                {loading ? "Please wait..." : isSignup ? "Create account" : "Sign in"}
+              </button>
+
+              {!isSignup ? (
+                <div className="auth-options">
+                  <label className="auth-check">
+                    <input type="checkbox" checked={remember} onChange={(event) => setRemember(event.target.checked)} />
+                    <span />
+                    Remember me
+                  </label>
+                </div>
+              ) : null}
+            </form>
           </div>
-        </section>
-      </div>
-    </div>
+
+          <p className="auth-switch">
+            {isSignup ? (
+              <>
+                Already have an account? <Link to="/login">Sign in <ArrowIcon /></Link>
+              </>
+            ) : (
+              <>
+                New to Beyond Chat? <Link to="/signup">Create an account <ArrowIcon /></Link>
+              </>
+            )}
+          </p>
+
+          <p className="auth-terms">
+            <LockTinyIcon />
+            By continuing, you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>.
+          </p>
+        </div>
+      </section>
+    </main>
   );
+}
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h6c-.3 1.2-1 2.3-2 3v2.5h3.2c1.9-1.7 3.4-4.4 3.4-7.3Z" />
+      <path fill="#34A853" d="M12 23c2.7 0 5-.9 6.7-2.5L15.5 18c-.9.6-2 .9-3.5.9-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6C4.8 20.7 8.2 23 12 23Z" />
+      <path fill="#FBBC05" d="M6.4 14.8a6.5 6.5 0 0 1 0-4.2V8H3.1a11 11 0 0 0 0 9.8l3.3-3Z" />
+      <path fill="#EA4335" d="M12 5.1c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 12 1 11 11 0 0 0 3.1 8l3.3 2.6C7.2 6.9 9.4 5.1 12 5.1Z" />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M17.4 12.4c0-2.7 2.2-4 2.3-4.1-1.3-1.8-3.2-2.1-3.8-2.1-1.6-.2-3.1 1-4 1s-2.2-1-3.6-.9c-1.8 0-3.4 1-4.4 2.6-1.9 3.4-.5 8.3 1.4 11 .9 1.3 2 2.8 3.4 2.7 1.4-.1 1.9-.9 3.6-.9s2.1.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.5-2.9 1.5-3-.1 0-2.9-1.1-2.9-4.6ZM14.9 4.5c.8-.9 1.3-2.2 1.1-3.5-1.1 0-2.4.7-3.2 1.6-.7.8-1.3 2.1-1.1 3.4 1.2.1 2.4-.6 3.2-1.5Z" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5h16v9H4v-9Z" /><path d="m4.8 8.3 7.2 5 7.2-5" /></svg>;
+}
+
+function LockIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10v9H7v-9Z" /><path d="M9 10V7a3 3 0 0 1 6 0v3" /></svg>;
+}
+
+function EyeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.3-5 9.5-5 9.5 5 9.5 5-3.3 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>;
+}
+
+function LockTinyIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 10V7a4 4 0 0 1 8 0v3" /><path d="M6 10h12v10H6z" /></svg>;
+}
+
+function ArrowIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>;
 }

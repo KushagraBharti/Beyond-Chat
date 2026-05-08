@@ -116,7 +116,7 @@ function CognitiveCore() {
   );
 }
 
-export default function LandingScene3D() {
+export default function LandingScene3D({ onReady }: { onReady?: () => void }) {
   return (
     <Canvas
       camera={{ position: [0, 0, 14], fov: 45 }}
@@ -124,6 +124,7 @@ export default function LandingScene3D() {
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         gl.setClearColor(0x000000, 0);
+        requestAnimationFrame(() => onReady?.());
       }}
       style={{ width: "100%", height: "100%" }}
     >
