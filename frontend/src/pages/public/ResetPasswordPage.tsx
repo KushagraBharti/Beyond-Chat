@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -9,8 +9,21 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  async function handleReset() {
+  const passwordScore = useMemo(() => {
+    const checks = [
+      password.length >= 8,
+      /[A-Z]/.test(password),
+      /[0-9]/.test(password),
+      /[^A-Za-z0-9]/.test(password),
+    ];
+
+    return checks.filter(Boolean).length;
+  }, [password]);
+
+  async function handleReset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
     if (!password || !confirm) {
       setError("Please fill in both fields.");
@@ -44,68 +57,141 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-stone-100 px-6">
-      <div className="w-full max-w-md rounded-[2rem] border border-stone-200 bg-white p-8 shadow-[0_30px_80px_rgba(28,25,23,0.08)]">
-        <Link to="/" className="mb-8 inline-flex items-center gap-3">
-          <span className="h-6 w-6 rounded-md bg-gradient-to-br from-violet-600 to-orange-500" />
-          <span className="font-[Bricolage_Grotesque] text-lg font-extrabold">Beyond Chat</span>
+    <main className="reset-password-page">
+      <div className="reset-password-grid" aria-hidden="true" />
+
+      <section className="reset-password-brand" aria-label="Beyond Chat password reset">
+        <Link to="/" className="reset-password-logo" aria-label="Beyond Chat home">
+          <span className="reset-password-logo-mark">
+            <span />
+          </span>
+          <span>Beyond Chat</span>
         </Link>
 
-        <div className="space-y-2">
-          <h1 className="font-[Bricolage_Grotesque] text-4xl font-extrabold tracking-[-0.05em] text-stone-950">
-            Set new password
-          </h1>
-          <p className="text-sm leading-6 text-stone-600">Choose a new password for your account.</p>
+        <div className="reset-password-visual">
+          <div className="reset-password-keyline" />
+          <div className="reset-password-cipher">
+            <span>BC</span>
+          </div>
+          <div className="reset-password-path path-one" />
+          <div className="reset-password-path path-two" />
+          <div className="reset-password-node node-one">
+            <KeyIcon />
+          </div>
+          <div className="reset-password-node node-two">
+            <ShieldIcon />
+          </div>
+          <div className="reset-password-node node-three">
+            <CheckIcon />
+          </div>
         </div>
 
-        {done ? (
-          <p className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-            Password updated. Redirecting to sign in...
-          </p>
-        ) : (
-          <form
-            className="mt-8 space-y-5"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handleReset();
-            }}
-          >
-            <label className="block space-y-2">
-              <span className="text-sm font-semibold text-stone-800">New password</span>
-              <input
-                type="password"
-                placeholder="........"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
-              />
-            </label>
+        <div className="reset-password-brand-copy">
+          <span>Secure handoff</span>
+          <h1>Set a new workspace key.</h1>
+          <p>Refresh your password and return to a clean, protected Beyond Chat session.</p>
+        </div>
+      </section>
 
-            <label className="block space-y-2">
-              <span className="text-sm font-semibold text-stone-800">Confirm password</span>
-              <input
-                type="password"
-                placeholder="........"
-                value={confirm}
-                onChange={(event) => setConfirm(event.target.value)}
-                required
-                className="w-full rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100"
-              />
-            </label>
+      <section className="reset-password-panel" aria-label="Reset password form">
+        <div className="reset-password-card">
+          <div className="reset-password-card-header">
+            <span className="reset-password-kicker">Account recovery</span>
+            <h2>{done ? "Password updated" : "Create your new password"}</h2>
+            <p>{done ? "You are being redirected to sign in." : "Use at least 8 characters. A mix of letters, numbers, and symbols is strongest."}</p>
+          </div>
 
-            {error ? <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p> : null}
+          {done ? (
+            <div className="reset-password-success" role="status">
+              <span>
+                <CheckIcon />
+              </span>
+              <div>
+                <strong>All set.</strong>
+                <p>Your password was updated and the current session was closed.</p>
+              </div>
+            </div>
+          ) : (
+            <form className="reset-password-form" onSubmit={(event) => void handleReset(event)}>
+              <label>
+                <span>New password</span>
+                <div className="reset-password-input">
+                  <LockIcon />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter a new password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? "Hide password" : "Show password"}>
+                    <EyeIcon />
+                  </button>
+                </div>
+              </label>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-2xl bg-stone-950 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
-            >
-              {loading ? "Updating..." : "Update password"}
-            </button>
-          </form>
-        )}
-      </div>
-    </div>
+              <label>
+                <span>Confirm password</span>
+                <div className="reset-password-input">
+                  <LockIcon />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Retype the new password"
+                    value={confirm}
+                    onChange={(event) => setConfirm(event.target.value)}
+                    required
+                  />
+                </div>
+              </label>
+
+              <div className="reset-password-strength" aria-label="Password strength">
+                <div>
+                  {[0, 1, 2, 3].map((step) => (
+                    <span key={step} className={passwordScore > step ? "is-active" : ""} />
+                  ))}
+                </div>
+                <p>{password ? ["Very weak", "Getting there", "Solid", "Strong"][Math.max(passwordScore - 1, 0)] : "Strength appears as you type"}</p>
+              </div>
+
+              {error ? <p className="reset-password-alert">{error}</p> : null}
+
+              <button type="submit" className="reset-password-submit" disabled={loading}>
+                {loading ? "Updating password..." : "Update password"}
+                <ArrowIcon />
+              </button>
+            </form>
+          )}
+
+          <div className="reset-password-footer">
+            <Link to="/login">Back to sign in</Link>
+            <span>Protected by Supabase Auth</span>
+          </div>
+        </div>
+      </section>
+    </main>
   );
+}
+
+function ArrowIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>;
+}
+
+function CheckIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg>;
+}
+
+function EyeIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.3-5 9.5-5 9.5 5 9.5 5-3.3 5-9.5 5-9.5-5-9.5-5Z" /><circle cx="12" cy="12" r="2.5" /></svg>;
+}
+
+function KeyIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="4" /><path d="m11 11 9 9" /><path d="m16 16 2-2" /><path d="m18 18 2-2" /></svg>;
+}
+
+function LockIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10h10v9H7v-9Z" /><path d="M9 10V7a3 3 0 0 1 6 0v3" /></svg>;
+}
+
+function ShieldIcon() {
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 19 6v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6l7-3Z" /></svg>;
 }

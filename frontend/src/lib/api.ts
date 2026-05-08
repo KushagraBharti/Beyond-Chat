@@ -188,15 +188,29 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.text()) as T;
 }
 
-export async function bootstrapAuth() {
-  const payload = await api<{
+export async function bootstrapAuth(accessToken?: string) {
+  const token = accessToken ?? (supabase ? (await supabase.auth.getSession()).data.session?.access_token : null);
+  const response = await fetch(`${apiBaseUrl}/api/auth/bootstrap`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!response.ok) {
+    const maybeJson = await response.json().catch(() => null);
+    const detail = maybeJson?.detail ?? maybeJson?.error ?? response.statusText;
+    throw new Error(typeof detail === "string" ? detail : "Workspace bootstrap failed.");
+  }
+
+  const rawPayload = await response.json();
+  const payload = (rawPayload?.data ?? rawPayload) as {
     workspace: Workspace;
     role: string;
     created: boolean;
     source?: string;
-  }>("/api/auth/bootstrap", {
-    method: "POST",
-  });
+  };
   setStoredWorkspaceId(payload.workspace.id);
   return payload;
 }

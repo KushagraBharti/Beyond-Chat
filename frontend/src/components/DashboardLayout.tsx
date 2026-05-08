@@ -253,8 +253,8 @@ export default function DashboardLayout() {
               ))}
             </nav>
 
-            <div className="my-3 border-t border-stone-200" />
-            {expanded ? <div className="pb-2 px-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
+            <div className="sidebar-library-divider mt-3 border-t border-stone-200" style={{ marginBottom: "1.5rem" }} />
+            {expanded ? <div className="sidebar-library-label pb-2 px-2 text-[11px] font-bold uppercase tracking-[0.24em] text-stone-500">Library</div> : null}
             <nav className="flex flex-col gap-1.5">
               {secondaryNav.map((item) => (
                 <NavLink

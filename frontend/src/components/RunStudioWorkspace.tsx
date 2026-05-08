@@ -12,7 +12,6 @@ import {
   EmptyState,
   FieldLabel,
   MotionCard,
-  PageSection,
   PrimaryButton,
   SecondaryButton,
   Select,
@@ -22,6 +21,20 @@ import {
 import { useComparePanel } from "../features/compare/ComparePanelProvider";
 
 const models = activeModelCatalog;
+
+const researchWorkflow = [
+  { label: "Scope", detail: "Frame the investigation" },
+  { label: "Search", detail: "Gather live evidence" },
+  { label: "Synthesize", detail: "Rank patterns and risks" },
+  { label: "Export", detail: "Save the cited brief" },
+];
+
+const financeWorkflow = [
+  { label: "Mandate", detail: "Set the company, case, and decision rule" },
+  { label: "Evidence", detail: "Pull filings, peers, and market data" },
+  { label: "Model", detail: "Stress assumptions and sensitivities" },
+  { label: "Memo", detail: "Return the investment-grade brief" },
+];
 
 export default function RunStudioWorkspace({
   studio,
@@ -63,6 +76,15 @@ export default function RunStudioWorkspace({
       : null;
   const runTraceback = typeof runOutputDetails?.traceback === "string" ? runOutputDetails.traceback : null;
   const runContent = typeof run?.output?.content === "string" ? run.output.content : "";
+  const sourceCount = Array.isArray(run?.output.sources) ? run.output.sources.length : 0;
+  const completedStepCount = run?.steps.filter((step) => step.status === "completed").length ?? 0;
+  const shellClassName = `page-wrap run-studio-page ${isFinance ? "finance-studio-page" : "research-studio-page"}`;
+  const financeSignalCards = [
+    { label: "Run state", value: status },
+    { label: "Context", value: `${contextIds.length} linked` },
+    { label: "Tool steps", value: `${completedStepCount}/${run?.steps.length ?? 0}` },
+    { label: "Sources", value: String(sourceCount) },
+  ];
   const outputHandoffPrompt = runContent
     ? [
         `Use this ${studio === "finance" ? "Finance Studio" : "Research Studio"} output as source context.`,
@@ -143,57 +165,143 @@ export default function RunStudioWorkspace({
     }
   };
 
-  return (
-    <div className="page-wrap">
-      <PageSection
-        eyebrow={eyebrow}
-        title={title}
-        description={description}
-        actions={
-          <div className="inline-actions">
-            <SecondaryButton
-              type="button"
-              onClick={() =>
-                openComparePanel({
-                  prompt,
-                  contextIds,
-                  studio,
-                  onUseResult: (result) => {
-                    setPrompt(result.content);
-                    setStatus("Compare result moved into the prompt editor.");
-                  },
-                  useResultLabel: "Use as Prompt",
-                })
-              }
-            >
-              Compare Prompt
-            </SecondaryButton>
-            <PrimaryButton type="button" onClick={handleRun} disabled={loading}>
-              {loading ? "Running..." : "Run"}
-            </PrimaryButton>
-            <ArtifactSaveButton
-              buildPayload={() =>
-                buildRunArtifactInput({
-                  studio,
-                  title: `${title} artifact`,
-                  prompt,
-                  run,
-                  type: "report",
-                  tags: ["report"],
-                })
-              }
-              disabled={!run?.output}
-              saveKey={run?.id}
-              onSaved={() => setStatus("Saved as artifact")}
-              onError={setStatus}
-            />
-          </div>
+  const actions = (
+    <div className="inline-actions studio-action-row">
+      <SecondaryButton
+        type="button"
+        onClick={() =>
+          openComparePanel({
+            prompt,
+            contextIds,
+            studio,
+            onUseResult: (result) => {
+              setPrompt(result.content);
+              setStatus("Compare result moved into the prompt editor.");
+            },
+            useResultLabel: "Use as Prompt",
+          })
         }
+      >
+        Compare Prompt
+      </SecondaryButton>
+      <PrimaryButton type="button" onClick={handleRun} disabled={loading}>
+        {loading ? "Running..." : "Run"}
+      </PrimaryButton>
+      <ArtifactSaveButton
+        buildPayload={() =>
+          buildRunArtifactInput({
+            studio,
+            title: `${title} artifact`,
+            prompt,
+            run,
+            type: "report",
+            tags: ["report"],
+          })
+        }
+        disabled={!run?.output}
+        saveKey={run?.id}
+        onSaved={() => setStatus("Saved as artifact")}
+        onError={setStatus}
       />
+    </div>
+  );
+
+  return (
+    <div className={shellClassName}>
+      {isFinance ? (
+        <section className="finance-hero-panel" aria-labelledby="finance-studio-title">
+          <div className="finance-hero-copy">
+            <div className="finance-eyebrow-row">
+              <span className="page-eyebrow">{eyebrow}</span>
+              <span className="finance-live-chip">Live sandbox</span>
+            </div>
+            <h1 id="finance-studio-title" className="finance-title">
+              {title}
+            </h1>
+            <p className="finance-description">{description}</p>
+            <div className="finance-workflow-strip" aria-label="Finance workflow">
+              {financeWorkflow.map((item, index) => (
+                <div key={item.label} className="finance-workflow-step">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <strong>{item.label}</strong>
+                  <small>{item.detail}</small>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="finance-hero-console" aria-label="Dexter run summary">
+            <div className="finance-console-header">
+              <span>Analyst desk</span>
+              <strong>{loading ? "Analysis running" : "Ready for brief"}</strong>
+            </div>
+            <div className="finance-signal-grid">
+              {financeSignalCards.map((item) => (
+                <div key={item.label} className="finance-signal-card">
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="finance-tape" aria-hidden="true">
+              <span>VALUE</span>
+              <span>MARGIN</span>
+              <span>FILINGS</span>
+              <span>PEERS</span>
+              <span>RISK</span>
+            </div>
+            {actions}
+          </div>
+        </section>
+      ) : (
+        <section className="research-hero-panel" aria-labelledby="research-studio-title">
+          <div className="research-hero-copy">
+            <div className="page-eyebrow">{eyebrow}</div>
+            <h1 id="research-studio-title" className="page-title">
+              {title}
+            </h1>
+            <p className="page-description">{description}</p>
+          </div>
+          <div className="research-hero-ops">
+            <div className="research-command-panel">
+              <div className="research-command-head">
+                <span>Investigation desk</span>
+                <strong>{loading ? "Running" : status}</strong>
+              </div>
+              <div className="research-signal-board" aria-label="Current research run summary">
+                <div>
+                  <span>Context</span>
+                  <strong>{contextIds.length}</strong>
+                </div>
+                <div>
+                  <span>Steps</span>
+                  <strong>
+                    {completedStepCount}/{run?.steps.length ?? 0}
+                  </strong>
+                </div>
+                <div>
+                  <span>Sources</span>
+                  <strong>{sourceCount}</strong>
+                </div>
+              </div>
+              {actions}
+            </div>
+          </div>
+          <div className="research-workflow-strip" aria-label="Research workflow">
+            {researchWorkflow.map((item, index) => (
+              <div key={item.label} className="research-workflow-step">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{item.label}</strong>
+                <small>{item.detail}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <div className="studio-layout">
         <div className="studio-primary-column">
-          <MotionCard>
+          <MotionCard className={isFinance ? "finance-prompt-card" : "research-prompt-card"}>
             <div className="context-builder-head">
               <div>
                 <h3>Prompt</h3>
@@ -252,7 +360,7 @@ export default function RunStudioWorkspace({
         </div>
 
         <div className="studio-secondary-column">
-          <MotionCard>
+          <MotionCard className={isFinance ? "finance-output-card" : "research-output-card"}>
             <div className="context-builder-head">
               <div>
                 <h3>{isFinance ? "Dexter Answer" : "Structured Output"}</h3>
@@ -335,7 +443,7 @@ export default function RunStudioWorkspace({
             )}
           </MotionCard>
 
-          <MotionCard>
+          <MotionCard className={isFinance ? "finance-sources-card" : "research-sources-card"}>
             <div className="context-builder-head">
               <div>
                 <h3>{isFinance ? "Dexter Sources" : "Sources"}</h3>

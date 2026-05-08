@@ -32,6 +32,12 @@ const availableModels = [
 const launchPlanPrompt =
   "Create an artifact-ready launch plan from the attached context. Include the core decision, research questions, data needed, finance assumptions, writing deliverables, image needs, risks, and the next studio to use for each workstream.";
 
+function formatThreadDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recent";
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
+}
+
 export default function ChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,6 +55,7 @@ export default function ChatPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [contextIds, setContextIds] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [contextOpen, setContextOpen] = useState(false);
   const [threadMenu, setThreadMenu] = useState<{
     threadId: string;
     x: number;
@@ -358,34 +365,29 @@ export default function ChatPage() {
           </button>
         </div>
 
-        <button className="cs-new-chat" onClick={handleNewChat} type="button">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
-          New chat
-        </button>
+        <div className="cs-sidebar-actions">
+          <button className="cs-new-chat" onClick={handleNewChat} type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+            <span>New chat</span>
+          </button>
+        </div>
 
         <div className="cs-search-wrap">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
           <input
             className="cs-search"
             type="text"
-            placeholder="Search chats..."
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="cs-context-panel">
-          <ContextBuilder
-            selectedIds={contextIds}
-            onChange={setContextIds}
-            title="Chat Context"
-          />
-        </div>
-
         <div className="cs-threads">
-          {filteredThreads.length > 0 && (
-            <div className="cs-threads-label">Recents</div>
-          )}
+          <div className="cs-threads-label">
+            <span>Recents</span>
+            <span>{filteredThreads.length}</span>
+          </div>
           <div className="cs-threads-list">
             {filteredThreads.map((thread) => (
               <button
@@ -396,7 +398,11 @@ export default function ChatPage() {
                 type="button"
                 title={thread.title}
               >
-                {thread.title}
+                <span className="cs-thread-glyph" aria-hidden="true" />
+                <span className="cs-thread-copy">
+                  <span>{thread.title}</span>
+                  <span>{formatThreadDate(thread.updated_at ?? thread.created_at)}</span>
+                </span>
               </button>
             ))}
             {!filteredThreads.length && (
@@ -405,6 +411,22 @@ export default function ChatPage() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className={`cs-context-panel ${contextOpen ? "is-open" : ""}`}>
+          <button className="cs-context-trigger" type="button" onClick={() => setContextOpen((open) => !open)}>
+            <span>Context</span>
+            <strong>{contextIds.length}</strong>
+          </button>
+          {contextOpen ? (
+            <div className="cs-context-drawer">
+              <ContextBuilder
+                selectedIds={contextIds}
+                onChange={setContextIds}
+                title="Chat Context"
+              />
+            </div>
+          ) : null}
         </div>
 
         <div className="cs-sidebar-footer">
@@ -416,6 +438,7 @@ export default function ChatPage() {
               <span className="cs-user-name">
                 {user?.email ?? "Authenticated user"}
               </span>
+              <span className="cs-user-meta">Signed in</span>
             </div>
             <button
               className="cs-signout-btn"

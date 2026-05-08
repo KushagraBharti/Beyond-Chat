@@ -236,7 +236,7 @@ export default function ContextBuilder({
         <EmptyState
           title="No matching artifacts yet"
           body="Save outputs from writing, research, image, or finance and they will appear here for reuse."
-          action={<SecondaryButton onClick={() => setQuery("")}>Clear search</SecondaryButton>}
+          action={query.trim() ? <SecondaryButton onClick={() => setQuery("")}>Clear search</SecondaryButton> : undefined}
         />
       ) : activeSource === "artifacts" ? (
         <div className="context-grid">
@@ -265,11 +265,13 @@ export default function ContextBuilder({
         </div>
       ) : null}
 
-      <div className="inline-actions">
-        <GhostButton onClick={() => onChange([])} type="button">
-          Clear Included Context
-        </GhostButton>
-      </div>
+      {selectedIds.length ? (
+        <div className="inline-actions">
+          <GhostButton onClick={() => onChange([])} type="button">
+            Clear Included Context
+          </GhostButton>
+        </div>
+      ) : null}
     </MotionCard>
   );
 }

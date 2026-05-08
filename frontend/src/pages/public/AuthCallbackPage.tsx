@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+import type { Session } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import { bootstrapAuth } from "../../lib/api";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function AuthCallbackPage() {
@@ -20,13 +22,20 @@ export default function AuthCallbackPage() {
       return;
     }
 
+    async function finishAuthenticatedRedirect(session: Session) {
+      await bootstrapAuth(session.access_token).catch((error) => {
+        console.error("Auth callback bootstrap failed", error);
+      });
+      navigate("/dashboard", { replace: true });
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "PASSWORD_RECOVERY") {
         navigate("/reset-password", { replace: true });
       } else if (session) {
-        navigate("/dashboard", { replace: true });
+        void finishAuthenticatedRedirect(session);
       } else {
         navigate("/login", { replace: true });
       }
@@ -34,7 +43,7 @@ export default function AuthCallbackPage() {
 
     void supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        void finishAuthenticatedRedirect(session);
       }
     });
 

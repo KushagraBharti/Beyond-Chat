@@ -23,9 +23,9 @@ export default function FinancePage() {
     <RunStudioWorkspace
       studio="finance"
       eyebrow="Dexter Finance Studio"
-      title="Dexter financial research agent"
-      description="Ask Dexter for company, market, filing, valuation, and screening work. Runs execute in a sandbox and return the final memo plus tool trace."
-      promptPlaceholder="Analyze AAPL revenue, margins, valuation risks, and the key catalysts to watch."
+      title="Dexter Finance Desk"
+      description="Run company, market, filing, valuation, and screening work through Dexter's sandboxed analyst workflow, with the final memo, assumptions, sources, and tool trace preserved."
+      promptPlaceholder="Analyze AAPL revenue quality, margin durability, valuation risks, and the catalysts to watch."
       suggestedStudio="data"
       promptPresets={financePresets}
     />

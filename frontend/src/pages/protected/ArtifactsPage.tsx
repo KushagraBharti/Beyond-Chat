@@ -5,7 +5,6 @@ import { useComparePanel } from "../../features/compare/ComparePanelProvider";
 import {
   EmptyState,
   MotionCard,
-  PageSection,
   PrimaryButton,
   SecondaryButton,
   Select,
@@ -39,6 +38,19 @@ function artifactSearchText(item: ArtifactRecord) {
 function matchesSlot(item: ArtifactRecord, terms: string[]) {
   const text = artifactSearchText(item);
   return terms.some((term) => text.includes(term));
+}
+
+function formatArtifactDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "No date";
+  }
+  return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
+
+function excerpt(item: ArtifactRecord, length = 160) {
+  const source = item.summary || item.content || "";
+  return source.length > length ? `${source.slice(0, length).trim()}...` : source;
 }
 
 export default function ArtifactsPage() {
@@ -101,6 +113,9 @@ export default function ArtifactsPage() {
   const launchKitIds = launchKitMatches
     .map((slot) => slot.item?.id)
     .filter((id): id is string => Boolean(id));
+  const matchedKitCount = launchKitIds.length;
+  const studioCount = new Set(items.map((item) => item.studio)).size;
+  const selectedCount = selectedIds.length;
 
   const toggleSelected = (artifactId: string) => {
     setSelectedIds((current) =>
@@ -157,80 +172,76 @@ export default function ArtifactsPage() {
   };
 
   return (
-    <div className="page-wrap">
-      <PageSection
-        eyebrow="Artifact Library"
-        title="Search, filter, preview, and export"
-        description="A document-style library for drafts, reports, prompts, images, and structured outputs across every studio."
-        actions={
-          <div className="inline-actions">
+    <div className="page-wrap artifacts-page">
+      <section className="artifacts-hero">
+        <div>
+          <div className="page-eyebrow">Artifact Library</div>
+          <h1>Saved work, ready for the next step.</h1>
+          <p>Search, preview, hand off, and export every reusable output across your studios.</p>
+        </div>
+
+        <div className="artifacts-hero-side">
+          <div className="artifacts-stat-grid">
+            <div>
+              <strong>{items.length}</strong>
+              <span>Artifacts</span>
+            </div>
+            <div>
+              <strong>{studioCount}</strong>
+              <span>Studios</span>
+            </div>
+            <div>
+              <strong>{selectedCount}</strong>
+              <span>Selected</span>
+            </div>
+          </div>
+
+          <div className="artifacts-export-row">
             <PrimaryButton type="button" onClick={() => handleExport("markdown")} disabled={!activeItem}>
               Export Markdown
             </PrimaryButton>
             <SecondaryButton type="button" onClick={() => handleExport("pdf")} disabled={!activeItem}>
-              Export PDF
+              PDF
             </SecondaryButton>
             <SecondaryButton type="button" onClick={handleBundleExport} disabled={!selectedIds.length && !launchKitIds.length}>
-              Export Bundle
-            </SecondaryButton>
-          </div>
-        }
-      />
-
-      <MotionCard>
-        <div className="filters-row">
-          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search artifacts..." />
-          <Select value={studio} onChange={(event) => setStudio(event.target.value)}>
-            <option value="all">All studios</option>
-            <option value="writing">Writing</option>
-            <option value="research">Research</option>
-            <option value="image">Image</option>
-            <option value="data">Data</option>
-            <option value="finance">Finance</option>
-          </Select>
-          <Select value={type} onChange={(event) => setType(event.target.value)}>
-            <option value="all">All types</option>
-            <option value="document">Document</option>
-            <option value="report">Report</option>
-            <option value="image">Image</option>
-          </Select>
-        </div>
-      </MotionCard>
-
-      <MotionCard>
-        <div className="artifact-bundle-head">
-          <div>
-            <div className="page-eyebrow">Launch Kit</div>
-            <h3>Cinder Orange Launch Kit</h3>
-            <p>Matched from your saved artifacts. Missing slots stay empty until live studio outputs are saved.</p>
-          </div>
-          <div className="inline-actions">
-            <SecondaryButton type="button" onClick={() => setSelectedIds(launchKitIds)} disabled={!launchKitIds.length}>
-              Select Matched
-            </SecondaryButton>
-            <SecondaryButton type="button" onClick={() => setSelectedIds([])} disabled={!selectedIds.length}>
-              Clear Selection
+              Bundle
             </SecondaryButton>
           </div>
         </div>
-        <div className="artifact-bundle-grid">
-          {launchKitMatches.map((slot) => (
-            <button
-              key={slot.label}
-              type="button"
-              className={`artifact-bundle-slot ${slot.item ? "has-artifact" : ""} ${slot.item && selectedIds.includes(slot.item.id) ? "is-selected" : ""}`}
-              disabled={!slot.item}
-              onClick={() => slot.item && toggleSelected(slot.item.id)}
-            >
-              <strong>{slot.label}</strong>
-              <span>{slot.item ? slot.item.title : "Waiting for saved artifact"}</span>
+      </section>
+
+      <section className="artifacts-command-bar">
+        <div className="artifacts-search">
+          <TextInput value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search title, summary, content, studio, or tag..." />
+        </div>
+        <Select value={studio} onChange={(event) => setStudio(event.target.value)}>
+          <option value="all">All studios</option>
+          <option value="writing">Writing</option>
+          <option value="research">Research</option>
+          <option value="image">Image</option>
+          <option value="data">Data</option>
+          <option value="finance">Finance</option>
+        </Select>
+        <Select value={type} onChange={(event) => setType(event.target.value)}>
+          <option value="all">All types</option>
+          <option value="document">Document</option>
+          <option value="report">Report</option>
+          <option value="image">Image</option>
+        </Select>
+      </section>
+
+      <div className="artifact-layout artifacts-workbench">
+        <MotionCard className="artifacts-library-card">
+          <div className="artifacts-panel-head">
+            <div>
+              <span>Library</span>
+              <strong>{items.length} result{items.length === 1 ? "" : "s"}</strong>
+            </div>
+            <button type="button" onClick={() => setSelectedIds([])} disabled={!selectedIds.length}>
+              Clear
             </button>
-          ))}
-        </div>
-      </MotionCard>
+          </div>
 
-      <div className="artifact-layout">
-        <MotionCard>
           {items.length ? (
             <div className="artifact-list">
               {items.map((item) => (
@@ -246,15 +257,27 @@ export default function ArtifactsPage() {
                       event.stopPropagation();
                       toggleSelected(item.id);
                     }}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" && event.key !== " ") {
+                        return;
+                      }
+                      event.preventDefault();
+                      event.stopPropagation();
+                      toggleSelected(item.id);
+                    }}
                     role="checkbox"
                     aria-checked={selectedIds.includes(item.id)}
                     tabIndex={0}
                   />
                   <div>
+                    <span className="artifact-row-meta">
+                      <span>{item.studio}</span>
+                      <span>{formatArtifactDate(item.updated_at ?? item.created_at)}</span>
+                    </span>
                     <strong>{item.title}</strong>
-                    <p>{item.summary ?? item.content.slice(0, 140)}</p>
+                    <p>{excerpt(item, 135)}</p>
                   </div>
-                  <span>{item.studio}</span>
+                  <span className="artifact-row-type">{item.type}</span>
                 </button>
               ))}
             </div>
@@ -263,20 +286,21 @@ export default function ArtifactsPage() {
           )}
         </MotionCard>
 
-        <MotionCard>
+        <MotionCard className="artifacts-detail-card">
           {activeItem ? (
             <div className="artifact-detail">
-              <div className="context-builder-head">
+              <div className="artifacts-detail-head">
                 <div>
+                  <div className="artifact-detail-kicker">
+                    <span>{activeItem.studio}</span>
+                    <span>{activeItem.type}</span>
+                    <span>{formatArtifactDate(activeItem.updated_at ?? activeItem.created_at)}</span>
+                  </div>
                   <h3>{activeItem.title}</h3>
-                  <p>{activeItem.studio} · {activeItem.type}</p>
+                  <p>{excerpt(activeItem, 220)}</p>
                 </div>
               </div>
-              <div className="artifact-tag-row">
-                {activeItem.tags.map((tag) => (
-                  <span key={tag}>#{tag}</span>
-                ))}
-              </div>
+
               <div className="artifact-handoff-row">
                 <SecondaryButton type="button" onClick={() => continueWithArtifact("/chat", activeItem)}>
                   Continue in Chat
@@ -306,7 +330,16 @@ export default function ArtifactsPage() {
                   Compare
                 </SecondaryButton>
               </div>
-              <article className="report-output">{activeItem.content}</article>
+
+              {activeItem.tags.length ? (
+                <div className="artifact-tag-row">
+                  {activeItem.tags.map((tag) => (
+                    <span key={tag}>#{tag}</span>
+                  ))}
+                </div>
+              ) : null}
+
+              <article className="report-output artifact-preview">{activeItem.content}</article>
             </div>
           ) : (
             <EmptyState title="Select an artifact" body="The detail panel opens the currently highlighted artifact." />
@@ -314,6 +347,38 @@ export default function ArtifactsPage() {
           <div className="meta-placeholder">{status}</div>
         </MotionCard>
       </div>
+
+      <MotionCard className="artifacts-kit-card">
+        <div className="artifact-bundle-head">
+          <div>
+            <div className="page-eyebrow">Launch Kit</div>
+            <h3>Cinder Orange Launch Kit</h3>
+            <p>{matchedKitCount} of {launchKitSlots.length} slots matched from saved artifacts.</p>
+          </div>
+          <div className="inline-actions">
+            <SecondaryButton type="button" onClick={() => setSelectedIds(launchKitIds)} disabled={!launchKitIds.length}>
+              Select Matched
+            </SecondaryButton>
+            <SecondaryButton type="button" onClick={() => setSelectedIds([])} disabled={!selectedIds.length}>
+              Clear Selection
+            </SecondaryButton>
+          </div>
+        </div>
+        <div className="artifact-bundle-grid">
+          {launchKitMatches.map((slot) => (
+            <button
+              key={slot.label}
+              type="button"
+              className={`artifact-bundle-slot ${slot.item ? "has-artifact" : ""} ${slot.item && selectedIds.includes(slot.item.id) ? "is-selected" : ""}`}
+              disabled={!slot.item}
+              onClick={() => slot.item && toggleSelected(slot.item.id)}
+            >
+              <strong>{slot.label}</strong>
+              <span>{slot.item ? slot.item.title : "Waiting for saved artifact"}</span>
+            </button>
+          ))}
+        </div>
+      </MotionCard>
     </div>
   );
 }

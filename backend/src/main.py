@@ -268,7 +268,6 @@ def build_pdf(title: str, content: str) -> bytes:
 
 
 def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> dict[str, Any]:
-    data_store = get_runtime_store(context)
     if bootstrap:
         bootstrapped = supabase_service.ensure_workspace_for_user(
             context.user_id,
@@ -276,13 +275,10 @@ def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> d
             context.access_token,
         )
         if bootstrapped and isinstance(bootstrapped.get("workspace"), dict):
-            workspace = data_store.get_workspace(bootstrapped["workspace"]["id"])
-            if workspace is None:
-                raise RuntimeStoreError("Workspace bootstrap succeeded but the workspace could not be reloaded.")
-            bootstrapped["workspace"] = workspace
             bootstrapped["source"] = context.source
             return bootstrapped
 
+    data_store = get_runtime_store(context)
     resolved = supabase_service.resolve_workspace_for_user(
         context.user_id,
         requested_workspace_id=context.workspace_id,
@@ -302,11 +298,8 @@ def get_workspace_payload(context: RequestContext, bootstrap: bool = False) -> d
         context.access_token,
     )
     if recovered and isinstance(recovered.get("workspace"), dict):
-        workspace = data_store.get_workspace(recovered["workspace"]["id"])
-        if workspace is None:
-            raise RuntimeStoreError("Workspace recovery succeeded but the workspace could not be reloaded.")
         return {
-            "workspace": workspace,
+            "workspace": recovered["workspace"],
             "role": recovered.get("role", "admin"),
             "created": bool(recovered.get("created")),
             "source": context.source,
@@ -537,25 +530,13 @@ def provider_status() -> dict[str, Any]:
 
 @app.post("/api/auth/bootstrap")
 def bootstrap_auth(authorization: str | None = Header(default=None)) -> dict[str, Any]:
-    user_id, email, token = resolve_token_only(authorization)
+    user_id, email, _token = resolve_token_only(authorization)
     # Use service role (no access_token) so the RPC has permission to create the workspace
     bootstrapped = supabase_service.ensure_workspace_for_user(user_id, email)
     if not bootstrapped or not isinstance(bootstrapped.get("workspace"), dict):
         raise HTTPException(status_code=503, detail="Workspace bootstrap failed.")
-    workspace_id = bootstrapped["workspace"]["id"]
-    context = RequestContext(
-        user_id=user_id,
-        workspace_id=workspace_id,
-        email=email,
-        source="supabase_jwt",
-        access_token=token,
-    )
-    data_store = get_runtime_store(context)
-    workspace = data_store.get_workspace(workspace_id)
-    if workspace is None:
-        raise HTTPException(status_code=503, detail="Workspace bootstrap succeeded but could not be reloaded.")
     return api_success({
-        "workspace": workspace,
+        "workspace": bootstrapped["workspace"],
         "role": bootstrapped.get("role", "admin"),
         "created": bool(bootstrapped.get("created")),
         "source": "supabase_jwt",

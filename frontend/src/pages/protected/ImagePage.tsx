@@ -147,6 +147,21 @@ export default function ImagePage() {
       .map((a) => ({ kind: "saved" as const, data: a })),
   ];
 
+  const selectedModelLabels = imageModels
+    .filter((model) => selectedModels.includes(model.value))
+    .map((model) => model.label);
+  const selectedModelSummary =
+    selectedModelLabels.length > 2
+      ? `${selectedModelLabels.slice(0, 2).join(", ")} +${selectedModelLabels.length - 2}`
+      : selectedModelLabels.join(", ");
+  const statusTone = loading
+    ? "is-running"
+    : /failed|could not|pick at least|no images/i.test(status)
+      ? "is-warning"
+      : status === "Ready"
+        ? "is-ready"
+        : "is-success";
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     if (!selectedModels.length) {
@@ -314,6 +329,25 @@ export default function ImagePage() {
         </div>
 
         <div className="is-sidebar-scroll">
+          <div className="is-studio-card">
+            <span>Image Studio</span>
+            <h2>Build campaign-ready visuals from precise creative direction.</h2>
+            <div className="is-studio-card-grid" aria-label="Current generation settings">
+              <div>
+                <strong>{selectedModels.length}</strong>
+                <small>Models</small>
+              </div>
+              <div>
+                <strong>{ratio}</strong>
+                <small>Ratio</small>
+              </div>
+              <div>
+                <strong>{quality}</strong>
+                <small>Quality</small>
+              </div>
+            </div>
+          </div>
+
           {/* Prompt */}
           <div className="is-section">
             <div className="is-section-label">
@@ -425,6 +459,10 @@ export default function ImagePage() {
 
         {/* Generate button */}
         <div className="is-sidebar-bottom">
+          <div className="is-run-summary">
+            <span>{selectedModelSummary || "No model selected"}</span>
+            <strong>{ratio} / {quality}</strong>
+          </div>
           <button
             className="is-generate-btn"
             onClick={() => void handleGenerate()}
@@ -449,102 +487,145 @@ export default function ImagePage() {
       {/* Main gallery area */}
       <main className="is-main">
         <div className="is-topbar">
-          {!sidebarOpen && (
-            <button
-              className="is-sidebar-open"
-              onClick={() => setSidebarOpen(true)}
-              type="button"
-              title="Open sidebar"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
-            </button>
-          )}
-          {status !== "Ready" && (
-            <div className="is-status">{status}</div>
-          )}
+          <div className="is-topbar-copy">
+            <div className="is-topbar-kicker">
+              {!sidebarOpen && (
+                <button
+                  className="is-sidebar-open"
+                  onClick={() => setSidebarOpen(true)}
+                  type="button"
+                  title="Open sidebar"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18" /></svg>
+                </button>
+              )}
+              <span>Creative production</span>
+            </div>
+            <h1>Image Studio</h1>
+            <p>Compose prompts, compare models, and save finished visuals as reusable artifacts.</p>
+          </div>
+          <div className="is-topbar-panel">
+            <div className={`is-status ${statusTone}`}>
+              {loading && <span className="is-status-dot" />}
+              {status}
+            </div>
+            <div className="is-topbar-stats" aria-label="Image gallery totals">
+              <div>
+                <strong>{freshImages.length}</strong>
+                <span>New</span>
+              </div>
+              <div>
+                <strong>{gallery.length}</strong>
+                <span>Saved</span>
+              </div>
+              <div>
+                <strong>{allItems.length}</strong>
+                <span>Total</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {allItems.length > 0 ? (
-          <div className="is-gallery">
-            {allItems.map((item) => {
-              const isFresh = item.kind === "fresh";
-              const imgUrl = isFresh ? item.data.url : item.data.previewImage;
-              const title = isFresh
-                ? item.data.prompt.slice(0, 60)
-                : item.data.title;
-              const modelLabel = isFresh
-                ? item.data.modelLabel
-                : ((item.data.metadata?.model as string) ?? "");
+          <section className="is-gallery-shell" aria-label="Generated and saved images">
+            <div className="is-gallery-head">
+              <div>
+                <span>Gallery</span>
+                <h2>Latest visual artifacts</h2>
+              </div>
+              <p>{freshImages.length ? "Fresh generations are pinned first for review." : "Saved image artifacts appear here."}</p>
+            </div>
+            <div className="is-gallery">
+              {allItems.map((item) => {
+                const isFresh = item.kind === "fresh";
+                const imgUrl = isFresh ? item.data.url : item.data.previewImage;
+                const title = isFresh
+                  ? item.data.prompt.slice(0, 60)
+                  : item.data.title;
+                const modelLabel = isFresh
+                  ? item.data.modelLabel
+                  : ((item.data.metadata?.model as string) ?? "");
+                const createdAt = isFresh ? item.data.createdAt : item.data.created_at;
 
-              return (
-                <div
-                  key={isFresh ? item.data.id : item.data.id}
-                  className="is-gallery-item"
-                >
+                return (
                   <div
-                    className="is-gallery-thumb"
-                    onClick={() => openDetail(item)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => e.key === "Enter" && openDetail(item)}
+                    key={isFresh ? item.data.id : item.data.id}
+                    className="is-gallery-item"
                   >
-                    {imgUrl ? (
-                      <img
-                        src={imgUrl}
-                        alt={title}
-                        loading="lazy"
-                        onError={() => {
-                          if (!isFresh) markBroken(item.data.id);
-                        }}
-                      />
-                    ) : (
-                      <div className="is-gallery-placeholder" />
-                    )}
-                    {isFresh && (
-                      <div className="is-gallery-fresh-badge">New</div>
-                    )}
+                    <div
+                      className="is-gallery-thumb"
+                      onClick={() => openDetail(item)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => e.key === "Enter" && openDetail(item)}
+                    >
+                      {imgUrl ? (
+                        <img
+                          src={imgUrl}
+                          alt={title}
+                          loading="lazy"
+                          onError={() => {
+                            if (!isFresh) markBroken(item.data.id);
+                          }}
+                        />
+                      ) : (
+                        <div className="is-gallery-placeholder" />
+                      )}
+                      {isFresh && (
+                        <div className="is-gallery-fresh-badge">New</div>
+                      )}
+                    </div>
+                    <div className="is-gallery-meta">
+                      <div className="is-gallery-copy">
+                        <strong>{title}</strong>
+                        <span>{modelLabel || "Image artifact"} / {new Date(createdAt).toLocaleDateString()}</span>
+                      </div>
+                      {isFresh && (
+                        <ArtifactSaveButton
+                          buildPayload={() =>
+                            buildImageArtifactInput({
+                              prompt: item.data.prompt,
+                              model: item.data.model,
+                              ratio: item.data.ratio,
+                              quality: item.data.quality,
+                              url: item.data.url,
+                              storagePath: item.data.storagePath,
+                              contextIds: item.data.contextIds,
+                            })
+                          }
+                          variant="secondary"
+                          saveKey={item.data.id}
+                          label="Save"
+                          savedLabel="Saved"
+                          onSaved={(artifact) => {
+                            setGallery((prev) => [artifact, ...prev]);
+                            setFreshImages((prev) =>
+                              prev.filter((f) => f.id !== item.data.id),
+                            );
+                            setStatus("Saved to artifacts");
+                          }}
+                          onError={setStatus}
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="is-gallery-meta">
-                    <span className="is-gallery-model">{modelLabel}</span>
-                    {isFresh && (
-                      <ArtifactSaveButton
-                        buildPayload={() =>
-                          buildImageArtifactInput({
-                            prompt: item.data.prompt,
-                            model: item.data.model,
-                            ratio: item.data.ratio,
-                            quality: item.data.quality,
-                            url: item.data.url,
-                            storagePath: item.data.storagePath,
-                            contextIds: item.data.contextIds,
-                          })
-                        }
-                        variant="secondary"
-                        saveKey={item.data.id}
-                        label="Save"
-                        savedLabel="Saved"
-                        onSaved={(artifact) => {
-                          setGallery((prev) => [artifact, ...prev]);
-                          setFreshImages((prev) =>
-                            prev.filter((f) => f.id !== item.data.id),
-                          );
-                          setStatus("Saved to artifacts");
-                        }}
-                        onError={setStatus}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </section>
         ) : (
           <div className="is-empty">
-            <div className="is-empty-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
+            <div className="is-empty-board" aria-hidden="true">
+              <div />
+              <div />
+              <div />
+              <div />
             </div>
-            <h2>No images yet</h2>
-            <p>Enter a prompt and generate your first image.</p>
+            <div className="is-empty-copy">
+              <span>Ready for first frame</span>
+              <h2>No images yet</h2>
+              <p>Enter a prompt, choose your model set, and generate the first contact sheet.</p>
+            </div>
           </div>
         )}
       </main>

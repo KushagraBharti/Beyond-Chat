@@ -67,21 +67,12 @@ def _load_supabase_user(token: str) -> dict[str, Any]:
     return payload
 
 
-def _workspace_from_claims(claims: dict[str, Any], requested_workspace_id: str | None) -> str | None:
+def _workspace_from_claims(claims: dict[str, Any]) -> str | None:
     app_metadata = claims.get("app_metadata")
     if isinstance(app_metadata, dict):
         workspace_id = app_metadata.get("workspace_id")
         if isinstance(workspace_id, str) and workspace_id:
             return workspace_id
-
-    user_metadata = claims.get("user_metadata")
-    if isinstance(user_metadata, dict):
-        workspace_id = user_metadata.get("workspace_id")
-        if isinstance(workspace_id, str) and workspace_id:
-            return workspace_id
-
-    if requested_workspace_id:
-        return requested_workspace_id
 
     return None
 
@@ -140,7 +131,7 @@ def resolve_request_context(
             detail="Supabase user data is missing the user identifier.",
         )
     email = claims.get("email")
-    workspace_id = _workspace_from_claims(claims, x_workspace_id)
+    workspace_id = _workspace_from_claims(claims)
     if workspace_id is None:
         resolved = supabase_service.resolve_workspace_for_user(
             user_id,

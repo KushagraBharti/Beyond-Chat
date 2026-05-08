@@ -4,6 +4,7 @@ import asyncio
 import io
 from dataclasses import replace
 
+import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
@@ -54,7 +55,21 @@ def test_google_calendar_events_do_not_return_demo_fallbacks(client: TestClient)
     assert response.json()["items"] == []
 
 
-def test_bootstrap_auth_returns_workspace_payload(client: TestClient):
+def test_bootstrap_auth_returns_workspace_payload(client: TestClient, monkeypatch):
+    monkeypatch.setattr("src.main.resolve_token_only", lambda _authorization: ("test-user", "test@example.com", "test-token"))
+    monkeypatch.setattr(
+        "src.main.supabase_service.ensure_workspace_for_user",
+        lambda *_args, **_kwargs: {
+            "workspace": {"id": client.app.state.test_workspace_id},
+            "role": "admin",
+            "created": False,
+        },
+    )
+    monkeypatch.setattr(
+        "src.main.get_runtime_store",
+        lambda *_args, **_kwargs: pytest.fail("bootstrap should not reload the workspace through the runtime store"),
+    )
+
     response = client.post("/api/auth/bootstrap")
     assert response.status_code == 200
     payload = response.json()["data"]

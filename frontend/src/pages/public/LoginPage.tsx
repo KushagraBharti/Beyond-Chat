@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { bootstrapAuth } from "../../lib/api";
 import { isSupabaseEnabled, supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 
@@ -99,8 +98,8 @@ export default function LoginPage() {
         }
 
         if (data.session) {
-          await bootstrapAuth();
-          setMessage("Account created and workspace provisioned.");
+          setMessage("Account created. Opening your workspace.");
+          navigate("/dashboard", { replace: true });
         } else {
           setMessage("Account created. Confirm the email if required, then sign in.");
         }
@@ -110,8 +109,8 @@ export default function LoginPage() {
           throw signInError;
         }
 
-        await bootstrapAuth();
-        setMessage("Signed in successfully. Workspace restored.");
+        setMessage("Signed in successfully. Opening your workspace.");
+        navigate("/dashboard", { replace: true });
       }
     } catch (submitError: unknown) {
       setError(submitError instanceof Error ? submitError.message : "Something went wrong.");
@@ -140,11 +139,7 @@ export default function LoginPage() {
 
         <div className="auth-copy">
           <h1>
-            Artifacts,
-            <br />
-            not endless
-            <br />
-            <span>transcripts.</span>
+            Artifacts, not endless <span>transcripts.</span>
           </h1>
           <p>Your modular AI workspace for writing, research, image, data, finance, and more. Built for focused work. Designed for impact.</p>
         </div>

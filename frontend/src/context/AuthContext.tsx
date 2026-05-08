@@ -26,22 +26,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        void bootstrapAuth().catch(() => undefined);
+    async function applySession(nextSession: Session | null) {
+      setLoading(true);
+      setSession(nextSession);
+      try {
+        if (nextSession) {
+          await bootstrapAuth(nextSession.access_token);
+        }
+      } catch (error) {
+        console.error("Auth bootstrap failed", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
+    }
+
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      void applySession(session).catch(() => {
+        setLoading(false);
+      });
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) {
-        void bootstrapAuth().catch(() => undefined);
-      }
-      setLoading(false);
+      void applySession(session).catch(() => {
+        setLoading(false);
+      });
     });
 
     return () => {

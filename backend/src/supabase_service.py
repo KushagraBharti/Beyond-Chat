@@ -96,11 +96,21 @@ class SupabaseService:
             return None
 
         try:
-            membership_query = client.table("workspace_members").select("workspace_id,role,created_at").eq("user_id", user_id)
+            base_membership_query = client.table("workspace_members").select("workspace_id,role,created_at").eq("user_id", user_id)
+            membership_query = base_membership_query
             if requested_workspace_id:
                 membership_query = membership_query.eq("workspace_id", requested_workspace_id)
 
             membership_rows = membership_query.execute().data or []
+            if not membership_rows and requested_workspace_id:
+                membership_rows = (
+                    client.table("workspace_members")
+                    .select("workspace_id,role,created_at")
+                    .eq("user_id", user_id)
+                    .execute()
+                    .data
+                    or []
+                )
             if not membership_rows:
                 return None
 
