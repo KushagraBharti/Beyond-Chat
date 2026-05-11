@@ -39,28 +39,9 @@ Beyond Chat is a studio-based AI workspace built around reusable artifacts inste
 - `docs/api-contracts.md` implementation-facing contract summary
 - `docs/system-architecture.md` canonical architecture summary
 - `docs/demo-launch-plan.md` investor/demo operating plan
-- `docs/demo-script.md` final presentation demo script
-- `docs/qa-report.md` final QA and smoke-test report
-- `docs/final-submission-checklist.md` final submission checklist
-- `docs/final-report.md` Markdown source for the final project report PDF
 - `docs/agentic-artifact-workspace-plan.md` target architecture for agentic artifact workflows
 - `spec.md` canonical product scope and UX contract
 - `manual.md` required external setup steps
-- `MOMs.md` weekly meeting minutes
-- `weeklyUpdates/` individual weekly reports
-
-## Final Submission Links
-
-- Repository: `https://github.com/KushagraBharti/Beyond-Chat`
-- Linear board: `https://linear.app/beyondchat/team/BEY/all`
-- Live app: `https://beyond-chat-ivory.vercel.app/`
-- Final project report: `Beyond Chat Final Report .pdf`
-- Weekly MOMs: `MOMs.md`
-- Weekly reports: `weeklyUpdates/`
-- Project spec: `spec.md`
-- Architecture diagram: `docs/system-architecture.md`
-- QA report: `docs/qa-report.md`
-- Demo script: `docs/demo-script.md`
 
 ## Local Setup
 

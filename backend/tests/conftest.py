@@ -480,9 +480,6 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     def fake_resolve_request_context(*_args, **_kwargs) -> RequestContext:
         return context
 
-    def fake_resolve_token_only(*_args, **_kwargs) -> tuple[str, str, str]:
-        return context.user_id, context.email or "test@example.com", context.access_token or "test-token"
-
     def fake_get_workspace_payload(_context: RequestContext, bootstrap: bool = False) -> dict[str, object]:
         return {
             "workspace": workspace,
@@ -491,20 +488,10 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
             "source": "supabase_jwt",
         }
 
-    def fake_ensure_workspace_for_user(*_args, **_kwargs) -> dict[str, object]:
-        return {
-            "workspace": workspace,
-            "role": "admin",
-            "created": False,
-            "source": "supabase_jwt",
-        }
-
     app.dependency_overrides[require_request_context] = fake_require_request_context
     monkeypatch.setattr("src.main.resolve_request_context", fake_resolve_request_context)
-    monkeypatch.setattr("src.main.resolve_token_only", fake_resolve_token_only)
     monkeypatch.setattr("src.main.get_runtime_store", lambda _context: store)
     monkeypatch.setattr("src.main.get_workspace_payload", fake_get_workspace_payload)
-    monkeypatch.setattr("src.main.supabase_service.ensure_workspace_for_user", fake_ensure_workspace_for_user)
     app.state.test_store = store
     app.state.test_workspace_id = workspace["id"]
     try:

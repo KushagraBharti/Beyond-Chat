@@ -28,8 +28,6 @@ skills-lock.json
 # Logs
 logs
 *.log
-backend/dexter/.dexter/scratchpad/
-backend/sandbox-runner/dexter/.dexter/scratchpad/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

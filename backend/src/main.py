@@ -4,7 +4,6 @@ import io
 import json
 import logging
 import mimetypes
-import os
 import re
 import traceback
 from datetime import datetime, timezone
@@ -48,17 +47,14 @@ from .workflows import run_studio_workflow
 
 load_dotenv()
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
+LOG_DIR = BACKEND_ROOT / "logs"
+LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO)
-LOG_DIR = Path(os.getenv("BC_LOG_DIR") or ("/tmp/beyond-chat-logs" if os.getenv("VERCEL") else BACKEND_ROOT / "logs"))
-try:
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    log_path = LOG_DIR / "backend.log"
-    if not any(isinstance(handler, RotatingFileHandler) and handler.baseFilename == str(log_path) for handler in logging.getLogger().handlers):
-        file_handler = RotatingFileHandler(log_path, maxBytes=1_000_000, backupCount=3)
-        file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
-        logging.getLogger().addHandler(file_handler)
-except OSError:
-    logging.getLogger(__name__).warning("File logging disabled because log directory is not writable.")
+log_path = LOG_DIR / "backend.log"
+if not any(isinstance(handler, RotatingFileHandler) and handler.baseFilename == str(log_path) for handler in logging.getLogger().handlers):
+    file_handler = RotatingFileHandler(log_path, maxBytes=1_000_000, backupCount=3)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+    logging.getLogger().addHandler(file_handler)
 LOGGER = logging.getLogger("beyond_chat.api")
 
 app = FastAPI(title="Beyond Chat API", version="0.3.0")
