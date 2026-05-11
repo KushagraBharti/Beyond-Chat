@@ -65,6 +65,14 @@
 - Added `manual.md` for all human-run setup tasks.
 - Added `blocker.md` for remaining external blockers.
 - Added architecture, API contracts, API spec, and sprint-planning docs under `docs/`.
+- Added final submission documentation:
+  - `docs/qa-report.md`
+  - `docs/demo-script.md`
+  - `docs/final-submission-checklist.md`
+  - `docs/final-report.md`
+- Confirmed final submission artifacts already present on the remote branch:
+  - `MOMs.md`
+  - `Beyond Chat Final Report .pdf`
 
 ## Validation Completed
 
@@ -79,6 +87,10 @@
   - research error-state timeline
   - artifact export
   - settings/provider status rendering
+- Final deployed frontend smoke test completed on May 11, 2026 against `https://beyond-chat-ivory.vercel.app/`:
+  - public landing, pricing, login, signup-mode, forgot-password, and reset-password routes load
+  - protected dashboard and studio routes redirect to login while unauthenticated
+  - no browser console errors were observed during the route smoke pass
 
 ## Ticket Coverage
 

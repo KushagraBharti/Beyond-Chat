@@ -16,9 +16,11 @@
 - Frontend validation should use npm by default: `npm run lint`, `npm run test`, and `npm run build`.
 - Data Studio live analysis requires both Supabase Storage and OpenRouter credentials; upload preview can be validated with storage alone.
 - Sandbox runner production validation requires `DEXTER_RUNNER_SHARED_SECRET`, OpenRouter, and Financial Datasets credentials.
+- Backend production health returned Vercel `500 FUNCTION_INVOCATION_FAILED` during the May 11, 2026 final smoke pass. The source has been patched to avoid serverless read-only filesystem logging during app import; redeploy `backend/` on Vercel and recheck `/api/health`.
 
 ## What Is Not Blocked In-Repo
 
 - The code paths, SQL assets, route structure, and setup docs now exist in the repository.
 - Local-first development can continue without waiting on all production credentials.
 - Provider-disconnected UI states can be validated without live provider credentials.
+- Final submission documentation now exists in-repo, including weekly MOMs, QA report, demo script, final submission checklist, and final report source.
