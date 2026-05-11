@@ -91,10 +91,6 @@
   - public landing, pricing, login, signup-mode, forgot-password, and reset-password routes load
   - protected dashboard and studio routes redirect to login while unauthenticated
   - no browser console errors were observed during the route smoke pass
-- Final production backend health rechecked after redeploy on May 11, 2026:
-  - `https://beyond-chat-backend.vercel.app/api/health` returns `{"status":"ok","message":"Backend is reachable"}`
-  - `https://beyond-chat-ivory.vercel.app/api/health` reaches the backend through the frontend rewrite
-  - provider status returns normalized connected/not-configured states
 
 ## Ticket Coverage
 

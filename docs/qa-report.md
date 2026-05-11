@@ -76,10 +76,10 @@ Browser console error check: no console errors were observed during the public/p
 ## API / Deployment Checks
 
 - Frontend `vercel.json` rewrites `/api/*` to `https://beyond-chat-backend.vercel.app/api/*`.
-- Initial production checks returned Vercel `500 FUNCTION_INVOCATION_FAILED` for backend API paths. The source was patched so backend file logging uses `/tmp/beyond-chat-logs` on Vercel and safely disables file logging if the log directory is not writable.
-- After redeploy, `https://beyond-chat-backend.vercel.app/api/health` returned `{"status":"ok","message":"Backend is reachable"}`.
-- The frontend rewrite path `https://beyond-chat-ivory.vercel.app/api/health` returned the same backend health payload.
-- `https://beyond-chat-backend.vercel.app/api/status/providers` returned provider status successfully. OpenRouter, OpenRouter Images, Supabase, and Supabase Storage reported `connected`; Exa, Dexter, Financial Datasets, Google Calendar, Notion, Google Drive, and Slack reported `not_configured`.
+- During this pass, direct production checks for `https://beyond-chat-backend.vercel.app/api/health`, `https://beyond-chat-backend.vercel.app/api/status/providers`, and the frontend rewrite path returned Vercel `500 FUNCTION_INVOCATION_FAILED`.
+- The likely source was an import-time serverless filesystem issue: `backend/src/main.py` created a local `backend/logs` directory and rotating file handler unconditionally.
+- The source fix now uses `/tmp/beyond-chat-logs` on Vercel and safely disables file logging if the log directory is not writable.
+- Production backend health should be rechecked after the backend Vercel project redeploys from the patched source.
 
 ## Local Validation Requirements
 
