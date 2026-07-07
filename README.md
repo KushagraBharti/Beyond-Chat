@@ -1,49 +1,75 @@
 # Beyond Chat
 
-Beyond Chat is a studio-based AI workspace built around reusable artifacts instead of long chat transcripts. The product organizes work into dedicated studios and keeps outputs searchable, saveable, and exportable.
+Beyond Chat is a production-style AI workspace that turns conversations into durable artifacts. Instead of treating every task as a disposable transcript, the app organizes work into dedicated studios for chat, writing, research, image, data, finance, artifacts, and settings, with saved outputs that can be searched, reused, exported, and compared.
 
-## Canonical Product Direction
+The strongest proof point is Finance Studio: Dexter, a sandboxed finance agent with a 12-tool research surface, live tool traces, and final memo output. Dexter streams NDJSON from the runner into persisted `run_steps`, so the UI can show tool starts, progress, completions, errors, sources, and the final answer as the agent works. The deployed architecture moved away from Railway and now targets three Vercel projects plus a Daytona-backed sandbox path.
 
-- Public routes: Landing, Pricing, Login, Signup, Auth Callback, Forgot Password, Reset Password, Billing Success/Cancel
-- Protected routes: Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, Settings
-- Compare is a shared panel capability, not a standalone route
-- Chat and Image use dedicated full-screen layouts; the other protected studios share the dashboard shell
-- Temporary protected dashboard design previews live under `/designs/1` through `/designs/6`
-- Hosted runtime is Supabase-only for auth, database, and storage
-- `frontend-mock/` is archived reference material, not an active product surface
+Project inventory:
 
-## Canonical Stack
+- 14 Supabase/Postgres tables in the canonical SQL files.
+- 39 API paths across the backend product surface.
+- 14 core backend request/response models.
+- 42 curated tests across backend, frontend, Dexter, and sandbox-runner surfaces.
+- Three Vercel deployment roots: frontend, backend, and Dexter sandbox runner.
 
-- Frontend: React + TypeScript + Vite + Tailwind CSS
-- Backend: FastAPI
-- Auth: Supabase Auth
-- Persistence: Supabase Postgres
-- Storage: Supabase Storage
-- Model provider: OpenRouter
-- Research search: Exa
-- Deployment target: Vercel
-- Frontend tooling: npm or Bun for JS surfaces; npm is the default for cloud/sandbox scripts
-- Backend tooling: uv only
-- Billing: Stripe-backed settings/checkout/portal endpoints with safe unavailable states
-- Data files: CSV, XLSX, and XLS uploads through Supabase Storage
+## Technical Architecture
 
-## Repository Map
+Beyond Chat is a full-stack React/FastAPI product with Supabase as the hosted system of record.
 
-- `frontend/` production frontend
-- `backend/dexter/` Dexter finance agent runtime used by Finance Studio
-- `backend/sandbox-runner/` Vercel Sandbox runner for cloud Dexter execution
-- `frontend-mock/` archived visual sandbox and reference-only variants
-- `backend/` production API and workflow runtime
-- `backend/sql-related-files/` canonical live schema for Supabase/Postgres
-- `docs/api-spec.md` canonical runtime/API contract
-- `docs/api-contracts.md` implementation-facing contract summary
-- `docs/system-architecture.md` canonical architecture summary
-- `docs/demo-launch-plan.md` investor/demo operating plan
-- `docs/agentic-artifact-workspace-plan.md` target architecture for agentic artifact workflows
-- `spec.md` canonical product scope and UX contract
-- `manual.md` required external setup steps
+Core stack:
 
-## Local Setup
+- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router.
+- Backend: FastAPI on Python `3.11+`, run with `uv`.
+- Auth: Supabase Auth.
+- Persistence: Supabase Postgres.
+- Storage: Supabase Storage for uploaded artifacts and data files.
+- Model access: OpenRouter.
+- Research search: Exa.
+- Billing: Stripe checkout, portal, webhook, and plan status endpoints.
+- Deployment: three Vercel projects, with Vercel Sandbox/Daytona for cloud Dexter execution.
+
+The product surface is split into public routes and authenticated studios. Public routes cover landing, pricing, login, signup, auth callback, password reset, and billing result pages. Protected routes include Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, and Settings. Compare is implemented as a shared panel capability rather than a standalone route.
+
+### Runtime Flow
+
+The frontend sends authenticated API requests with the Supabase access token and an internal workspace header. FastAPI validates the request, writes runs/artifacts through Supabase-aware stores, and calls provider adapters for model, search, billing, data, and Dexter workflows. Profile-scoped ownership is the product-facing model; workspace IDs remain internal routing/bootstrap plumbing where the schema still requires them.
+
+Finance Studio uses Dexter through two execution paths:
+
+- Local development: backend launches the local Dexter TypeScript runtime and parses JSONL output.
+- Hosted execution: backend calls the sandbox runner, which streams NDJSON from Dexter and returns the same event shape.
+
+Both paths persist live events into `run_steps`, giving the UI a durable audit trail instead of only a final blob of text.
+
+### Data Model
+
+The canonical schema lives in `backend/sql-related-files/` and covers:
+
+- profiles, workspaces, and membership
+- chat collections, threads, and messages
+- integration connections and sync logs
+- artifacts, runs, and run steps
+- reminders, billing plans, and usage events
+- storage setup and row-level security policies
+
+`backend/sql-related-files/` is the source of truth for the live Supabase schema. Older proposal and weekly-update docs are useful context but should not override the root README, `spec.md`, or API docs.
+
+### Repository Map
+
+```text
+Beyond-Chat/
+├── frontend/                 # production React/Vite frontend
+├── backend/                  # FastAPI API, Supabase stores, provider adapters
+├── backend/dexter/           # Dexter finance agent runtime
+├── backend/sandbox-runner/   # Vercel Sandbox runner for cloud Dexter execution
+├── backend/sql-related-files/# canonical Supabase/Postgres schema
+├── supabase/migrations/      # Supabase migration history
+├── demo-data/                # demo workspace content
+├── final-submission/         # final report materials
+└── frontend-mock/            # archived visual reference only
+```
+
+## Setup And Run
 
 Create env files first:
 
@@ -53,7 +79,7 @@ Create env files first:
 Backend:
 
 ```powershell
-cd backend
+cd Beyond-Chat\backend
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -61,7 +87,7 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 Frontend:
 
 ```powershell
-cd frontend
+cd Beyond-Chat\frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
@@ -69,7 +95,7 @@ npm run dev -- --host 127.0.0.1 --port 5173
 Dexter finance agent:
 
 ```powershell
-cd backend/dexter
+cd Beyond-Chat\backend\dexter
 npm install
 npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai/gpt-5.4-nano --json
 ```
@@ -77,107 +103,70 @@ npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai
 Sandbox runner:
 
 ```powershell
-cd backend/sandbox-runner
+cd Beyond-Chat\backend\sandbox-runner
 npm install
 npm run typecheck
 ```
 
-Use npm by default for frontend, Dexter, and the sandbox runner commands. Bun is supported best-effort for JS surfaces when it works better locally. Do not use `yarn` or `pnpm`.
-Do not use `pip`.
+Local integration baseline:
 
-## Local Integration Baseline
+- Frontend: `http://127.0.0.1:5173`
+- Backend: `http://127.0.0.1:8000`
+- Health check: `GET /api/health`
+- Frontend dev proxy forwards `/api/*` to the backend.
+- Protected API calls require a Supabase access token except `GET /api/health` and provider status.
 
-- Frontend dev server: `http://127.0.0.1:5173`
-- Backend dev server: `http://127.0.0.1:8000`
-- Backend health check: `GET /api/health`
-- Frontend dev proxy forwards `/api/*` to the backend
-- Protected API calls require a Supabase access token except for `GET /api/health` and provider status
-- The frontend stores the active workspace ID in `localStorage` as `bc.workspace_id` and sends it as `X-Workspace-Id`
-
-## Validation
-
-Frontend:
+Validation:
 
 ```powershell
-cd frontend
+cd Beyond-Chat\frontend
 npm run build
+npm run test
 ```
 
-Backend:
-
 ```powershell
-cd backend
+cd Beyond-Chat\backend
 uv run pytest
 ```
 
-Sandbox runner:
-
 ```powershell
-cd backend/sandbox-runner
+cd Beyond-Chat\backend\sandbox-runner
 npm run typecheck
 ```
 
-## Deploy To Vercel
+Use npm for frontend, Dexter, and sandbox-runner commands. Use `uv` for the backend. Do not use `pip`, `yarn`, or `pnpm` for the active product surfaces.
 
-Deploy as three Vercel projects from the same repository.
+## Deploy
 
-1. Backend project
+Deploy from the same repository as three Vercel projects:
 
-- Import this repository in Vercel.
-- Set Root Directory to `backend`.
-- Framework Preset: `Other`.
-- Use [backend/vercel.json](backend/vercel.json) and [backend/api/index.py](backend/api/index.py) as-is.
-- Add backend env vars from [backend/env.example](backend/env.example).
+1. Backend
+   - Root Directory: `backend`
+   - Framework Preset: `Other`
+   - Uses `backend/vercel.json` and `backend/api/index.py`
+   - Required credentials include Supabase vars, `OPENROUTER_API_KEY`, `EXASEARCH_API_KEY`, `FINANCIAL_DATASETS_API_KEY`, `DEXTER_RUNNER_SHARED_SECRET`, and Stripe keys.
 
-Required backend credentials on Vercel:
+2. Sandbox runner
+   - Root Directory: `backend/sandbox-runner`
+   - Framework Preset: `Other`
+   - Required credentials include `DEXTER_RUNNER_SHARED_SECRET`, `OPENROUTER_API_KEY`, and `FINANCIAL_DATASETS_API_KEY`.
 
-- `OPENROUTER_API_KEY`
-- `EXASEARCH_API_KEY`
-- `FINANCIAL_DATASETS_API_KEY`
-- `X_BEARER_TOKEN` if X search should be enabled
-- `DEXTER_RUNNER_SHARED_SECRET`
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `STRIPE_PRO_PRICE_ID`
-- Supabase credentials from [backend/env.example](backend/env.example)
+3. Frontend
+   - Root Directory: `frontend`
+   - Framework Preset: `Vite`
+   - Uses `frontend/vercel.json` for SPA routing
+   - Required credentials: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 
-2. Sandbox runner project
+Verify deployment with:
 
-- Import this repository in Vercel.
-- Set Root Directory to `backend/sandbox-runner`.
-- Framework Preset: `Other`.
-- Add the runner credentials listed in [backend/env.example](backend/env.example).
-- Required: `DEXTER_RUNNER_SHARED_SECRET`, `OPENROUTER_API_KEY`, `FINANCIAL_DATASETS_API_KEY`.
+- `https://<backend-domain>.vercel.app/api/health`
+- `https://<sandbox-runner-domain>.vercel.app/api/run` returning `405` for non-POST requests
+- frontend auth and API-backed pages loading without CORS errors
 
-3. Frontend project
+## Status Notes
 
-- Import this repository in Vercel.
-- Set Root Directory to `frontend`.
-- Framework Preset: `Vite`.
-- Keep [frontend/vercel.json](frontend/vercel.json) for SPA routing.
-- Add frontend env vars from [frontend/env.example](frontend/env.example).
-
-Required frontend env on Vercel:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-4. Verify deployed integration
-
-- Open `https://<your-backend-domain>.vercel.app/api/health`
-- Open `https://<your-sandbox-runner-domain>.vercel.app/api/run` and confirm non-POST requests return 405.
-- Open frontend and confirm auth + API-backed pages load without CORS errors.
-
-## Runtime Rules
-
-- Hosted requests must use a valid Supabase-authenticated session
-- `GET /api/status/providers` is public so the frontend can render provider readiness
-- SQLite and local auth bypass are not part of the product architecture
-- `backend/src/store.py` remains only as a legacy local test store
-- `backend/sql-related-files/` is the source of truth for the live schema
-- Profile-scoped artifact and run ownership is the product-facing model; workspace IDs remain internal routing/bootstrap plumbing where the schema still requires them
-
-## Notes
-
-- If documentation elsewhere conflicts with this file, `spec.md`, or `docs/api-spec.md`, treat those older notes as stale.
-- The attached proposal PDF is background context only. The repo docs are the implementation contract.
+- Hosted runtime is Supabase-only for auth, database, and storage.
+- SQLite and local auth bypass are legacy/testing concerns, not product architecture.
+- `backend/src/store.py` remains only as a legacy local test store.
+- `frontend-mock/` is archived reference material, not an active product surface.
+- Usage tracking and billing state support plan-aware limits; verify middleware before claiming fully enforced application-level quotas.
