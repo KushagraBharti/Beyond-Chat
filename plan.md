@@ -712,6 +712,16 @@ interface SandboxProvider {
 
 Implement `ModalSandboxProvider` first and `LocalDockerProvider` for development/contract tests. Keep a future `DaytonaSandboxProvider` possible without shaping v1 around it.
 
+`checkpoint()` and `restore()` are product-level operations, not promises that a provider can serialize a live process. A `CheckpointReference` identifies a recovery bundle containing the last durable run/event cursor, serialized Pi/runtime state where supported, a content-addressed working-set manifest, uploaded output references, filesystem or directory snapshot references, runtime image digest, dependency/skill manifests, and provider metadata. The database event log and object store remain authoritative.
+
+For Modal v1:
+
+- Use stable filesystem or directory snapshots, plus object-storage manifests, for recoverable sandbox files.
+- Do not depend on Modal Sandbox memory snapshots for correctness. They are experimental/alpha, may terminate the source sandbox during capture, have limited retention and restore constraints, and may change incompatibly.
+- Memory snapshots may later optimize startup for eligible workloads behind a feature flag. Losing or expiring one must degrade to image + filesystem/working-set restoration, never to lost work.
+- Never assume an open socket, process, file descriptor, or in-memory secret survives checkpoint/restore. Recreate processes and credentials from durable state.
+- Copy final and semantically important intermediate outputs to product object storage before acknowledging their checkpoint event.
+
 ### 12.3 Runtime images
 
 **Base image:** Node.js, Python managed with `uv`, Git where needed, Chromium/Playwright, LibreOffice headless, Pandoc, PDF render/extract tools, image utilities, fonts, Beyond sidecar, Pi runtime, MCP client, artifact uploader, and telemetry.
@@ -743,8 +753,10 @@ runtime:
   resources:
     cpu: 2
     memory_mb: 4096
-    timeout_seconds: 900
+    wall_time_class: standard
 ```
+
+`wall_time_class` resolves through versioned control-plane policy to provider-specific soft and hard limits. A skill may request a lower explicit timeout, but no manifest may exceed the active execution plane, organization policy, budget, or sandbox lifetime. The policy engine revalidates limits at publication and dispatch so a value valid for Modal cannot accidentally be reused as an invalid Vercel Function configuration.
 
 The control-plane policy engine validates this manifest before execution. Arbitrary dependency installation is denied by default in published organization agents; permitted development/test installs are logged and cannot silently alter the immutable published manifest.
 
@@ -756,9 +768,9 @@ The control-plane policy engine validates this manifest before execution. Arbitr
 4. Create sandbox from approved image.
 5. Upload task working-set manifest and required files/excerpts.
 6. Start Beyond sidecar and verify readiness.
-7. Start/resume Pi with the durable checkpoint.
+7. Start/resume Pi from Beyond logical state and the recovered filesystem/working-set bundle; never assume live process memory survived.
 8. Stream normalized events; upload outputs continuously at semantic checkpoints.
-9. Suspend/terminate for long approval waits after checkpointing.
+9. Suspend/terminate for long approval waits only after committing events, runtime state, output references, and filesystem/working-set recovery data.
 10. On completion, validate and upload outputs, finalize usage, and terminate.
 11. On failure/expiration, reconcile durable state and restore into a new sandbox if retryable.
 
@@ -770,6 +782,7 @@ The control-plane policy engine validates this manifest before execution. Arbitr
 - Enforce run wall time below Modal’s maximum lifetime and checkpoint well before forced termination.
 - Capture CPU/memory/disk/network usage, process exit codes, and artifact upload status.
 - Prove cancellation terminates child processes and resource billing.
+- Test restoration with memory snapshots disabled and deleted; correctness must depend only on durable Beyond state and stable filesystem/object recovery primitives.
 
 ---
 
