@@ -491,6 +491,10 @@ Organization
                 └── Item/Event
 ```
 
+Teams and groups are not mandatory parents in this durable hierarchy. They attach to organizations as ownership, audience, policy, membership, and resource-grant dimensions; a project, agent, skill, connection, knowledge scope, or automation may be owned by or shared with a team. This avoids forcing every project into exactly one team and supports cross-functional projects without duplicating durable work.
+
+`Workspace` is not a synonym for organization, team, or project and does not become another database layer by default. Add a separate workspace entity only if a proven product requirement cannot be expressed through organization, project, team ownership, and resource grants.
+
 The `Run` layer is mandatory because work must survive browser disconnection, function restarts, approvals, retries, worker replacement, and sandbox expiration.
 
 ### 10.2 Command model
@@ -559,9 +563,30 @@ Events are persisted before broadcast. Consumers tolerate duplicate delivery and
 
 ### 10.6 State and recovery
 
-Execution state machine:
+Canonical execution state machine:
 
 `accepted → queued → leased → preparing → running ↔ awaiting_approval → completing → completed | failed | canceled`
+
+Recovery transitions may pass through `retrying`, `paused`, `stalled`, or `reconciling` before returning to a normal execution state or entering a terminal state. `draft` belongs to the task/composer before a run is accepted and is not persisted as an execution status. Every state transition is validated server-side and emits a durable event; clients never infer or mutate execution state from UI text.
+
+| Machine state | Default user-facing label | Terminal | Meaning |
+|---|---|---:|---|
+| `accepted` | Starting | No | Command validated, run identity allocated, and initial event committed |
+| `queued` | Waiting to start | No | Eligible for dispatch but not owned by a worker |
+| `leased` | Starting | No | A coordinator/worker owns a time-bounded execution lease |
+| `preparing` | Preparing workspace | No | Runtime, sandbox, files, policy, and credentials are being prepared |
+| `running` | Working | No | Agent or tool execution is making progress |
+| `awaiting_approval` | Needs your approval | No | Durable pause at a consequence boundary; compute may be released |
+| `completing` | Finalizing output | No | Outputs, validation, usage, citations, and terminal events are being finalized |
+| `retrying` | Retrying | No | A retryable attempt failed and a bounded retry is scheduled or starting |
+| `paused` | Paused | No | Execution intentionally suspended and resumable |
+| `stalled` | Taking longer than expected | No | Expected progress or heartbeat was missed and requires reconciliation |
+| `reconciling` | Recovering | No | Durable state is being compared with worker/sandbox/provider state |
+| `completed` | Complete | Yes | Required output and terminal accounting committed successfully |
+| `failed` | Failed | Yes | No permitted retry remains or a non-retryable error occurred |
+| `canceled` | Canceled | Yes | Cancellation was durably accepted and resource teardown was reconciled |
+
+The UI may simplify labels for ordinary users, but operations and support surfaces expose machine state, attempt, lease, reason code, last durable sequence, and recovery action.
 
 Required mechanics:
 
@@ -583,13 +608,32 @@ Required mechanics:
 
 ### 11.1 Fork and upstream approach
 
-- Create an organizational fork of the maintained Pi repository and preserve upstream history/license notices.
-- Pin exact versions/commits; maintain `UPSTREAM.md` with origin, update procedure, patches, and copied/adapted files.
-- Initially build/use only the needed AI, agent-core, and selectively useful coding-agent packages.
-- Keep the patch stack small; avoid deleting unrelated upstream packages solely for aesthetics.
+- Create a Beyond-owned fork of the maintained Pi repository and preserve upstream history, license notices, security documentation, and authorship.
+- The Beyond fork—not the public `@earendil-works/*` packages—is the production source of Pi. Public packages may be inspected or used in isolated comparison spikes, but production builds must resolve to a recorded commit from the Beyond fork.
+- Track the selected fork commit in `vendor/pi/UPSTREAM.md` and the application lockfile/build metadata. Record upstream repository URL, upstream commit, Beyond fork commit, import date, license, selected packages, local patches, known advisories, update procedure, and rollback commit.
+- Vendor the approved fork revision under `vendor/pi` using a reproducible subtree/vendor-sync procedure. CI verifies that the vendored tree matches the recorded Beyond fork commit and rejects unexplained local edits.
+- Build and consume only the required `pi-ai`, `pi-agent-core`, and deliberately selected `pi-coding-agent` modules. Do not ship the TUI or unrelated packages merely because they exist upstream.
+- Route all imports through `packages/pi-runtime-adapter`; product packages may not import Pi directly. Beyond commands, events, IDs, permissions, tenancy, policy, memory, knowledge, tools, checkpoints, and outputs remain product-owned contracts.
+- Keep the local patch stack as small and separable as possible. Prefer adapter behavior, extension hooks, or an upstreamable change over invasive edits. Do not delete unrelated upstream packages solely for aesthetics because doing so makes merges harder without improving the production artifact.
+- Treat Pi as a pre-1.0 dependency with expected API churn. Every proposed update runs license/advisory review, source diff review, dependency diff review, adapter contract tests, built-in-agent evals, tool/cancellation/compaction tests, and rollback verification before promotion.
+- Maintain an explicit upstream cadence: monitor continuously for security issues, review ordinary upstream updates on a scheduled cadence, and merge only when the evidence justifies the change. Never auto-update the runtime used by published agent versions.
+- Associate each immutable agent/runtime version with the exact Pi fork commit and image digest so an old run can be explained and, within retention limits, reproduced.
 - Fork Codex and T3 Code as local/reference repositories, not production dependencies.
 
-### 11.2 Preserve from Pi
+### 11.2 Fork acceptance and upgrade gates
+
+The first production fork import is accepted only when:
+
+- The selected packages build reproducibly with repository-approved npm tooling.
+- The adapter can start, stream, steer, cancel, compact, invoke tools, checkpoint logical state, and resume without leaking Pi-native event types to the UI or database contract.
+- Pi receives only run-scoped credentials and sandbox permissions; no product master secret is reachable from the runtime.
+- A recorded upstream commit, vendored commit, dependency lock, image digest, license inventory, and SBOM identify the exact runtime.
+- General document generation and a representative Dexter finance scenario pass baseline evals.
+- A deliberately interrupted run can resume through Beyond-owned events and working-set recovery.
+
+An upgrade is rejected if it silently changes event semantics, tool authorization, message serialization, compaction quality, cancellation, output quality, model/provider behavior, or cost beyond agreed tolerances.
+
+### 11.3 Preserve from Pi
 
 - Provider-neutral model streaming.
 - Tool loop and parallel/sequential tool execution.
@@ -601,7 +645,7 @@ Required mechanics:
 - Skill loading and extension hooks.
 - Artifact discovery patterns.
 
-### 11.3 Remove or abstract assumptions
+### 11.4 Remove or abstract assumptions
 
 - User is a developer.
 - Project is a Git repository.
@@ -611,7 +655,7 @@ Required mechanics:
 - Markdown/working directory is the product system of record.
 - Local user configuration is the tenancy boundary.
 
-### 11.4 Runtime contract
+### 11.5 Runtime contract
 
 ```ts
 interface AgentRuntime {
@@ -626,7 +670,7 @@ interface AgentRuntime {
 
 Only `PiRuntimeAdapter` imports Pi-specific identifiers. Contract tests must allow a future specialist Codex adapter or replacement runtime.
 
-### 11.5 Dexter migration
+### 11.6 Dexter migration
 
 1. Freeze representative finance prompts, expected tool sequences, outputs, citations, costs, and failure cases as eval fixtures.
 2. Wrap current Dexter as a legacy runtime adapter.
