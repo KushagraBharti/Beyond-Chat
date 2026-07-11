@@ -1424,6 +1424,8 @@ Required operating scenarios:
 
 At `$30/user/month`, initial planning should target provider COGS below **20–30% of recognized seat revenue** under the expected scenario, leaving room for payment fees, support, development, and future enterprise requirements. This is a guardrail to validate, not permission to reduce output quality blindly. If expected COGS exceeds the guardrail, first adjust model routing, caching, sandbox lifecycle, retries, included usage, or contract minimums; do not hide the problem through unmetered overages.
 
+Price sources used for this dated baseline: [Vercel Pro plan](https://vercel.com/docs/plans/pro-plan), [Supabase pricing](https://supabase.com/pricing), [WorkOS pricing](https://workos.com/pricing), [Modal pricing](https://modal.com/pricing), [Modal Sandbox resource billing](https://modal.com/docs/guide/sandbox-resources), [Liveblocks pricing](https://liveblocks.io/pricing), and [OpenRouter pricing](https://openrouter.ai/pricing). Store contractual or dashboard-only rates for Composio and other providers in the internal rate register because public prices may not represent the Beyond account.
+
 ### 23.6 Cost gates
 
 Before each phase expands production usage:
@@ -1612,6 +1614,8 @@ If WebSocket/durable worker requirements do not fit Vercel reliably, move only t
 
 The phases below are ordered by dependency, not calendar promises. Workstreams inside a phase may run in parallel only when their contracts are stable. Each phase ends with an explicit gate.
 
+This program uses a strangler strategy. The existing local chat, studio-run, persisted-step, and run-to-artifact flows remain the internal demo and regression baseline while the target spine replaces their internals. “New architecture” does not justify months without a usable product, and “legacy works locally” does not justify preserving the legacy identity, schema, runtime, or event contracts. Each replacement increment must identify the old path, target path, parity fixture, traffic/feature flag, data treatment, observability, and rollback condition.
+
 ### Phase 0 — Establish a Safe Canonical Baseline
 
 **Goal:** Turn the current deployed prototype and dirty repository into a reproducible starting point without losing useful work.
@@ -1623,14 +1627,21 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 - Repair frontend lockfile, lint errors, stale backend test, dependency advisories, and CI workflow tracking.
 - Validate frontend build/tests, backend tests/health, Dexter tests/typecheck, and legacy runner typecheck.
 - Verify current Vercel links, env-name inventory, deployment health, and rollback.
+- Verify by immutable provider/project/team identifiers—not names alone—that the frontend, backend, and temporary sandbox runner are the intended new Beyond Vercel resources rather than reused legacy projects. Record those IDs without recording credentials.
 - Repair Supabase CLI authentication.
 - Back up/export new Supabase project before mutation.
+- Declare the current 14-table schema and applied migration chain transitional; prepare the clean destructive reset and canonical baseline migration while the database is empty.
 - Resolve current security-definer advisor warnings.
 - Remove false public claims and broken legal/billing success behavior or hide unfinished surfaces.
 - Create a secret inventory by name/location/owner/rotation—not values—and remove redundant env files.
+- Keep `transcript.md` and any credential-bearing session artifacts local and uncommitted; remove/redact them before sharing the repository or onboarding collaborators.
+- Rotate credentials exposed in local transcripts/session artifacts before external collaboration, pilot traffic, or commercial production. Rotate immediately if access scope, sync destination, or repository history makes containment uncertain.
+- Replace the full-access Composio development key with the narrowest practical project/environment credential before runtime wiring; document enabled toolkits/actions, owner, rotation, webhook validation, and any available network/IP restrictions.
+- Verify WorkOS, Supabase, Modal, Stripe, Composio, GitHub, Vercel, OpenRouter, Exa, and Financial Datasets resources by account/team/project/environment ID and record which service owns each credential.
+- Create the initial provider-rate register and cost calculator from Section 23, including verification dates and source links/contracts.
 - Add architecture decision record directory and initial locked decisions.
 
-**Gate:** Clean reproducible installs; CI green; health checks green; canonical repo baseline committed; Supabase CLI and MCP agree on project; no unexplained security advisor warnings; no secrets committed.
+**Gate:** Clean reproducible installs; CI green; health checks green; canonical repo baseline committed; every active provider resource is identity-verified; Supabase CLI and MCP agree on project; the legacy schema is explicitly marked for reset and contains no customer data; no unexplained security advisor warnings; no secrets committed; credential and provider-rate registers exist without containing secret values.
 
 ### Phase 1 — Canonical Contracts and Architecture Spikes
 
@@ -1640,16 +1651,16 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 
 - Define IDs, command envelope, event envelope, run state machine, error taxonomy, and schema-version policy.
 - Build in-memory/local durable event-log prototype with replay projection.
-- Fork Pi; document upstream and licensing.
+- Create the Beyond-owned Pi fork, pin the first exact upstream/fork commits, vendor the approved revision under `vendor/pi`, document licensing and `UPSTREAM.md`, and make CI verify provenance.
 - Fork/clone Codex and T3 Code as reference only; document borrowed concepts and provenance.
-- Implement bounded `PiRuntimeAdapter` spike.
+- Build only the selected Pi packages from the vendored fork and implement the bounded `PiRuntimeAdapter` spike; forbid direct Pi imports outside the adapter.
 - Implement `LocalDockerProvider` test double/provider.
 - Define `SandboxProvider`, `ToolGateway`, `ModelGateway`, and artifact contracts.
 - Normalize Pi streaming/tool events into Beyond events.
 - Demonstrate start, stream, steer, cancel, checkpoint, process restart, replay, and resume.
 - Convert one Dexter scenario and one document-generation scenario into benchmark fixtures.
 
-**Gate:** Browser/test client can run the same canonical protocol without importing Pi/provider types; replay recreates state; cancellation/recovery tests pass; architecture review accepts boundaries.
+**Gate:** Browser/test client can run the same canonical protocol without importing Pi/provider types; production artifacts resolve to the recorded Beyond fork commit; replay recreates state; cancellation/recovery tests pass; an upstream-update rehearsal passes the fork gates; architecture review accepts boundaries.
 
 ### Phase 2 — WorkOS and Organization Foundation
 
@@ -1657,6 +1668,8 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 
 **Work:**
 
+- Export the empty legacy database for forensic/rollback safety, then reset the linked Supabase database and replace the old 14-table migration chain with the new canonical baseline. Do not perform an incremental legacy-to-new schema evolution when there is no customer data to preserve.
+- Replay the new migration history locally from empty, apply it remotely, generate types, compare local/remote schema, run advisors, and prove no dashboard-only drift remains.
 - Select/configure Beyond WorkOS production application URLs/origins/branding.
 - Implement AuthKit login/callback/logout/session middleware and webhook synchronization.
 - Create internal identity, organization, membership, team/group, and project schema.
@@ -1665,10 +1678,10 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 - Integrate WorkOS JWT verification with backend and Supabase as appropriate.
 - Rewrite RLS and Storage policies around internal profile/org/project membership.
 - Build adversarial tenant tests and revoked-membership tests.
-- Migrate or intentionally reset legacy users because the new production database is empty; document approach.
+- Reset legacy users and auth-linked rows because the new production database is empty; do not carry Supabase Auth identifiers into the canonical identity model.
 - Remove Supabase Auth UI and raw Google OAuth after parity.
 
-**Gate:** Two test organizations cannot access each other through API, PostgREST, Storage, Realtime, or guessed IDs; invitation/switch/revocation flows work; all protected routes use WorkOS.
+**Gate:** The old schema/migration chain is absent; the canonical history replays from empty and matches remote; two test organizations cannot access each other through API, PostgREST, Storage, Realtime, or guessed IDs; invitation/switch/revocation flows work; all protected routes use WorkOS.
 
 ### Phase 3 — Durable App Server and Run Control Plane
 
@@ -1697,7 +1710,8 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 - Build and scan versioned base/documents/research/data-finance images.
 - Deploy runtime sidecar with readiness endpoint and event transport.
 - Implement `ModalSandboxProvider` and short-lived run identity.
-- Implement file working-set upload, output/checkpoint upload, restore, and teardown.
+- Implement file working-set upload, semantic output upload, stable filesystem/directory snapshot references, logical runtime-state checkpointing, restore, and teardown.
+- Prove recovery from event log + object storage + filesystem/working-set data with Modal memory snapshots disabled and deleted.
 - Implement network/secret/resource restrictions and provider error mapping.
 - Add logs, metrics, cost capture, and operational inspector links.
 - Prove PowerPoint generation/render/edit/recovery scenario.
@@ -1705,7 +1719,7 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 - Gradually route internal/test runs, then production runs; retain rollback flag.
 - Decommission Vercel sandbox-runner only after parity and rollback window.
 
-**Gate:** Modal meets correctness, isolation, cancellation, recovery, output, latency, and cost thresholds; no master secret enters sandbox; legacy runner can be disabled safely.
+**Gate:** Modal meets correctness, isolation, cancellation, recovery, output, latency, and cost thresholds; recovery does not depend on experimental memory snapshots; no master secret enters sandbox; legacy runner can be disabled safely.
 
 ### Phase 5 — Unified Shell and Built-in Agents
 
@@ -1828,6 +1842,7 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 **Work:**
 
 - Create live Stripe product/price at $30/user/month and organization checkout/portal/webhooks.
+- Complete Stripe account activation/business verification required to make live charges before enabling paid checkout.
 - Implement seat reconciliation, entitlements, invoices/status UI, and billing failure handling.
 - Complete legal/privacy/terms and accurate product/model/connector claims.
 - Add transactional email and domain/DNS when ready.
@@ -1836,6 +1851,7 @@ The phases below are ordered by dependency, not calendar promises. Workstreams i
 - Conduct security review, dependency/image remediation, backup/restore drill, incident drill, and rollback drill.
 - Define support, onboarding, connection troubleshooting, and customer data deletion processes.
 - Run design-partner pilot with feature flags and explicit success metrics.
+- Recalculate per-run, per-accepted-output, per-active-seat, and organization-level unit economics using actual pilot usage; approve or revise the `$30` commercial assumptions before broad launch.
 
 **Gate:** Billing entitlement is server-verified; canonical journeys and failure modes pass; recovery drills pass; operational ownership exists; pilot customers can onboard without engineering intervention for normal paths.
 
@@ -1855,11 +1871,13 @@ Only after the preceding reliability gates:
 
 The critical path is:
 
-`clean baseline → contracts → WorkOS tenancy + RLS → durable run/event control plane → Modal → built-in agents/unified shell → tools/apps/MCP → knowledge → memory/builder/collaboration/automation → billing/launch`
+`clean baseline + provider verification → clean database reset → contracts + pinned Pi fork → WorkOS tenancy + RLS → durable run/event control plane → Modal → built-in agents/unified shell → tools/apps/MCP → knowledge → memory/builder/collaboration/automation → billing/launch`
 
 Key dependency rules:
 
 - Do not build organization agents before internal identity, resource authorization, and immutable agent versions.
+- Do not preserve, extend, or populate the legacy 14-table schema; reset it before any customer data exists.
+- Do not allow product code outside `PiRuntimeAdapter` to depend on Pi types or upgrade the fork without provenance, contract tests, evals, and rollback.
 - Do not expose Composio/MCP writes before tool risk, approval, connection ownership, and idempotency exist.
 - Do not ship memory before scope/ownership/deletion UX exists.
 - Do not sync enterprise knowledge before ACL identity mapping and tombstones exist.
@@ -1879,9 +1897,18 @@ Key dependency rules:
 - [ ] Owner/Admin/Builder/Member/Viewer behavior is tested.
 - [ ] Cross-organization API, DB, Storage, Realtime, knowledge, output, and tool access is denied.
 
+### Database and migration integrity
+
+- [ ] The legacy 14-table schema and old migration chain have been removed from the empty Beyond database.
+- [ ] One canonical migration history replays from empty and produces the expected linked remote schema without dashboard drift.
+- [ ] Every exposed table, Storage path, Realtime channel, and privileged function passes adversarial tenant tests and security advisors.
+- [ ] Schema types are regenerated and CI blocks remote/local drift.
+
 ### Runs and agents
 
 - [ ] General, Research, and Finance agents have immutable published versions and evals.
+- [ ] Every production agent version records the exact Beyond Pi fork commit, vendored revision, dependency lock, and runtime image digest.
+- [ ] No production package imports Pi outside `PiRuntimeAdapter`; an upstream update passes contract/eval/rollback gates.
 - [ ] Start, stream, steer, cancel, retry, approval, reconnect, replay, and resume work.
 - [ ] Worker/sandbox death recovers from checkpoint.
 - [ ] One-click custom agent publish/rollback works for authorized builders.
@@ -1893,6 +1920,7 @@ Key dependency rules:
 - [ ] Tool gateway rechecks identity/policy and records action/version.
 - [ ] High-risk writes request approval; denied tools cannot execute.
 - [ ] Resource/time/concurrency budgets release on cancellation/failure.
+- [ ] Run recovery succeeds from durable events, object references, and stable filesystem/working-set recovery with Modal memory snapshots unavailable.
 
 ### Knowledge and memory
 
@@ -1914,7 +1942,15 @@ Key dependency rules:
 - [ ] Schedules/webhooks deduplicate and retain history.
 - [ ] Failures, approvals, pause/resume, and cost limits work.
 - [ ] Stripe product/price/subscription/webhook/portal flows work in live mode.
+- [ ] Stripe account activation allows a real controlled live charge and refund before paid launch.
 - [ ] Entitlements derive from verified server state; seat counts reconcile.
+
+### Economics and competitive proof
+
+- [ ] Provider-rate register is current, dated, sourced, and reconciled against sample invoices/dashboard usage.
+- [ ] Cost per run, accepted output, active seat, organization, model, tool, and sandbox attempt is measurable.
+- [ ] Expected and p95 scenarios fit approved gross-margin and abuse-limit guardrails at the `$30` seat price or packaging has been revised deliberately.
+- [ ] The competitive proof scenarios in Section 3.5 pass using shipped capabilities rather than roadmap claims.
 
 ### Operations
 
@@ -1923,6 +1959,7 @@ Key dependency rules:
 - [ ] Logs/traces correlate a full task and redact sensitive payloads.
 - [ ] Backup restore, rollback, provider outage, and incident runbooks are tested.
 - [ ] Public capabilities and legal pages accurately describe reality.
+- [ ] Credential-bearing transcripts/session artifacts are excluded from version control and exposed development credentials have been rotated or explicitly risk-accepted before external access.
 
 ---
 
@@ -1931,20 +1968,23 @@ Key dependency rules:
 | Risk | Consequence | Mitigation |
 |---|---|---|
 | Scope explosion | Never ships | Enforce phased gates and v1 non-goals; three built-ins; no product sub-agents initially |
-| Pi fork drift | Maintenance burden/security lag | Small patch stack, upstream tracking, adapter boundary, scheduled update/eval process |
+| Pi pre-1.0 API churn and fork drift | Runtime breakage, maintenance burden, or security lag | Beyond-owned pinned fork, vendored provenance, small patch stack, adapter-only imports, scheduled upstream review, contract/eval/rollback gates |
 | Provider lock-in | Expensive later migration | Product-owned contracts and IDs; conformance tests; no provider-native frontend contract |
-| Modal lifecycle limits | Interrupted long tasks | Durable checkpoints, semantic uploads, restore into new sandbox, approval suspension without compute |
+| Modal lifecycle or experimental snapshot limits | Interrupted long tasks or unrecoverable in-memory state | Authoritative external events, semantic uploads, stable filesystem/working-set recovery, memory snapshots optional only, restore into new sandbox, approval suspension without compute |
 | Agent data exfiltration | Customer trust/security incident | Permission-filtered retrieval, gateway-only secrets, egress controls, injection evals, audit |
 | Tool side effects | Duplicate/destructive actions | Risk classes, approval, idempotency, replay protection, argument preview, deny by default |
 | ACL sync lag | Unauthorized stale retrieval | Live ACL recheck where possible, delta + reconciliation, tombstones, freshness SLO, kill switch |
 | RLS complexity | Cross-tenant leak | Simple internal UUID model, private helpers, adversarial DB/Storage/Realtime tests, advisor gates |
 | Cost runaway | Bad unit economics | Reservation, per-run/org limits, model/tool allowlists, concurrency, cost ledger, alerts |
+| Incorrect provider-rate assumptions | False margin forecasts or surprise fixed tiers | Dated source/contract register, scenario model, invoice reconciliation, refresh gates, credits separated from COGS |
 | Event volume | Database/realtime pressure | Semantic durable events, coalesced deltas, payload references, partition/archive strategy after measurement |
 | Vercel runtime mismatch | Unreliable WebSockets/workers | Separate deployable app-server boundary; Railway/AWS-shaped container fallback |
 | Composio schema/provider change | Broken automations | Pin versions, diff schemas, contract/eval tests, staged promotion, store effective version |
 | Output quality variability | User distrust | Render/format validation, domain-specific evals, templates, review/diff, retry with bounded repair |
 | Premature enterprise promises | Sales/support failure | Market capability by achieved depth level; defer heavy compliance claims |
+| Direct competition from ChatGPT Work | Commodity positioning and weak distribution | Prioritize governed reusable agents, permission-aware knowledge, model neutrality, deliverable depth, and measurable competitive proof rather than generic chat parity |
 | Dirty legacy migration | Regressions/lost behavior | Feature disposition matrix, parity fixtures, strangler migration, rollback flags |
+| Legacy empty schema becomes accidentally permanent | Recreates migration drift and constrains tenancy/runtime design | Destructive reset before customer data, one clean baseline, remote/local drift gate, table-admission rules |
 
 ---
 
@@ -2011,12 +2051,16 @@ Metrics must be segmented by agent version, model/provider, tool, organization s
 ### Required near-term operations
 
 1. Repair Supabase CLI session and link correct project.
-2. Select/configure correct WorkOS production app.
-3. Create Modal app/images/service identity strategy.
-4. Wire Composio through SDK/API and encrypted environment variables.
-5. Create Stripe live product and $30 recurring per-user monthly price when billing phase begins.
-6. Normalize environment files and Vercel variables by service/visibility.
-7. Add domain/DNS, transactional email, and observability when launch scope requires them.
+2. Export the empty legacy database, reset it, replace the old migration chain with the minimal canonical schema, and verify local/remote replay.
+3. Verify every Vercel, Supabase, WorkOS, Modal, Stripe, Composio, and GitHub resource by immutable account/team/project/environment ID.
+4. Select/configure correct WorkOS production app.
+5. Create the Beyond Pi fork, record the exact upstream/fork commit, and establish the vendored build/update workflow.
+6. Create Modal app/images/service identity and stable filesystem/working-set recovery strategy.
+7. Scope the Composio project credential and wire Composio through SDK/API and encrypted environment variables.
+8. Normalize environment files and Vercel variables by service/visibility; rotate transcript-exposed credentials before external access.
+9. Create and maintain the provider-rate register/cost calculator.
+10. Complete Stripe activation and create the live product and $30 recurring per-user monthly price only when the billing phase begins.
+11. Add domain/DNS, transactional email, and observability when launch scope requires them.
 
 ### Environment variable families
 
