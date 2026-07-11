@@ -1124,7 +1124,26 @@ All backend routes, database policies, Storage objects, Realtime channels, tool 
 
 ## 20. Canonical Data Model
 
-The exact SQL evolves through migrations, but the conceptual entities below are required. Every organization-owned table includes `organization_id`; mutable entities use timestamps and appropriate version/concurrency fields; external provider IDs are secondary unique columns.
+The existing 14-table Supabase schema and its migration chain are transitional legacy scaffolding. The database is empty, so the preferred migration is a deliberate destructive reset before real users or customer data—not a long sequence of compatibility migrations that preserves concepts the new product does not want. After an export/backup for forensic safety, remove the legacy chain, define a clean baseline migration, replay it into an empty local database, apply it to the linked Beyond project, and verify local/remote schema equivalence. No production customer data may be accepted until this reset is complete.
+
+The exact SQL evolves through migrations, but the conceptual entities below describe the planning horizon, not permission to create every table immediately. Every organization-owned table includes `organization_id`; mutable entities use timestamps and appropriate version/concurrency fields; external provider IDs are secondary unique columns. Tables are introduced only in the phase that owns their behavior, authorization tests, lifecycle, and deletion semantics.
+
+### 20.0 Minimal first schema
+
+The clean database begins with the smallest relational foundation capable of supporting WorkOS tenancy, projects, durable runs, outputs, and authorization. The initial baseline should usually contain only:
+
+- `profiles` — internal user identity keyed independently from WorkOS.
+- `external_identities` — WorkOS subject and future identity mappings.
+- `organizations` and `organization_memberships` — tenant and fixed initial roles.
+- `teams` and `team_memberships` only when the first team-owned resource is implemented; groups may initially map from WorkOS metadata or be deferred.
+- `projects` and `project_memberships` — durable work boundary and explicit access exceptions.
+- `threads`, `runs`, `run_attempts`, `turns`, and `run_events` — minimum durable execution spine.
+- `outputs`, `output_versions`, and `output_files` — durable deliverables and binary/object references.
+- `approvals` — consequence-boundary decisions where required by the first runtime.
+- `usage_events` and `cost_ledger` — immutable metering from the first canonical run.
+- `credential_references` only when the first external connection is wired; values remain outside Postgres.
+
+Where a separate table does not yet buy correctness, authorization clarity, queryability, lifecycle control, or referential integrity, prefer a versioned JSON field on an owning record and promote it later through a tested migration. Conversely, do not hide core ownership, membership, event ordering, billing, or permission relationships inside JSON merely to reduce the table count.
 
 ### 20.1 Identity and tenancy
 
@@ -1185,14 +1204,33 @@ The exact SQL evolves through migrations, but the conceptual entities below are 
 
 ### 20.8 Database rules
 
-- One root `supabase/migrations` history is authoritative.
+- The currently applied legacy migrations are explicitly non-authoritative and will be discarded while the database is empty.
+- After the reset, one root `supabase/migrations` history is authoritative. No second SQL directory, dashboard-only mutation, or copied timestamp chain may compete with it.
+- The clean baseline migration represents the new product directly; it must not recreate legacy studio tables solely for compatibility.
 - All exposed tables use RLS; privileged helper functions are private or have tightly revoked execution.
 - RLS policies use direct membership predicates designed to avoid recursion and privilege escalation.
 - Storage bucket/object policies receive separate adversarial tests.
 - Migrations must replay from empty database and match remote schema.
+- Each migration declares forward behavior, rollback/recovery strategy, data impact, lock risk, and whether it is reversible. Destructive production migrations require a verified backup and explicit approval even before external users exist.
+- Dashboard changes are permitted only for investigation or emergency response and must be immediately captured as migrations or reverted; remote drift blocks deployment.
 - Generate typed clients after migration changes.
 - Index foreign keys, membership predicates, event sequence lookups, queue/reconciliation queries, sync cursors, and retrieval filters.
 - Use append-only semantics for run events, usage ledger, immutable agent versions, and audit-relevant records.
+
+### 20.9 Table-admission and lifecycle rules
+
+A proposed table is admitted only when its owning phase specifies:
+
+1. Stable identity and tenant/owner relationship.
+2. Authoritative writer and allowed readers.
+3. RLS and service-role behavior.
+4. Creation, update/versioning, archival, deletion, and retention semantics.
+5. Required uniqueness, foreign keys, indexes, and concurrency behavior.
+6. API/event contract and expected query pattern.
+7. Migration replay and cross-tenant tests.
+8. Whether the data is authoritative, derived/rebuildable, or an external-provider cache.
+
+This rule intentionally delays speculative tables for advanced memory, connector sync, automations, collaboration, and billing until their behavior is implemented. “Minimal” means fewer ambiguous concepts and less premature persistence—not denormalized permissions, missing constraints, or a single unbounded metadata table.
 
 ---
 
@@ -1299,6 +1337,8 @@ Modal receives a short-lived, audience-bound token containing run/actor/org/proj
 - Webhooks update subscriptions idempotently and tolerate reordering.
 - Customer portal supports payment method, invoices, and cancellation.
 
+Stripe account activation and any required business verification must be complete before Beyond can make live charges. A usable CLI/dashboard session or visible live-mode objects does not by itself prove the account can accept payment.
+
 Do not add tiers, annual plans, usage overages, coupons, or complex entitlements until product packaging is decided.
 
 ### 23.3 Usage controls
@@ -1309,6 +1349,93 @@ Do not add tiers, annual plans, usage overages, coupons, or complex entitlements
 - Finalize actual costs from model, Composio/provider, sandbox, storage, and other metered events.
 - Expose user-friendly usage and admin-level attribution by user/project/agent.
 - Failed runs still record consumed cost.
+
+### 23.4 Cost-accounting model
+
+Cost is a first-class product constraint, not a launch-only finance exercise. Every run records both provider-reported actual cost and a normalized internal allocation. The ledger separates:
+
+- Model input, cached input, output, reasoning, image, audio, and request charges.
+- OpenRouter credit/platform fees or BYOK fees where applicable.
+- Web/search/data-provider requests.
+- Composio and other managed integration usage.
+- Modal CPU, memory, GPU if ever enabled, filesystem snapshot, volume, network, and execution duration.
+- Supabase database, storage, egress, Realtime, and compute overage.
+- Collaboration provider connections, rooms/documents, history, comments, and AI features.
+- Object storage, rendering, OCR, email, observability, and background workflow costs.
+- Stripe payment-processing fees and refunds/chargebacks for realized gross margin.
+
+All rates are versioned with `effective_from`, currency, billing unit, source URL/contract, included credit, volume tier, and last verification date. Historical cost is never recomputed using today's price table. Provider invoices are reconciled against the internal ledger monthly and after any material pricing change.
+
+Canonical per-run formulas:
+
+```text
+model_cost = Σ(tokens_or_units × effective_model_rate) + routing_or_credit_fees
+tool_cost = Σ(provider_operations × effective_operation_rate)
+sandbox_cost = Σ(max(requested, measured_billable_usage) × provider_rate × duration)
+storage_cost = retained_bytes × duration_rate + operations + egress
+run_cogs = model_cost + tool_cost + sandbox_cost + storage_cost + render_cost + allocated_realtime_cost
+accepted_output_cogs = total_run_cogs / accepted_or_published_outputs
+active_seat_cogs = organization_provider_cogs / active_billable_seats
+gross_margin = (recognized_revenue - payment_fees - provider_cogs) / recognized_revenue
+```
+
+Cost attribution must distinguish user-canceled, system-failed, policy-denied, retried, completed-but-rejected, accepted, and published outcomes. Optimization targets cost per accepted output and retained organization value—not merely low cost per model call.
+
+### 23.5 Initial planning baseline and scenario bands
+
+The following is a planning baseline dated **2026-07-11**, not a promise or substitute for invoice verification. Prices must be refreshed before procurement, launch, and every pricing decision.
+
+| Component | Current planning assumption | Included/variable behavior | Planning treatment |
+|---|---:|---|---|
+| Vercel Pro | `$20/month` platform fee | Includes one deploying seat and usage credit under the current plan | Known fixed baseline; add usage only after included credit |
+| Supabase Pro | From `$25/month` | First project and current included database/storage/egress allowances | Known fixed baseline; model compute/storage/egress overage separately |
+| WorkOS AuthKit | `$0` through current free MAU allowance | Production still requires billing activation; SSO/Directory Sync/custom domain are separately priced | Zero initial AuthKit COGS; never assume enterprise connections are free |
+| WorkOS SSO/Directory Sync | Currently starts at `$125/month` per connection | Added only for a customer that enables the feature | Attribute directly to the organization/contract |
+| Modal Starter | `$0` platform fee with current monthly compute credit | Sandbox CPU/memory is usage-based after credit | Treat credit as temporary portfolio benefit, not negative per-run COGS |
+| Modal Sandbox CPU | `$0.00003942/core-second` planning rate | Physical core; billed by the greater of request or actual usage | Capture requested and actual billable usage |
+| Modal Sandbox memory | `$0.00000672/GiB-second` planning rate | Billed by the greater of request or actual usage | Right-size from measured percentiles |
+| Liveblocks | Free for prototype; Pro currently `$25/month` billed annually | Usage credits/limits and a much larger Team tier apply | Do not adopt Team tier or provider-specific architecture before measured need |
+| OpenRouter | Model list price plus current payment/platform mechanics | Model-dependent token/unit prices; pay-as-you-go currently charges a credit-purchase fee | Fetch/store actual response cost and generation usage |
+| Composio | Contract/dashboard rate to verify | Pricing and included connected-account/tool usage may change | Block commercial forecast until the actual Beyond plan is recorded |
+| Stripe | Transaction-dependent | Processing varies by country, method, and contract | Use realized Stripe balance-transaction fees in margin reporting |
+| Exa/financial datasets/email/observability/domain | Plan/usage to verify | May be free during development and material later | Record individually; do not hide inside “miscellaneous” |
+
+Known fixed infrastructure floor for a production-shaped internal environment is therefore approximately **$45/month** for Vercel Pro plus Supabase Pro before variable usage, optional collaboration, SSO/SCIM, custom domains, email, observability, Composio, and payment processing. This is a floor, not the total cost of operating the product.
+
+At the current Modal planning rates, an illustrative sandbox requesting 2 physical cores and 4 GiB for 10 minutes costs approximately:
+
+```text
+CPU:    2 × 600 × $0.00003942 = $0.047304
+Memory: 4 × 600 × $0.00000672 = $0.016128
+Total sandbox compute ≈ $0.063432
+```
+
+The same request for 30 minutes is approximately `$0.190296`, excluding snapshots, volumes, network, models, tools, rendering services, and any burst above the request. These are validation examples for the cost calculator, not runtime defaults or user limits.
+
+Required operating scenarios:
+
+| Scenario | Required assumptions | Decision output |
+|---|---|---|
+| Internal development | Team seats, low run volume, provider credits, no SSO/SCIM | Monthly cash burn and credit-expiry sensitivity |
+| Design-partner pilot | 1–5 organizations, named seats, expected runs/seat, document mix, connector mix | Provider budget, support load, and safe pilot caps |
+| 100 active seats | Light/typical/heavy usage distribution and accepted-output rate | COGS/seat, gross margin, concurrency, and model policy |
+| 500-seat organization | Activation ratio, knowledge sync, SSO/SCIM connections, peak concurrency | Contract floor, infrastructure tier, and onboarding economics |
+| Adversarial heavy user | Maximum tokens, retries, sandbox duration, data scans, images, external actions | Hard limits that prevent one seat from consuming organization margin |
+
+At `$30/user/month`, initial planning should target provider COGS below **20–30% of recognized seat revenue** under the expected scenario, leaving room for payment fees, support, development, and future enterprise requirements. This is a guardrail to validate, not permission to reduce output quality blindly. If expected COGS exceeds the guardrail, first adjust model routing, caching, sandbox lifecycle, retries, included usage, or contract minimums; do not hide the problem through unmetered overages.
+
+### 23.6 Cost gates
+
+Before each phase expands production usage:
+
+- Refresh and approve the provider-rate table.
+- Run canonical fixtures and record model/tool/sandbox/output cost distributions.
+- Set per-run, per-day, per-seat, and per-organization warning and hard limits.
+- Verify retry, cancellation, provider failure, and approval waits stop unnecessary billing.
+- Reconcile a sample of ledger entries to provider dashboards/invoices.
+- Forecast expected and p95 cost per accepted output and active seat.
+- Document whether included credits are excluded from unit economics and included only in cash-burn reporting.
+- Require a product decision if a new provider introduces a fixed tier, minimum commitment, or organization-specific cost that materially changes the `$30` seat model.
 
 ---
 
