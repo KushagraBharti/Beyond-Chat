@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import mimetypes
+import os
 import re
 import traceback
 from datetime import datetime, timezone
@@ -47,7 +48,7 @@ from .workflows import run_studio_workflow
 
 load_dotenv()
 BACKEND_ROOT = Path(__file__).resolve().parents[1]
-LOG_DIR = BACKEND_ROOT / "logs"
+LOG_DIR = Path("/tmp/beyond-chat-logs") if os.getenv("VERCEL") else BACKEND_ROOT / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO)
 log_path = LOG_DIR / "backend.log"

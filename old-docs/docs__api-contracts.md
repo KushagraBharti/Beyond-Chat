@@ -7,6 +7,9 @@
 - All product routes except health require authenticated context.
 - Provider-backed routes must fail gracefully with explicit status and error information.
 - Artifact-producing routes should preserve selected context IDs and provenance metadata.
+- Application traffic should remain stateless at the FastAPI layer so Vercel-managed routing/serverless scaling can distribute requests without sticky sessions.
+- Usage and quota controls should be enforced at the authenticated backend boundary, using `usage_events` and billing plan state where available.
+- The product should use bounded retrieved context instead of sending whole chat histories to every provider call.
 
 ## Core Endpoints
 
@@ -126,6 +129,13 @@
 - Artifact context is selectable and passed by `context_ids`.
 - Non-artifact sources show real provider availability states and are not selectable until live connector data paths exist.
 - Artifact detail handoffs pass selected artifact context into Chat, Research, Finance, Writing, and Compare.
+- Context Builder is the app's practical RAG layer: it retrieves durable artifacts and injects bounded, relevant context into the active studio instead of treating the product as a generic AI aggregator.
+
+### Inline Actions And Cost Controls
+
+- Studio outputs should expose inline actions such as Save as Artifact, Compare, Continue in another studio, and Apply targeted edit.
+- Prompts should remain task-scoped and economical: send selected artifact context, file profiles, or selected text ranges rather than full histories or whole documents when a smaller context is enough.
+- Usage events and provider status should support plan-aware limits, monthly usage visibility, and graceful handling of provider rate-limit errors.
 
 ### Workspace Productivity
 

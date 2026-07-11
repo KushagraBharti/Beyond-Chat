@@ -49,6 +49,8 @@ __pycache__/
 *.egg-info/
 
 # Local environment files
+.env
+.env.*
 *.local
 
 # Editor directories and files
@@ -62,12 +64,12 @@ __pycache__/
 *.sln
 *.sw?
 
-# env files
-.env
-.env.*
-backend/.env
-frontend/.env.local
+# Local credentials
 api-credentials.txt
 supabase/.temp/
 
+# Session transcript: contains cleartext API keys, OAuth tokens, and personal data — never commit
+transcript.md
+
 .presentation-workspace
+.vercel

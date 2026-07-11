@@ -2,6 +2,8 @@
 
 ## External / Manual Blockers
 
+- Full application-level rate-limit enforcement still needs a final backend middleware pass if the project wants hard quota blocking by plan. The database has usage-event storage and billing status groundwork, and providers expose rate-limit errors, but enforcement should not be overstated unless middleware is enabled.
+- There is no custom load balancer in the repository. Production scalability relies on Vercel-managed routing/serverless concurrency and Supabase-managed database/storage capacity.
 - Future Supabase SQL migrations should use the checked-in `supabase/migrations/` history after the remote `cli_login_postgres` circuit breaker clears or after `SUPABASE_DB_PASSWORD` is set for direct CLI access.
 - The linked Supabase app schema was intentionally wiped and rebuilt from the canonical SQL in `backend/sql-related-files/` on May 4, 2026 because project data was disposable.
 - The previous missing-local migration drift was reconciled locally by adding migration files for the older remote-recorded versions. Remote migration history now also includes `20260504071000_direct_membership_rls`.

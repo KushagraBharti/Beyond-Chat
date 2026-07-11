@@ -1,7 +1,8 @@
 {
+  "outputDirectory": "public",
   "functions": {
     "api/run.ts": {
-      "maxDuration": 900
+      "maxDuration": 300
     }
   }
 }

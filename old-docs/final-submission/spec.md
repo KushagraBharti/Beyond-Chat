@@ -10,6 +10,7 @@ Beyond Chat is a modular AI workspace for artifact-first work. Users move throug
 - Treat outputs as first-class artifacts that can be searched, reopened, exported, and reused as context
 - Make model comparison available from the active workflow without forcing route changes
 - Keep one coherent product surface instead of parallel prototype apps
+- Position Beyond Chat as an artifact workspace, not a thin aggregator: studios own workflow-specific controls, persistence, provenance, and handoffs instead of simply collecting third-party AI links.
 
 ## Canonical Surface Area
 
@@ -57,6 +58,10 @@ Artifacts are the durable units of value in the product. They are searchable, fi
 ### Shared Compare Panel
 
 Compare remains a core capability, but it is invoked as a shared reusable panel from Chat and any other studio that needs side-by-side model output review. Compare is no longer its own destination.
+
+### Retrieval And Context
+
+Beyond Chat uses an explicit Context Builder pattern rather than invisible long-thread memory. Saved artifacts can be selected and passed into future prompts as bounded context. This is the product's practical RAG path: retrieve the user's durable artifacts, summarize or bound the relevant content, and inject only the useful context into the next studio run.
 
 ### Workspace Context
 
@@ -151,6 +156,16 @@ Artifacts and runs are product-facing user-profile records. Workspace IDs still 
 - Navigation must be stable and predictable
 - Non-artifact connector tabs must show real availability states and remain non-selectable until live data paths exist
 - Studio output handoffs should preserve source text and selected artifact context rather than forcing copy/paste
+- Inline assistant actions should appear where the work happens: save, compare, continue in another studio, or apply targeted edits without forcing the user to copy/paste into a separate chat.
+- Cost-sensitive prompts should be short, bounded, and task-specific. The product should prefer selected artifact snippets, file profiles, and structured run options over dumping whole histories into every model request.
+
+## Scalability And Operations
+
+- The hosted deployment relies on Vercel's managed routing and serverless scaling rather than a custom load balancer in the repo.
+- Backend endpoints are designed to degrade cleanly when providers are disconnected, rate limited, or not configured.
+- Usage tracking is modeled through billing and usage tables so request-count and spend-based limits can be enforced by plan.
+- CI now runs through GitHub Actions for frontend tests/build, backend pytest, and sandbox-runner typecheck.
+- Provider-level rate-limit handling is part of the operational model; full application-level quota enforcement should be treated as follow-on hardening unless implemented in backend middleware.
 
 ## Technical Contract
 

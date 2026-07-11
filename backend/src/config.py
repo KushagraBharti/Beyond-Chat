@@ -9,13 +9,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 APP_TITLE = "Beyond Chat"
-APP_URL = "http://127.0.0.1:5173"
+APP_URL = os.getenv("APP_URL", "http://127.0.0.1:5173")
 OPENROUTER_DEFAULT_MODEL = "openai/gpt-5.4-nano"
 OPENROUTER_IMAGE_DEFAULT_MODEL = "google/gemini-2.5-flash-image"
 OPENROUTER_TIMEOUT_SECONDS = 45.0
 DEXTER_RUNNER_TIMEOUT_SECONDS = 900.0
-DEXTER_RUNNER_URL: str | None = None
-GOOGLE_REDIRECT_URI = "http://127.0.0.1:8000/api/integrations/google-calendar/callback"
+DEXTER_RUNNER_URL: str | None = os.getenv("DEXTER_RUNNER_URL")
+GOOGLE_REDIRECT_URI = os.getenv(
+    "GOOGLE_REDIRECT_URI",
+    "http://127.0.0.1:8000/api/integrations/google-calendar/callback",
+)
 SUPABASE_STORAGE_BUCKET = "artifacts"
 
 

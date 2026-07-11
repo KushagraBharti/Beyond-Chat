@@ -3,6 +3,11 @@
 ## Code and Product Implementation
 
 - Added Data Studio CSV/Excel ingestion path with secure storage upload, backend preview/profile parsing, OpenRouter-backed analysis, run-step rendering, and save-to-artifact continuity.
+- Added GitHub Actions CI covering frontend tests/build, backend pytest, and sandbox-runner typecheck.
+- Documented the scalability model: stateless FastAPI handlers, Vercel-managed routing/serverless scaling, Supabase-managed persistence, and provider-aware failure states.
+- Documented the rate-limit and usage strategy around provider backpressure, `usage_events`, billing status, and authenticated backend enforcement points.
+- Clarified that Beyond Chat is not an AI aggregator: the product value comes from studio workflows, artifact persistence, provenance, context retrieval, and cross-studio handoffs.
+- Clarified the minimum-cost prompting strategy: bounded artifact retrieval, dataset profiles, selected-text targeted edits, and explicit model comparison only when useful.
 - Added Data Studio first-class chart and table artifact save actions in addition to the combined insight/report artifact.
 - Expanded Data Studio analysis output to include decision metrics, risks/anomalies, recommendations, and chart rendering for bar, line, pie, and scatter responses.
 - Added Data Studio handoff actions that carry the generated analysis into Finance, Writing, and Compare using full analysis content.

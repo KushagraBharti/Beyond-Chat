@@ -21,11 +21,12 @@ flowchart LR
     API --> Exa["Exa"]
     API --> Stripe["Stripe Billing"]
     API --> Google["Google Calendar Scaffolding"]
+    API --> Limits["Usage Tracking / Rate-Limit Enforcement Point"]
 
     PG --> Profile["user_profiles as product ownership scope"]
     PG --> Workspace["legacy/bootstrap workspace tables where already required"]
     PG --> Chat["chat_collections / chat_threads / chat_messages"]
-    PG --> Work["artifacts / runs / run_steps / reminders"]
+    PG --> Work["artifacts / runs / run_steps / reminders / usage_events"]
 ```
 
 ## Canonical Notes
@@ -43,5 +44,9 @@ flowchart LR
 - Data Studio already follows the artifact path for combined analysis, chart artifacts, and table artifacts.
 - Live providers are required for product behavior: OpenRouter for LLMs, Exa for research, Supabase for persistence/storage. Do not add deterministic demo fallbacks as product behavior.
 - Billing must degrade to explicit disabled/unavailable Settings states when Stripe or billing storage is not configured.
+- Scalability is handled primarily through Vercel-managed routing/serverless concurrency, Supabase managed Postgres/storage, and stateless FastAPI request handlers.
+- The architecture has a natural rate-limit point at authenticated backend middleware plus `usage_events`; provider-level rate-limit errors are surfaced clearly rather than hidden behind fake fallback data.
+- CI/CD is covered by GitHub Actions for repository validation and Vercel Git integration for deployment promotion.
+- Beyond Chat is intentionally not an aggregator: each studio owns a workflow, stores outputs as artifacts, and passes retrieved context into future runs.
 - Frontend work should use `high-end-visual-design`, `gpt-taste`, `design-taste-frontend`, and `frontend-design`, while preserving the current Beyond Chat theme and architecture.
 - Supabase/Postgres work should use the repo-local `supabase-postgres-best-practices` skill.
