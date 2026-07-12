@@ -82,10 +82,21 @@ export function getOrganizationCatalog() {
   return sessionRequest<OrganizationCatalog>(`${BASE}/catalog`);
 }
 
-export function executeGeneralAgent(input: { prompt: string; projectId: string }) {
+export async function executeGeneralAgent(input: { prompt: string; projectId: string }) {
+  const knowledge = await sessionRequest<{ items: ProductRecordSummary[] }>(
+    `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
+  ).catch(() => ({ items: [] }));
+  const sources = knowledge.items.slice(0, 8).map((record) => ({
+    id: record.id,
+    name: recordTitle(record),
+    content: String(record.payload["description"] ?? "").slice(0, 2_000),
+  })).filter((source) => source.content.trim());
+  const groundedPrompt = sources.length ? `${input.prompt}\n\nApproved project knowledge:\n${sources
+    .map((source) => `- [Source: ${source.name} | ${source.id}] ${source.content}`)
+    .join("\n")}\n\nUse this knowledge when relevant and cite it with [Source: name]. Do not claim unsupported facts.` : input.prompt;
   return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
     "/api/runtime/agents/general:execute",
-    { method: "POST", body: JSON.stringify({ prompt: input.prompt, project_id: input.projectId }) },
+    { method: "POST", body: JSON.stringify({ prompt: groundedPrompt, project_id: input.projectId }) },
   );
 }
 
