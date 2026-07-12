@@ -4,11 +4,13 @@ import inspect
 import hashlib
 import os
 import secrets
+from uuid import uuid4
 from dataclasses import dataclass
 from typing import Annotated, Any, Awaitable, Callable
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from fastapi.responses import RedirectResponse
+import httpx
 
 from ..authorization.policy import OrganizationRole, Principal, ResourcePermission
 from ..identity.authkit import require_csrf, require_principal
@@ -704,6 +706,55 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     async def automations(project_id: str, principal: Principal = Depends(deps.principal)):
         return await list_kind("automation", project_id, principal)
 
+    async def execute_automation(target: Scope, automation_id: str,
+                                 execution: dict[str, Any]) -> dict[str, Any]:
+        """Run a queued automation through the same Modal agent used by Chat.
+
+        Automation records remain the durable history; Modal is only the
+        execution effect. This deliberately supports the first useful product
+        path (General Agent + text result) without inventing a second runtime.
+        """
+        automation = run(lambda: service.get("automation", automation_id, target))
+        actor = automation_lifecycle._service_principal(automation, target)
+        url = os.getenv("MODAL_RUNTIME_URL", "").strip()
+        secret = os.getenv("MODAL_RUNTIME_SHARED_SECRET", "").strip()
+        if not url or not secret:
+            return execution
+        config = dict(automation.get("payload") or {})
+        prompt = str(config.get("prompt") or config.get("description") or config.get("name") or
+                     "Complete this scheduled workspace task and return the result.").strip()
+        run_id = f"automation-{uuid4()}"
+        running = run(lambda: service.update(
+            kind="automation_execution", record_id=execution["id"], scope=target,
+            principal=actor, expected_version=int(execution["version"]), state="running",
+            payload={"runtime_run_id": run_id}, minimum=OrganizationRole.BUILDER))
+        try:
+            async with httpx.AsyncClient(timeout=900) as client:
+                response = await client.post(url, json={
+                    "prompt": prompt,
+                    "organization_id": target.organization_id,
+                    "project_id": target.project_id,
+                    "run_id": run_id,
+                }, headers={"Authorization": f"Bearer {secret}"})
+                response.raise_for_status()
+                result = response.json()
+            text = str(result.get("text", "")).strip() if isinstance(result, dict) else ""
+            if not text:
+                raise ValueError("Modal returned no output")
+            return run(lambda: service.update(
+                kind="automation_execution", record_id=execution["id"], scope=target,
+                principal=actor, expected_version=int(running["version"]), state="completed",
+                payload={"runtime_run_id": run_id, "result_text": text},
+                minimum=OrganizationRole.BUILDER))
+        except (httpx.HTTPError, ValueError) as exc:
+            run(lambda: service.update(
+                kind="automation_execution", record_id=execution["id"], scope=target,
+                principal=actor, expected_version=int(running["version"]), state="failed",
+                payload={"runtime_run_id": run_id, "error": "Agent execution failed."},
+                minimum=OrganizationRole.BUILDER))
+            raise HTTPException(status.HTTP_502_BAD_GATEWAY,
+                                "Automation agent execution failed.") from exc
+
     @router.patch("/projects/{project_id}/automations/{automation_id}")
     async def update_automation(project_id: str, automation_id: str, body: ResourcePatch,
                                 expected_version: ExpectedVersion, principal: Principal = Depends(deps.principal),
@@ -730,18 +781,20 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                                  principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.USE)
         run(lambda: service.require_provider("automations", principal))
-        return run(lambda: automation_lifecycle.enqueue(
+        execution = run(lambda: automation_lifecycle.enqueue(
             scope=target, automation_id=automation_id, trigger_source="manual",
             trigger_key=f"manual:{automation_id}:{idempotency_key}", principal=principal))
+        return await execute_automation(target, automation_id, execution)
 
     @router.post("/projects/{project_id}/automations/{automation_id}/test", status_code=202)
     async def test_automation(project_id: str, automation_id: str, idempotency_key: IdempotencyKey,
                               principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
         run(lambda: service.require_role(principal, OrganizationRole.BUILDER))
-        return run(lambda: automation_lifecycle.enqueue(
+        execution = run(lambda: automation_lifecycle.enqueue(
             scope=target, automation_id=automation_id, trigger_source="test",
             trigger_key=f"test:{automation_id}:{idempotency_key}", principal=principal, test=True))
+        return await execute_automation(target, automation_id, execution)
 
     @router.post("/projects/{project_id}/automations/{automation_id}/versions", status_code=201)
     async def publish_automation_version(project_id: str, automation_id: str, idempotency_key: IdempotencyKey,
@@ -859,8 +912,29 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
 
         automations = [_record_dict(item) for item in deps.repository.list_global(
             kind="automation", states=("active",), limit=500)]
-        return run(lambda: automation_lifecycle.scheduler_tick(
+        report = run(lambda: automation_lifecycle.scheduler_tick(
             automations, now_epoch=int(_time.time())))
+        completed = 0
+        failed = 0
+        queued = [_record_dict(item) for item in deps.repository.list_global(
+            kind="automation_execution", states=("queued",), limit=20)]
+        for execution in queued:
+            if execution.get("payload", {}).get("trigger") != "schedule":
+                continue
+            automation_id = str(execution.get("payload", {}).get("parent_id") or "")
+            if not automation_id:
+                continue
+            execution_scope = Scope(
+                execution["scope"]["organization_id"],
+                execution["scope"].get("project_id"),
+                execution["scope"].get("team_id"),
+            )
+            try:
+                await execute_automation(execution_scope, automation_id, execution)
+                completed += 1
+            except HTTPException:
+                failed += 1
+        return {**report, "completed": completed, "failed": failed}
 
     @router.get("/billing/status")
     async def billing_status(principal: Principal = Depends(deps.principal)):
