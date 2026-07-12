@@ -1,0 +1,13 @@
+# Runtime streaming integration contract
+
+`src.runtime_streaming` is transport-ready but intentionally not registered in `main.py` or shared routes.
+
+The HTTP edge must authenticate the caller, authorize organization/project membership, construct `RunScope`, and map both an inaccessible run and an absent run to the same `404`. It must pass `Last-Event-ID` (preferred) and the `after` query parameter to `RuntimeStreamingService.parse_cursor` before response headers are committed. Map `CursorInvalid` to `400`, `CursorAhead` to `409`, and `CursorStale` to `410` with `minimum_cursor`; clients receiving `410` must discard local projection state and fetch a fresh snapshot.
+
+For `GET /v1/organizations/{org}/projects/{project}/runs/{run}/snapshot`, return `service.snapshot(scope)`. For `/events`, return a `StreamingResponse(service.stream(...), media_type="text/event-stream")` with `Cache-Control: no-cache, no-transform`, `Connection: keep-alive`, and `X-Accel-Buffering: no`. Pass Starlette's `request.is_disconnected` as the disconnect probe.
+
+The repository adapter is security-critical. Both `get_snapshot` and every `read_events_after` call must use one database query/RPC constrained by `organization_id`, `project_id`, and `run_id`; never fetch by run ID and authorize afterward. `read_events_after` must use `sequence > after_sequence ORDER BY sequence ASC LIMIT limit`. `get_snapshot` must atomically return projection state, latest durable sequence, and the lowest retained sequence. An inaccessible row returns `None`, never a distinct authorization error.
+
+Repository rows are treated as untrusted input. The service rejects oversized batches, negative or unordered sequences, inconsistent snapshot bounds, unsafe state/event tokens, malformed event IDs/schema versions, and timezone-naive timestamps before SSE serialization. Adapters must return canonical event names such as `run.completed`, opaque ASCII event IDs, `major.minor` schema versions, and timezone-aware datetimes.
+
+A fresh stream emits a synthetic `snapshot` frame whose SSE ID equals `latest_sequence`, then follows events after it. A reconnect emits no synthetic snapshot and replays strictly after its cursor. Durable events are never dropped or coalesced by this layer. Reads are capped by `batch_size`, backlog batches drain without polling delay, heartbeats are SSE comments, terminal streams close only after all durable events are delivered, and idle streams close at `max_idle_seconds` so clients reconnect. Cancellation and disconnect end the async generator without background tasks or subscriptions to leak.
