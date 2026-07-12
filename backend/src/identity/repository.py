@@ -738,6 +738,7 @@ class SupabaseIdentityRepository:
 
     @staticmethod
     def _one(data: object) -> dict[str, Any] | None:
+        data = getattr(data, "data", data)
         if isinstance(data, dict):
             return data
         if isinstance(data, list) and data and isinstance(data[0], dict):
@@ -771,7 +772,6 @@ class SupabaseIdentityRepository:
             .eq("subject", subject)
             .maybe_single()
             .execute()
-            .data
         )
         if identity:
             profile_id = str(identity["profile_id"])
@@ -829,7 +829,6 @@ class SupabaseIdentityRepository:
             .eq("workos_organization_id", workos_organization_id)
             .maybe_single()
             .execute()
-            .data
         )
         if organization:
             organization_id = str(organization["id"])
@@ -901,7 +900,6 @@ class SupabaseIdentityRepository:
             .eq("subject", subject)
             .maybe_single()
             .execute()
-            .data
         )
         if not identity:
             return None
@@ -915,7 +913,6 @@ class SupabaseIdentityRepository:
             .eq("state", "active")
             .maybe_single()
             .execute()
-            .data
         )
         if not organization:
             return None
@@ -927,7 +924,6 @@ class SupabaseIdentityRepository:
             .eq("state", "active")
             .maybe_single()
             .execute()
-            .data
         )
         if not membership:
             return None
