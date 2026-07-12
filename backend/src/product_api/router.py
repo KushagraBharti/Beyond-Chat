@@ -568,6 +568,16 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
             payload={"manifest": draft["payload"], "source_version": draft["version"]}, state="published",
             minimum=OrganizationRole.BUILDER))
 
+    @router.post("/projects/{project_id}/agents/versions/{version_id}/deprecate")
+    async def deprecate_agent_version(project_id: str, version_id: str,
+                                      expected_version: ExpectedVersion,
+                                      principal: Principal = Depends(deps.principal),
+                                      _guard: None = Depends(mutation)):
+        target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
+        return run(lambda: service.update(kind="agent_version", record_id=version_id, scope=target,
+            principal=principal, expected_version=expected_version, state="deprecated",
+            minimum=OrganizationRole.BUILDER))
+
     @router.get("/projects/{project_id}/agents/{agent_id}/resolve")
     async def resolve_agent(project_id: str, agent_id: str, principal: Principal = Depends(deps.principal)):
         target = await scope(principal, project_id, None, ResourcePermission.USE)

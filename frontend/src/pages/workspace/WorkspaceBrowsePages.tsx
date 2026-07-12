@@ -388,6 +388,7 @@ export function AgentsPage() {
   const [agentPrompts, setAgentPrompts] = useState<Record<string, string>>({});
   const [agentResults, setAgentResults] = useState<Record<string, string>>({});
   const [runningAgent, setRunningAgent] = useState<string | null>(null);
+  const [deprecatingAgent, setDeprecatingAgent] = useState<string | null>(null);
   const runtimeEnabled = capabilities.status === "ready" && capabilities.data?.runtime_execution === true;
   async function runPublishedAgent(record: ProductRecordSummary) {
     if (!currentProject) return;
@@ -409,6 +410,16 @@ export function AgentsPage() {
       setAgentResults((current) => ({ ...current, [record.id]: cause instanceof Error ? cause.message : "The agent run failed." }));
     } finally {
       setRunningAgent(null);
+    }
+  }
+  async function deprecatePublishedAgent(record: ProductRecordSummary) {
+    if (!currentProject) return;
+    setDeprecatingAgent(record.id);
+    try {
+      await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/agents/versions/${encodeURIComponent(record.id)}/deprecate`, { method: "POST", headers: { "If-Match": String(record.version) } });
+      published.reload();
+    } finally {
+      setDeprecatingAgent(null);
     }
   }
   return (
@@ -453,6 +464,7 @@ export function AgentsPage() {
               <span><b>{recordTitle(record)}</b><small>published immutable version · v{record.version}</small></span>
               <label><span>Run this agent</span><textarea rows={2} value={agentPrompts[record.id] ?? ""} onChange={(event) => setAgentPrompts((current) => ({ ...current, [record.id]: event.target.value }))} placeholder="Give the published agent a task" /></label>
               <button type="button" className="workspace-button" disabled={!runtimeEnabled || !currentProject || runningAgent !== null || !agentPrompts[record.id]?.trim()} onClick={() => void runPublishedAgent(record)}>{runningAgent === record.id ? "Running on Modal…" : "Run published version"}</button>
+              <button type="button" className="workspace-button is-quiet" disabled={!currentProject || deprecatingAgent !== null} onClick={() => void deprecatePublishedAgent(record)}>{deprecatingAgent === record.id ? "Deprecating…" : "Deprecate version"}</button>
               {agentResults[record.id] ? <div className="workspace-notice is-neutral" role="status"><strong>Agent result</strong><span>{agentResults[record.id]}</span></div> : null}
             </article>
           ))
