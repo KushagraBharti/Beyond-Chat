@@ -83,7 +83,7 @@ export function getOrganizationCatalog() {
   return sessionRequest<OrganizationCatalog>(`${BASE}/catalog`);
 }
 
-export async function executeGeneralAgent(input: { prompt: string; projectId: string; agentVersionId?: string; instructions?: string }) {
+export async function executeGeneralAgent(input: { prompt: string; projectId: string; runId?: string; agentVersionId?: string; instructions?: string }) {
   const [knowledge, memory] = await Promise.all([
     sessionRequest<{ items: ProductRecordSummary[] }>(
       `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
@@ -105,6 +105,7 @@ export async function executeGeneralAgent(input: { prompt: string; projectId: st
   const memoryContext = memories.length ? `\n\nApproved project memory:\n${memories.map((content) => `- ${content}`).join("\n")}` : "";
   const groundedPrompt = `${input.prompt}${knowledgeContext}${memoryContext}\n\nDo not claim unsupported facts.`;
   const body: Record<string, string> = { prompt: groundedPrompt, project_id: input.projectId };
+  if (input.runId) body.run_id = input.runId;
   if (input.agentVersionId) body.agent_version_id = input.agentVersionId;
   if (input.instructions?.trim()) body.instructions = input.instructions.trim();
   return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
@@ -118,6 +119,13 @@ export function replayGeneralAgentRun(runId: string) {
     events: Array<{ sequence: number; event_type: string; payload: Record<string, unknown> }>;
     cursor: number;
   }>(`/api/runtime/runs/${encodeURIComponent(runId)}/events?after=0`);
+}
+
+export function cancelGeneralAgentRun(runId: string) {
+  return sessionRequest<{ run_id: string; state: string; version: number }>(
+    `/api/runtime/runs/${encodeURIComponent(runId)}/cancel`,
+    { method: "POST" },
+  );
 }
 
 export function listProjectRecords(projectId: string, surface: "outputs" | "automations" | "memory") {

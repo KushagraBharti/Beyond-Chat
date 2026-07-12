@@ -121,6 +121,9 @@ def create_runtime_router(
             raise HTTPException(status_code=502, detail="Modal General Agent execution failed") from exc
         if not isinstance(result, dict) or not str(result.get("text", "")).strip():
             raise HTTPException(status_code=502, detail="Modal General Agent returned no output")
+        current = coordinator.repository.get_run(run_id)
+        if current is not None and current.state == "canceled":
+            raise HTTPException(status_code=409, detail="Run was canceled")
         coordinator.append_event(DurableEvent(
             run_id=run_id, sequence=None, event_type="output.generated",
             payload={"text": str(result["text"]), "agent": body.agent_version_id},
