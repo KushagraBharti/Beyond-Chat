@@ -1281,7 +1281,7 @@ class SupabaseIdentityRepository:
         if workos_invitation_id:
             existing = self._one(
                 client.table("invitations")
-                .select("expires_at,accepted_at,revoked_at")
+                .select("id,expires_at,accepted_at,revoked_at")
                 .eq("workos_invitation_id", workos_invitation_id)
                 .maybe_single()
                 .execute()
@@ -1304,13 +1304,15 @@ class SupabaseIdentityRepository:
             or (_iso() if invitation_state == "revoked" else (existing or {}).get("revoked_at")),
             "updated_at": invitation.get("updated_at") or _iso(),
         }
-        row = self._one(
-            client
-            .table("invitations")
-            .upsert(payload, on_conflict="workos_invitation_id")
-            .execute()
-            .data
+        query = (
+            client.table("invitations")
+            .update(payload)
+            .eq("id", existing["id"])
+            if existing
+            else client.table("invitations").insert(payload)
         )
+        response = query.execute()
+        row = self._one(response.data if response is not None else None)
         if not row:
             raise RuntimeError("Invitation persistence did not return a row.")
         return row
