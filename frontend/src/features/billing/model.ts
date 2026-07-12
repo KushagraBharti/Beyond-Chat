@@ -9,7 +9,10 @@ export class DisabledBillingAdapter implements BillingAdapter {
 }
 export class ServerBillingAdapter implements BillingAdapter {
   constructor(private readonly request:(path:string,init?:RequestInit)=>Promise<Response>){ }
-  async loadStatus(){const response=await this.request("/api/v2/billing/status");if(!response.ok)throw new Error("Unable to load verified billing status.");return await response.json() as BillingStatus;}
+  async loadStatus(){const response=await this.request("/api/v2/billing/status");if(!response.ok)throw new Error("Unable to load verified billing status.");const value=await response.json() as Record<string,unknown>;const externallyVerified=value.externally_verified===true;const entitlement=value.entitlement_state;return {organizationId:stringValue(value.organization_id,"unavailable"),subscriptionStatus:stringValue(value.subscription_status,"unknown"),entitlementState:externallyVerified&&isEntitlement(entitlement)?entitlement:"disabled",billableMembers:numberValue(value.billable_members),subscriptionSeats:numberValue(value.seat_quantity),checkoutEnabled:externallyVerified&&value.checkout_enabled===true,portalEnabled:externallyVerified&&value.portal_enabled===true,externallyVerified,...(!externallyVerified?{failureReason:"Paid access has not been verified by the server."}:{})};}
   async beginCheckout(idempotencyKey:string){const response=await this.request("/api/v2/billing/checkout",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({idempotency_key:idempotencyKey})});if(!response.ok)throw new Error("Checkout is unavailable.");const body=await response.json() as {url:string};return body.url;}
   async openPortal(){const response=await this.request("/api/v2/billing/portal",{method:"POST"});if(!response.ok)throw new Error("Billing portal is unavailable.");const body=await response.json() as {url:string};return body.url;}
 }
+function stringValue(value:unknown,fallback:string){return typeof value==="string"?value:fallback;}
+function numberValue(value:unknown){return typeof value==="number"&&Number.isFinite(value)&&value>=0?value:0;}
+function isEntitlement(value:unknown):value is BillingEntitlementState{return value==="enabled"||value==="grace"||value==="disabled";}

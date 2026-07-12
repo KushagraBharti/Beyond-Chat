@@ -1,6 +1,7 @@
 """Persistence contracts and adapters for the Phase 5-12 product surface."""
 
 from .contracts import (
+    CapabilityRun,
     ConflictError,
     NotFoundError,
     ProductPersistenceUnavailable,
@@ -15,6 +16,7 @@ from .unavailable import UnavailableProductRepository
 
 __all__ = [
     "ConflictError",
+    "CapabilityRun",
     "APPEND_ONLY_KINDS",
     "InMemoryProductRepository",
     "NotFoundError",

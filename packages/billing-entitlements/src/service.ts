@@ -22,9 +22,11 @@ export class BillingEntitlementService {
   private readonly clock:Clock;
   private readonly configuration:BillingConfiguration;
   constructor(repository:BillingRepository,clock:Clock,configuration:BillingConfiguration){this.repository=repository;this.clock=clock;this.configuration=configuration;}
-  async consumeVerifiedEvent(event:VerifiedBillingEvent):Promise<"applied"|"duplicate"|"ignored_stale"|"ignored_unmapped"> {
+  async consumeVerifiedEvent(event:VerifiedBillingEvent):Promise<"applied"|"duplicate"|"ignored_stale"|"ignored_unmapped"|"ignored_disabled"|"ignored_mode"> {
     if(await this.repository.beginEvent(event)==="duplicate")return "duplicate";
     try {
+      if(!this.configuration.enabled){await this.repository.completeEvent(event.id);return "ignored_disabled";}
+      if(event.livemode!==this.configuration.livemode){await this.repository.completeEvent(event.id);return "ignored_mode";}
       if(!event.type.startsWith("customer.subscription.")){await this.repository.completeEvent(event.id);return "ignored_unmapped";}
       const org=organizationId(event.object);const customer=stringField(event.object,"customer");const id=stringField(event.object,"id");
       if(!org||!customer||!id)throw new Error("Subscription webhook is missing organization metadata or provider identifiers.");

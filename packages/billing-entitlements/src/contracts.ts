@@ -5,12 +5,13 @@ export type SubscriptionStatus = "incomplete" | "trialing" | "active" | "past_du
 export type EntitlementState = "enabled" | "grace" | "disabled";
 export interface BillingConfiguration {
   readonly enabled: boolean;
+  readonly livemode: boolean;
   readonly price_id?: string;
   readonly price: typeof DEFAULT_SEAT_PRICE;
   readonly past_due_grace_seconds: number;
 }
 export const DISABLED_BILLING_CONFIGURATION: BillingConfiguration = Object.freeze({
-  enabled: false, price: DEFAULT_SEAT_PRICE, past_due_grace_seconds: 0,
+  enabled: false, livemode: false, price: DEFAULT_SEAT_PRICE, past_due_grace_seconds: 0,
 });
 export interface VerifiedBillingEvent {
   readonly id: string;

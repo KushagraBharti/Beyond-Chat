@@ -52,13 +52,16 @@ def test_signature_verification_and_replay_window():
 
 def test_billing_and_observability_are_disabled_by_default():
     assert BillingV2Settings().checkout_ready is False
+    assert BillingV2Settings(enabled=True, livemode=True, price_id="price_live_configured").checkout_ready is False
+    assert BillingV2Settings(enabled=True, livemode=True, checkout_activated=True,
+                             price_id="price_live_configured").checkout_ready is True
     assert ObservabilitySettings().sentry_enabled is False
     assert ObservabilitySettings().otel_enabled is False
 
 
 @pytest.mark.asyncio
 async def test_idempotency_stale_order_and_failure_are_explicit():
-    repo=Repo(); processor=BillingWebhookProcessor(repo,Telemetry())
+    repo=Repo(); processor=BillingWebhookProcessor(repo,Telemetry(),enabled=True,expected_livemode=False)
     event=verify_stripe_signature(payload(200),signed(payload(200),200),"whsec_test",now=lambda:200)
     assert await processor.process(event)=="applied"; assert repo.entitlement.state=="enabled"
     assert await processor.process(event)=="duplicate"
@@ -67,3 +70,14 @@ async def test_idempotency_stale_order_and_failure_are_explicit():
     bad=VerifiedStripeEvent("evt_bad","customer.subscription.updated",300,False,{"id":"sub_bad"})
     with pytest.raises(ValueError): await processor.process(bad)
     assert "evt_bad" in repo.failures
+
+
+@pytest.mark.asyncio
+async def test_disabled_billing_and_mode_mismatch_fail_closed():
+    disabled_repo=Repo(); disabled=BillingWebhookProcessor(disabled_repo,Telemetry())
+    test_event=VerifiedStripeEvent("evt_disabled","customer.subscription.updated",100,False,{"id":"sub_1","customer":"cus_1","status":"active","metadata":{"organization_id":"org_1"}})
+    assert await disabled.process(test_event)=="ignored_disabled"
+    assert disabled_repo.entitlement is None
+    live_repo=Repo(); live=BillingWebhookProcessor(live_repo,Telemetry(),enabled=True,expected_livemode=True)
+    assert await live.process(test_event)=="ignored_mode"
+    assert live_repo.entitlement is None

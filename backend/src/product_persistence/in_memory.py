@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from threading import RLock
 from uuid import uuid4
 
-from .contracts import ConflictError, ProductRecord, Scope
+from .contracts import CapabilityRun, ConflictError, ProductRecord, Scope
 
 
 def _now() -> str:
@@ -19,6 +19,8 @@ class InMemoryProductRepository:
         self._records: dict[tuple[str, str], ProductRecord] = {}
         self._idempotency: dict[tuple[str, str, str], tuple[str, str, str]] = {}
         self._lock = RLock()
+        self._capability_runs: dict[str, CapabilityRun] = {}
+        self.capability_resolution_audit: list[dict] = []
 
     @staticmethod
     def _in_scope(record: ProductRecord, scope: Scope) -> bool:
@@ -82,3 +84,50 @@ class InMemoryProductRepository:
         return self.create_once(kind=kind, scope=scope, actor_id=actor_id,
                                 idempotency_key=idempotency_key, request_digest=request_digest,
                                 state=state, payload=value)
+
+    def add_capability_run(self, run: CapabilityRun) -> None:
+        with self._lock:
+            self._capability_runs[run.run_id] = run
+
+    def get_capability_run(self, *, run_id: str) -> CapabilityRun | None:
+        with self._lock:
+            return self._capability_runs.get(run_id)
+
+    def record_capability_resolution(self, *, run: CapabilityRun, actor_id: str,
+                                     projection_digest: str, metadata,
+                                     approval_claims=()) -> None:
+        with self._lock:
+            now = datetime.now(timezone.utc)
+            approvals: list[ProductRecord] = []
+            scope = Scope(run.organization_id, run.project_id)
+            for claim in approval_claims:
+                current = self._records.get(("capability_approval", str(claim["approval_id"])))
+                if current is None or current.scope != scope or current.state != "approved":
+                    raise ConflictError("approval_not_consumable")
+                binding = current.payload.get("configuration", current.payload)
+                expires_at = binding.get("expires_at")
+                try:
+                    active = isinstance(expires_at, str) and datetime.fromisoformat(
+                        expires_at.replace("Z", "+00:00")) > now
+                except ValueError:
+                    active = False
+                if not active:
+                    raise ConflictError("approval_expired")
+                expected = {
+                    "run_id": run.run_id,
+                    "tool_id": claim.get("tool_id"),
+                    "argument_digest": claim.get("argument_digest"),
+                    "idempotency_key": claim.get("idempotency_key"),
+                }
+                if any(binding.get(key) != value for key, value in expected.items()):
+                    raise ConflictError("approval_binding_mismatch")
+                approvals.append(current)
+            for current in approvals:
+                self._records[(current.kind, current.id)] = ProductRecord(
+                    current.id, current.kind, current.scope, "consumed", current.version + 1,
+                    current.payload, current.created_by, current.created_at, _now())
+            self.capability_resolution_audit.append({
+                "run_id": run.run_id, "actor_id": actor_id,
+                "projection_digest": projection_digest, "metadata": deepcopy(dict(metadata)),
+                "approval_ids": [claim["approval_id"] for claim in approval_claims],
+            })

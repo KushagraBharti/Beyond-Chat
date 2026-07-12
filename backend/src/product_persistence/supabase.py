@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .contracts import ConflictError, ProductRecord, Scope
+from .contracts import CapabilityRun, ConflictError, ProductPersistenceUnavailable, ProductRecord, Scope
 from .manifest import KIND_TABLES
 
 
@@ -113,3 +113,34 @@ class SupabaseProductRepository:
                 raise KeyError("parent_not_found") from exc
             raise
         return self._record(kind, row)
+
+    def get_capability_run(self, *, run_id: str) -> CapabilityRun | None:
+        rows = (self.client.table("runtime_runs")
+                .select("id,organization_id,project_id,actor_id,agent_version_id,state")
+                .eq("id", run_id).limit(1).execute().data or [])
+        if not rows:
+            return None
+        row = rows[0]
+        return CapabilityRun(str(row["id"]), str(row["organization_id"]), str(row["project_id"]),
+                             str(row["actor_id"]), str(row["agent_version_id"]), str(row["state"]))
+
+    def record_capability_resolution(self, *, run: CapabilityRun, actor_id: str,
+                                     projection_digest: str, metadata,
+                                     approval_claims=()) -> None:
+        if approval_claims:
+            raise ProductPersistenceUnavailable(
+                "Approval-backed capability resolution requires a SECURITY INVOKER service-role-only "
+                "RPC named consume_capability_approvals_for_resolution. In one transaction it must "
+                "SELECT FOR UPDATE each approval, verify organization/project/run/tool/argument_digest/"
+                "idempotency_key/status/expiry against database now(), mark each approval consumed once, "
+                "and insert the capability.resolve audit event keyed by projection_digest."
+            )
+        self.client.table("audit_events").insert({
+            "organization_id": run.organization_id,
+            "actor_profile_id": actor_id,
+            "action": "capability.resolve",
+            "resource_type": "runtime_run",
+            "resource_id": run.run_id,
+            "request_id": projection_digest,
+            "metadata": dict(metadata),
+        }).execute()

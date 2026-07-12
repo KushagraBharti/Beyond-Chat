@@ -14,15 +14,25 @@ def derive_entitlement(subscription: SubscriptionRecord | None) -> EntitlementDe
 
 
 class BillingWebhookProcessor:
-    def __init__(self, repository: BillingRepository, telemetry: TelemetryPort):
+    def __init__(self, repository: BillingRepository, telemetry: TelemetryPort, *, enabled: bool = False, expected_livemode: bool = False):
         self.repository = repository
         self.telemetry = telemetry
+        self.enabled = enabled
+        self.expected_livemode = expected_livemode
 
     async def process(self, event: VerifiedStripeEvent) -> str:
         if await self.repository.begin_event(event) == "duplicate":
             self.telemetry.counter("billing.webhook.duplicate", event_type=event.type)
             return "duplicate"
         try:
+            if not self.enabled:
+                await self.repository.complete_event(event.id)
+                self.telemetry.counter("billing.webhook.disabled", event_type=event.type)
+                return "ignored_disabled"
+            if event.livemode != self.expected_livemode:
+                await self.repository.complete_event(event.id)
+                self.telemetry.counter("billing.webhook.mode_mismatch", event_type=event.type)
+                return "ignored_mode"
             if not event.type.startswith("customer.subscription."):
                 await self.repository.complete_event(event.id)
                 return "ignored"

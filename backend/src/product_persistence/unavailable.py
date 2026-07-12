@@ -18,3 +18,5 @@ class UnavailableProductRepository:
     create_once = _raise
     update = _raise
     append_once = _raise
+    get_capability_run = _raise
+    record_capability_resolution = _raise

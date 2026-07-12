@@ -29,13 +29,20 @@ class BillingDependencies:
 def create_billing_router(deps: BillingDependencies) -> APIRouter:
     """Build the Phase 12 router. Callers must explicitly mount it after activation gates pass."""
     router = APIRouter(prefix="/api/v2/billing", tags=["billing-v2"])
-    processor = BillingWebhookProcessor(deps.repository, deps.telemetry)
+    processor = BillingWebhookProcessor(deps.repository, deps.telemetry, enabled=deps.settings.enabled, expected_livemode=deps.settings.livemode)
 
     @router.get("/status")
     async def status(request: Request):
         principal = await deps.principal(request)
         value = await deps.repository.get_status(principal.organization_id)
-        return {**value.__dict__, "checkout_enabled": deps.settings.checkout_ready and value.checkout_enabled, "externally_verified": value.externally_verified}
+        externally_verified = deps.settings.enabled and value.externally_verified
+        return {
+            **value.__dict__,
+            "entitlement_state": value.entitlement_state if externally_verified else "disabled",
+            "checkout_enabled": deps.settings.checkout_ready and value.checkout_enabled,
+            "portal_enabled": deps.settings.enabled and value.portal_enabled,
+            "externally_verified": externally_verified,
+        }
 
     @router.post("/checkout")
     async def checkout(body: CheckoutRequest, request: Request):

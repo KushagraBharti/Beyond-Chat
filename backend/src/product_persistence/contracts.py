@@ -36,6 +36,16 @@ class ProductRecord:
     updated_at: str
 
 
+@dataclass(frozen=True)
+class CapabilityRun:
+    run_id: str
+    organization_id: str
+    project_id: str
+    actor_id: str
+    agent_version_id: str
+    state: str
+
+
 class ProductRepository(Protocol):
     """Tenant-scoped atomic storage contract.
 
@@ -84,3 +94,15 @@ class ProductRepository(Protocol):
         state: str,
         payload: Mapping[str, Any],
     ) -> ProductRecord: ...
+
+    def get_capability_run(self, *, run_id: str) -> CapabilityRun | None: ...
+
+    def record_capability_resolution(
+        self,
+        *,
+        run: CapabilityRun,
+        actor_id: str,
+        projection_digest: str,
+        metadata: Mapping[str, Any],
+        approval_claims: tuple[Mapping[str, Any], ...] = (),
+    ) -> None: ...

@@ -80,3 +80,22 @@ class AutomationCreate(ResourceCreate):
     trigger: dict[str, Any]
     max_cost_cents: int = Field(ge=0, le=10_000_000)
     max_actions: int = Field(ge=1, le=10_000)
+
+
+class CapabilityApprovalClaim(StrictModel):
+    approval_id: str = Field(min_length=3, max_length=128)
+    tool_id: str = Field(pattern=r"^tool\.[a-z0-9._-]+$", max_length=200)
+    argument_digest: str = Field(pattern=r"^sha256:[a-f0-9]{64}$")
+    idempotency_key: str | None = Field(default=None, min_length=8, max_length=255)
+
+
+class CapabilityResolveRequest(StrictModel):
+    schema_version: Literal["1.0"] = "1.0"
+    agent_version_id: str = Field(min_length=3, max_length=128)
+    selected_skill_version_ids: list[str] = Field(default_factory=list, max_length=100)
+    selected_connection_ids: list[str] = Field(default_factory=list, max_length=100)
+    selected_mcp_binding_ids: list[str] = Field(default_factory=list, max_length=100)
+    approval_claims: list[CapabilityApprovalClaim] = Field(default_factory=list, max_length=100)
+    current_calls: int = Field(default=0, ge=0, le=1_000_000)
+    current_concurrency: int = Field(default=0, ge=0, le=100_000)
+    current_cost_cents: int = Field(default=0, ge=0, le=1_000_000_000)

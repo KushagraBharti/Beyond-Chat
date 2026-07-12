@@ -13,9 +13,10 @@ from ..identity.authkit import require_csrf, require_principal
 from ..product_persistence import ConflictError, ProductRepository, Scope, schema_manifest
 from .authorization import ScopeAuthorizer
 from .schemas import (
-    ActionRequest, AutomationCreate, CommentCreate, MemoryProposal, ModelRunRequest, QueryRequest, ResourceCreate,
+    ActionRequest, AutomationCreate, CapabilityResolveRequest, CommentCreate, MemoryProposal, ModelRunRequest, QueryRequest, ResourceCreate,
     ResourcePatch, ReviewCreate, StateTransition, VersionCreate,
 )
+from .capability_gateway import CapabilityGateway
 from .service import DisabledProviderRegistry, ProductService, ProviderRegistry
 from .providers import ProviderCallError, ProviderScope
 
@@ -46,6 +47,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     """
     router = APIRouter(prefix="/api/v2/product", tags=["product-v2"])
     service = ProductService(deps.repository, deps.providers)
+    capability_gateway = CapabilityGateway(deps.repository)
 
     async def scope(principal: Principal, project_id: str | None, team_id: str | None,
                     permission: ResourcePermission) -> Scope:
@@ -94,6 +96,16 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         if principal.role not in {OrganizationRole.OWNER, OrganizationRole.ADMIN}:
             raise HTTPException(403, "Administrative role required.")
         return schema_manifest()
+
+    @router.post("/runtime/runs/{run_id}/capabilities:resolve")
+    async def resolve_run_capabilities(run_id: str, body: CapabilityResolveRequest,
+                                       principal: Principal = Depends(deps.principal),
+                                       _guard: None = Depends(mutation)):
+        capability_run = deps.repository.get_capability_run(run_id=run_id)
+        if capability_run is None or capability_run.organization_id != principal.organization_id:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found.")
+        await scope(principal, capability_run.project_id, None, ResourcePermission.USE)
+        return run(lambda: capability_gateway.resolve(run_id=run_id, principal=principal, body=body))
 
     @router.get("/catalog")
     async def catalog(principal: Principal = Depends(deps.principal)):
