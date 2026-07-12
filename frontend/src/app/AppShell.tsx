@@ -19,6 +19,7 @@ const BrowsePages = lazy(() => import("../pages/workspace/WorkspaceBrowsePages")
 const ProjectDetailPage = lazy(() => import("../pages/workspace/ProjectDetailPage").then((module) => ({ default: module.ProjectDetailPage })));
 const AgentsPage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.AgentsPage })));
 const KnowledgeAppsPage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.KnowledgeAppsPage })));
+const ComposioCallbackPage = lazy(() => import("../pages/workspace/ComposioCallbackPage").then((module) => ({ default: module.ComposioCallbackPage })));
 const SettingsWorkspacePage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.SettingsWorkspacePage })));
 const AdminPage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.AdminPage })));
 const FeaturePages = {
@@ -129,6 +130,7 @@ export default function AppShell() {
                 <Route path="/agents/research" element={<ResearchAgentPage />} />
                 <Route path="/agents/finance" element={<FinanceAgentPage />} />
                 <Route path="/knowledge-apps" element={<KnowledgeAppsPage />} />
+                <Route path="/connections/callback/projects/:projectId/connections/:connectionId/callback" element={<ComposioCallbackPage />} />
                 <Route path="/memory" element={<FeaturePages.memory />} />
                 <Route path="/outputs/:outputId" element={<FeaturePages.output />} />
                 <Route path="/outputs" element={<FeaturePages.output />} />
