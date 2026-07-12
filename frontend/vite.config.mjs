@@ -11,6 +11,9 @@ export default defineConfig({
       "@beyond/contracts": fileURLToPath(
         new URL("../packages/contracts/src/index.ts", import.meta.url),
       ),
+      "@beyond/product-catalog": fileURLToPath(
+        new URL("../packages/product-catalog/src/index.ts", import.meta.url),
+      ),
       tslib: fileURLToPath(new URL("./src/shims/tslib.ts", import.meta.url)),
     },
   },
