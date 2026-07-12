@@ -271,16 +271,25 @@ def callback(
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed.") from exc
     if not session.organization_id:
+        try:
+            session = provider.provision_starter_organization(session)
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Account setup failed.",
+            ) from exc
+    if not session.organization_id:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="An active WorkOS organization is required.",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Account setup failed.",
         )
-    organization = provider.organization(session.organization_id)
+    workos_organization_id = session.organization_id
+    organization = provider.organization(workos_organization_id)
     user_fields = _user_fields(session)
     repository.sync_authenticated_identity(
         issuer=session.issuer,
         subject=session.subject,
-        workos_organization_id=session.organization_id,
+        workos_organization_id=workos_organization_id,
         workos_membership_id=None,
         role=normalize_role(session.role),
         organization_name=organization.get("name"),

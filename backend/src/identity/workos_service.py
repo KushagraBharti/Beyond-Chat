@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -34,6 +35,8 @@ class WorkOSProvider(Protocol):
     def authenticate_session(
         self, sealed_session: str, *, organization_id: str | None = None
     ) -> WorkOSSession | None: ...
+
+    def provision_starter_organization(self, session: WorkOSSession) -> WorkOSSession: ...
 
     def logout_url(self, sealed_session: str) -> str: ...
 
@@ -161,6 +164,69 @@ class WorkOSService:
         if not refreshed.authenticated:
             return None
         return self._claims_from_sealed(refreshed.sealed_session, refreshed)
+
+    def provision_starter_organization(self, session: WorkOSSession) -> WorkOSSession:
+        """Idempotently provision and select a private organization for a new user."""
+        from workos import ConflictError, NotFoundError, UnprocessableEntityError
+        from workos.organization_membership import RoleSingle
+
+        external_id = f"beyond-personal-{hashlib.sha256(session.subject.encode()).hexdigest()[:24]}"
+        def safe_name(value: object) -> str:
+            printable = "".join(character for character in str(value or "") if character.isprintable())
+            return " ".join(printable.split())
+
+        user_name = safe_name(session.user.get("name"))
+        if not user_name:
+            first_name = safe_name(session.user.get("first_name"))
+            last_name = safe_name(session.user.get("last_name"))
+            user_name = " ".join(part for part in (first_name, last_name) if part)
+        if not user_name:
+            email = str(session.user.get("email") or "")
+            user_name = safe_name(email.partition("@")[0])
+        organization_name = f"{user_name[:80] or 'Personal'}'s workspace"
+
+        try:
+            organization = self._client.organizations.get_organization_by_external_id(external_id)
+        except NotFoundError:
+            try:
+                organization = self._client.organizations.create_organization(
+                    name=organization_name,
+                    allow_profiles_outside_organization=False,
+                    external_id=external_id,
+                    metadata={"beyond_owner_user_id": session.subject, "beyond_kind": "personal"},
+                )
+            except (ConflictError, UnprocessableEntityError):
+                # A retried or concurrent callback may have won creation.
+                organization = self._client.organizations.get_organization_by_external_id(external_id)
+
+        organization_data = _model_dict(organization)
+        organization_id = str(organization_data.get("id") or "")
+        if not organization_id:
+            raise RuntimeError("WorkOS organization provisioning returned no identifier.")
+
+        try:
+            self._client.organization_membership.create_organization_membership(
+                user_id=session.subject,
+                organization_id=organization_id,
+                role=RoleSingle(role_slug="owner"),
+            )
+        except (ConflictError, UnprocessableEntityError):
+            memberships = self._client.organization_membership.list_organization_memberships(
+                organization_id=organization_id,
+                user_id=session.subject,
+                statuses=["active"],
+                limit=10,
+            )
+            if not getattr(memberships, "data", None):
+                raise
+
+        refreshed = self.authenticate_session(
+            session.sealed_session,
+            organization_id=organization_id,
+        )
+        if refreshed is None or refreshed.organization_id != organization_id:
+            raise RuntimeError("WorkOS session could not select the provisioned organization.")
+        return refreshed
 
     def logout_url(self, sealed_session: str) -> str:
         session = self._client.user_management.load_sealed_session(

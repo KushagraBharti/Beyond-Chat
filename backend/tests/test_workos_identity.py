@@ -18,6 +18,9 @@ from src.identity.workos_service import WorkOSService, WorkOSSession
 class FakeWorkOSProvider:
     def __init__(self) -> None:
         self.sessions: dict[tuple[str, str | None], WorkOSSession | None] = {}
+        self.provisioned: list[WorkOSSession] = []
+        self.provisioned_session: WorkOSSession | None = None
+        self.provision_error: Exception | None = None
         self.sent: list[dict[str, str]] = []
         self.revoked: list[str] = []
         self.webhook_event: dict[str, Any] | None = None
@@ -35,6 +38,13 @@ class FakeWorkOSProvider:
         self, sealed_session: str, *, organization_id: str | None = None
     ) -> WorkOSSession | None:
         return self.sessions.get((sealed_session, organization_id))
+
+    def provision_starter_organization(self, session: WorkOSSession) -> WorkOSSession:
+        self.provisioned.append(session)
+        if self.provision_error is not None:
+            raise self.provision_error
+        assert self.provisioned_session is not None
+        return self.provisioned_session
 
     def logout_url(self, sealed_session: str) -> str:
         return f"https://auth.example.test/logout?session={sealed_session}"
@@ -65,7 +75,9 @@ class FakeWorkOSProvider:
         return self.webhook_event or json.loads(payload)
 
 
-def make_session(organization_id: str, *, sealed: str = "sealed-a", role: str = "owner") -> WorkOSSession:
+def make_session(
+    organization_id: str | None, *, sealed: str = "sealed-a", role: str | None = "owner"
+) -> WorkOSSession:
     return WorkOSSession(
         sealed_session=sealed,
         issuer="https://api.workos.com",
@@ -450,6 +462,64 @@ def test_login_state_blocks_open_redirect_and_callback_rejects_mismatch(
         follow_redirects=False,
     )
     assert rejected.status_code == 400
+
+
+def _complete_login_callback(client: TestClient) -> Any:
+    login = client.get("/api/auth/login?returnTo=/home", follow_redirects=False)
+    state = login.headers["location"].partition("state=")[2]
+    return client.get(
+        "/api/auth/callback",
+        params={"code": "code_1", "state": state},
+        follow_redirects=False,
+    )
+
+
+def test_first_login_provisions_private_organization_and_scoped_session(
+    identity_stack: tuple[Any, ...],
+) -> None:
+    client, repository, provider, _org_a, _org_b = identity_stack
+    initial = make_session(None, sealed="sealed-unscoped", role=None)
+    provisioned = make_session("org_personal", sealed="sealed-personal", role="owner")
+    provider.sessions[("callback", None)] = initial
+    provider.provisioned_session = provisioned
+
+    response = _complete_login_callback(client)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/home"
+    assert provider.provisioned == [initial]
+    assert "beyond_session=sealed-personal" in response.headers["set-cookie"]
+    snapshot = repository.resolve_active_identity(
+        issuer=provisioned.issuer,
+        subject=provisioned.subject,
+        workos_organization_id="org_personal",
+    )
+    assert snapshot is not None
+    assert snapshot.role is OrganizationRole.OWNER
+
+
+def test_first_login_provisioning_failure_fails_closed(identity_stack: tuple[Any, ...]) -> None:
+    client, _repository, provider, _org_a, _org_b = identity_stack
+    provider.sessions[("callback", None)] = make_session(None, sealed="sealed-unscoped", role=None)
+    provider.provision_error = RuntimeError("provider secret detail")
+
+    response = _complete_login_callback(client)
+
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Account setup failed."}
+    assert "provider secret detail" not in response.text
+    assert "beyond_session=" not in response.headers.get("set-cookie", "")
+
+
+def test_existing_organization_callback_does_not_provision(identity_stack: tuple[Any, ...]) -> None:
+    client, _repository, provider, _org_a, _org_b = identity_stack
+    provider.sessions[("callback", None)] = make_session("org_a", sealed="sealed-existing")
+
+    response = _complete_login_callback(client)
+
+    assert response.status_code == 303
+    assert provider.provisioned == []
+    assert "beyond_session=sealed-existing" in response.headers["set-cookie"]
 
 
 def test_logout_clears_local_session_cookie(identity_stack: tuple[Any, ...]) -> None:
