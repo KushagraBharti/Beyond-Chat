@@ -1,7 +1,7 @@
 {
   "all_passed": true,
   "app": "beyond-chat-runtime",
-  "captured_at": "2026-07-11T23:20:50.089908+00:00",
+  "captured_at": "2026-07-12T00:52:43.704517+00:00",
   "environment": "beyond-chat-production",
   "probes": {
     "base": {

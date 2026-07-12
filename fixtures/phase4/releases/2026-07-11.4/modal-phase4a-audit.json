@@ -1,0 +1,77 @@
+{
+  "app_id": "ap-FbZZRj50uSQRtGe2nwvlYH",
+  "billing": {
+    "by_resource": {},
+    "currency": "USD",
+    "scope": "current UTC provider day; build, probe, and smoke activity for the deployed app",
+    "total": "0"
+  },
+  "captured_at": "2026-07-12T05:30:03.654803+00:00",
+  "checks": {
+    "deployed_image_probes": true,
+    "documents_finance_research_outputs": true,
+    "durable_recovery_proven": true,
+    "fresh_scoped_volumes_exist": true,
+    "immutable_images_match_rollout": true,
+    "immutable_images_published": true,
+    "legacy_runner_retained": true,
+    "memory_snapshots_not_used": true,
+    "no_master_secret_in_sandbox": true,
+    "production_routing_remains_disabled": true,
+    "provider_identity_and_bindings": true,
+    "remote_lifecycle_and_output_smoke": true,
+    "security_promotion_gate": true,
+    "transient_sandboxes_cleaned": true
+  },
+  "environment": "beyond-chat-production",
+  "phase4_gate_satisfied": false,
+  "phase4b_required": [
+    "Wire the durable product coordinator and run identity issuer to ModalSandboxProvider.",
+    "Replace deterministic fake model/tool probes with real policy-rechecked gateway traffic in controlled tests.",
+    "Prove browser/API/worker failure injection, organization concurrency, actual usage finalization, and legacy Finance parity.",
+    "Execute a controlled canary and rollback observation window before any legacy runner decommission."
+  ],
+  "provider_plane_complete": true,
+  "release": "2026-07-11.4",
+  "remote_smoke": {
+    "captured_at": "2026-07-11T23:17:56.705211+00:00",
+    "checkpoint_image_id": "im-01KX9QGR8KF3DAG334KFSEPBFN",
+    "elapsed_seconds": 68.063,
+    "single_sandbox_cost_floor": {
+      "cpu": 1,
+      "cpu_cost_usd": 0.00268304,
+      "duration_seconds": 68.06299999999464,
+      "memory_cost_usd": 0.00045738,
+      "memory_gib": 1.0,
+      "total_cost_usd": 0.00314043
+    }
+  },
+  "resource_ids": {
+    "images": {
+      "base": "im-sM7PhCwKy46WBkVzcK23iM",
+      "data-finance": "im-QDEEaGhyZNLNQ3JdR0PWwe",
+      "documents": "im-kGV2kfZyxOSCnGQWnkHA7m",
+      "research": "im-HbHwCRRnHDWgjdoNTB0bx9"
+    },
+    "volumes": {
+      "artifacts": "vo-k3pPcHikaFcfChazNxkILK",
+      "cache": "vo-32ghh7cJPxUHAg54jwujdl",
+      "workspaces": "vo-Vji1FReSJUHavoZX6WsIEL"
+    }
+  },
+  "schema_version": 1,
+  "security": {
+    "blocking_count": 0,
+    "manual_review_count": 0,
+    "passed": true,
+    "severity_counts": {
+      "critical": 0,
+      "high": 0,
+      "low": 20,
+      "medium": 128,
+      "unimportant": 3,
+      "unknown": 0
+    }
+  },
+  "status": "provider-plane-complete-rollout-blocked"
+}

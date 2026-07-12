@@ -132,6 +132,7 @@ test("create binds a fresh product-issued run identity and rejects mismatched id
     actor_id: "act_1",
     agent_version_id: "agv_1",
     audience: "tool-gateway" as const,
+    capabilities: ["tool:read", "output:upload"],
     expires_at: "2026-07-11T12:05:00.000Z",
     public_key: "-----BEGIN PUBLIC KEY-----\ntest\n-----END PUBLIC KEY-----",
     token: "header.payload.signature",
@@ -145,6 +146,7 @@ test("create binds a fresh product-issued run identity and rejects mismatched id
   }, boundary);
   await value.create(spec);
   assert.equal(boundary.lastCreateParams?.env?.BEYOND_RUN_ORGANIZATION_ID, "org_1");
+  assert.equal(boundary.lastCreateParams?.env?.BEYOND_RUN_CAPABILITIES, '["tool:read","output:upload"]');
   assert.equal(boundary.lastCreateParams?.env?.BEYOND_RUN_TOKEN, identity.token);
 
   const mismatch = new ModalSandboxProvider({
@@ -155,6 +157,27 @@ test("create binds a fresh product-issued run identity and rejects mismatched id
     resolveRunIdentity: async () => ({ ...identity, run_id: canonicalId("run", "ffffffffffffffffffffffffffffffff") }),
   }, new FakeBoundary());
   await assert.rejects(() => mismatch.create(spec), (error: unknown) => error instanceof ContractError && error.code === "authorization.denied");
+
+  const noCapabilities = new ModalSandboxProvider({
+    appName: "beyond-chat-runtime",
+    environment: "beyond-chat-production",
+    artifactDirectory: directory,
+    resolveRunIdentity: async () => ({ ...identity, capabilities: [] }),
+  }, new FakeBoundary());
+  await assert.rejects(() => noCapabilities.create(spec), (error: unknown) => error instanceof ContractError && error.code === "authorization.denied");
+
+  for (const capabilities of [["tool:read", "tool:read"], ["tool.read"], ["tool:"]]) {
+    const invalidCapabilities = new ModalSandboxProvider({
+      appName: "beyond-chat-runtime",
+      environment: "beyond-chat-production",
+      artifactDirectory: directory,
+      resolveRunIdentity: async () => ({ ...identity, capabilities }),
+    }, new FakeBoundary());
+    await assert.rejects(
+      () => invalidCapabilities.create(spec),
+      (error: unknown) => error instanceof ContractError && error.code === "authorization.denied",
+    );
+  }
 });
 
 test("create verifies immutable image identity and materializes the content-addressed working set", async () => {

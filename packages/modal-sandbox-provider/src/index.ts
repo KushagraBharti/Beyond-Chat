@@ -75,6 +75,7 @@ export interface ModalRunIdentity {
   readonly actor_id: string;
   readonly agent_version_id: string;
   readonly audience: "tool-gateway" | "model-gateway";
+  readonly capabilities: readonly string[];
   readonly expires_at: string;
   readonly public_key: string;
   readonly token: string;
@@ -208,6 +209,10 @@ function assertRunIdentity(identity: ModalRunIdentity, runId: RunId, now: Date):
     || !identity.organization_id || !identity.project_id || !identity.actor_id || !identity.agent_version_id
     || !identity.public_key.includes("BEGIN PUBLIC KEY") || identity.token.split(".").length !== 3
     || !["tool-gateway", "model-gateway"].includes(identity.audience)
+    || !Array.isArray(identity.capabilities) || identity.capabilities.length === 0
+    || identity.capabilities.some((capability) => typeof capability !== "string"
+      || capability.length > 128 || !/^[a-z][a-z0-9._-]*:[a-z][a-z0-9._-]*$/.test(capability))
+    || new Set(identity.capabilities).size !== identity.capabilities.length
     || !Number.isFinite(Date.parse(identity.expires_at)) || Date.parse(identity.expires_at) <= now.getTime()) {
     throw new ContractError("authorization.denied", "Modal run identity is missing, expired, or bound to another run");
   }
@@ -410,6 +415,7 @@ export class ModalSandboxProvider implements SandboxProvider {
               BEYOND_RUN_ACTOR_ID: identity.actor_id,
               BEYOND_RUN_AGENT_VERSION_ID: identity.agent_version_id,
               BEYOND_RUN_GATEWAY_AUDIENCE: identity.audience,
+              BEYOND_RUN_CAPABILITIES: JSON.stringify(identity.capabilities),
               BEYOND_RUN_TOKEN: identity.token,
               BEYOND_RUN_PUBLIC_KEY: identity.public_key,
             }),
