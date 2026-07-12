@@ -320,6 +320,12 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return {**updated, "oauth": {"redirect_url": oauth["redirect_url"],
                                       "expires_at": oauth.get("expires_at")}}
 
+    @router.get("/projects/{project_id}/connections")
+    async def list_connections(project_id: str, principal: Principal = Depends(deps.principal)):
+        return {"items": service.list(
+            "connection", await scope(principal, project_id, None, ResourcePermission.VIEW)
+        )}
+
     @router.get("/projects/{project_id}/connections/{connection_id}/callback")
     async def connection_callback(project_id: str, connection_id: str, state: str,
                                   provider_status: str = Query(alias="status"),

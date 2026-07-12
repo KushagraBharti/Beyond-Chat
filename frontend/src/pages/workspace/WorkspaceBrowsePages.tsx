@@ -106,6 +106,72 @@ function KnowledgeSources() {
   </div>;
 }
 
+function AppConnections() {
+  const { currentProject } = useProjects();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const connections = useSection(
+    () => currentProject
+      ? sessionRequest<{ items: ProductRecordSummary[] }>(
+          `/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/connections`,
+        )
+      : Promise.resolve({ items: [] as ProductRecordSummary[] }),
+    `${currentProject?.id ?? "none"}:${reloadKey}`,
+  );
+
+  async function connectGmail() {
+    if (!currentProject) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const record = await sessionRequest<ProductRecordSummary & { oauth?: { redirect_url?: string } }>(
+        `/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/connections`,
+        {
+          method: "POST",
+          headers: { "Idempotency-Key": crypto.randomUUID() },
+          body: JSON.stringify({
+            name: "Gmail",
+            description: "Read-only Gmail connection",
+            configuration: { toolkit: "GMAIL" },
+          }),
+        },
+      );
+      const redirectUrl = record.oauth?.redirect_url;
+      if (!redirectUrl) throw new Error("Gmail authorization is not available yet.");
+      window.location.assign(redirectUrl);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Gmail could not be connected.");
+      setReloadKey((value) => value + 1);
+      setBusy(false);
+    }
+  }
+
+  if (!currentProject) {
+    return <WorkspaceState state="empty">Choose a current project before connecting an app.</WorkspaceState>;
+  }
+  if (connections.status === "loading") return <p className="workspace-muted" role="status">Loading connections…</p>;
+  if (connections.status === "error" || connections.status === "forbidden") {
+    return <WorkspaceState state="error">{connections.message ?? "Connections could not be loaded."}</WorkspaceState>;
+  }
+  const items = connections.data?.items ?? [];
+  const gmail = items.find((record) => recordTitle(record).toLowerCase() === "gmail" && record.state !== "disconnected");
+  return <div className="workspace-stack">
+    {error ? <WorkspaceState state="error">{error}</WorkspaceState> : null}
+    {gmail ? (
+      <article className="workspace-capability-row">
+        <div><span className="workspace-capability-meta">Project app · read-only</span><h2>Gmail</h2><p>Gmail is {gmail.state.replaceAll("_", " ")} for {currentProject.name}.</p></div>
+        <CapabilityState state={gmail.state} />
+      </article>
+    ) : (
+      <article className="workspace-capability-row">
+        <div><span className="workspace-capability-meta">Composio · read-only access</span><h2>Gmail</h2><p>Connect Gmail so agents can search and read messages in this project.</p></div>
+        <button type="button" className="workspace-button" disabled={busy} onClick={() => void connectGmail()}>{busy ? "Opening Google…" : "Connect Gmail"}</button>
+      </article>
+    )}
+  </div>;
+}
+
 function ReadinessView() {
   const capabilities = useSection(getWorkspaceCapabilities, "readiness");
   if (capabilities.status === "loading") return <p className="workspace-muted" role="status">Loading readiness…</p>;
@@ -168,7 +234,7 @@ function KnowledgeAppsBrowser() {
     <section id={`${baseId}-panel`} className="workspace-panel" role="tabpanel" aria-labelledby={`${baseId}-${view}-tab`}>
       {catalog.status === "loading" && view !== "sources" && view !== "policy" ? <p className="workspace-muted" role="status">Loading catalog…</p> : null}
       {catalog.status === "error" && view !== "sources" && view !== "policy" ? <WorkspaceState state="error">{catalog.message ?? "The catalog could not be loaded."}</WorkspaceState> : null}
-      {view === "apps" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("apps")} kindLabel="apps" /> : null}
+      {view === "apps" ? <AppConnections /> : null}
       {view === "skills" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("skills")} kindLabel="skills" /> : null}
       {view === "mcp" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("mcp_servers")} kindLabel="MCP servers" /> : null}
       {view === "sources" ? <KnowledgeSources /> : null}
