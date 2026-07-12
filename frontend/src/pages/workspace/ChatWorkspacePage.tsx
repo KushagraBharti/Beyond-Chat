@@ -1,20 +1,42 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScopedDiscovery } from "../../features/discovery/useScopedDiscovery";
-import { savePromotionDraft } from "../../features/workspace/adapter";
+import { savePromotionDraft, type PromotionDraft } from "../../features/workspace/adapter";
 import { PageHeader, WorkspaceState } from "../../components/workspace/WorkspacePrimitives";
 import { WorkspaceComposer } from "../../components/workspace/WorkspaceComposer";
+import { executeGeneralAgent } from "../../features/workspace/api";
+import { useProjects } from "../../features/workspace/ProjectContext";
+
+interface ChatMessage { role: "user" | "agent" | "error"; text: string }
 
 export function ChatWorkspacePage() {
   const navigate = useNavigate();
   const [disconnected, setDisconnected] = useState(false);
   const composer = useRef<HTMLTextAreaElement>(null);
   const discovery = useScopedDiscovery();
+  const { currentProject } = useProjects();
+  const [running, setRunning] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const runGeneral = async (draft: PromotionDraft) => {
+    if (!currentProject || running) return;
+    const referenceContext = draft.references.length ? `\n\nAttached context: ${draft.references.map((item) => item.label).join(", ")}` : "";
+    setMessages((current) => [...current, { role: "user", text: draft.prompt }]);
+    setRunning(true);
+    try {
+      const result = await executeGeneralAgent({ prompt: `${draft.prompt}${referenceContext}`, projectId: currentProject.id });
+      setMessages((current) => [...current, { role: "agent", text: result.text }]);
+    } catch (error) {
+      setMessages((current) => [...current, { role: "error", text: error instanceof Error ? error.message : "The General Agent could not complete this run." }]);
+    } finally {
+      setRunning(false);
+    }
+  };
   return <section className="workspace-page workspace-chat-page">
     <PageHeader eyebrow="Chat" title="Ask, explore, then make it durable."><button className="workspace-button is-quiet" type="button" onClick={() => setDisconnected((value) => !value)}>{disconnected ? "Return to local draft" : "Show reconnect state"}</button></PageHeader>
-    {disconnected ? <WorkspaceState state="disconnected">Your draft stays in this browser. Sending and promotion are unavailable until a future run service reconnects.</WorkspaceState> : null}
-    <div className="workspace-chat-thread"><div className="workspace-message is-agent"><b>General</b><p>I can shape a request, attach context, or help you promote it into a task when it needs a plan, tools, approvals, or durable outputs.</p></div></div>
-    <WorkspaceComposer ref={composer} items={discovery} disabled={disconnected} onBrowse={navigate} onPromote={(draft) => { savePromotionDraft(draft); navigate("/work/new"); }} />
-    <p className="workspace-footnote">Promotion is a local client-state handoff only. It does not start a run or claim that work completed.</p>
+    {disconnected ? <WorkspaceState state="disconnected">The live agent is disconnected. Your draft remains in this browser.</WorkspaceState> : null}
+    {!currentProject ? <WorkspaceState state="empty">Select or create a project before running General.</WorkspaceState> : null}
+    <div className="workspace-chat-thread"><div className="workspace-message is-agent"><b>General</b><p>I run through the production Pi agent on Modal and return reviewable work here.</p></div>{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`workspace-message ${message.role === "user" ? "is-user" : "is-agent"}`}><b>{message.role === "user" ? "You" : message.role === "error" ? "Run failed" : "General"}</b><p>{message.text}</p></div>)}{running ? <div className="workspace-message is-agent"><b>General</b><p>Working in Modal…</p></div> : null}</div>
+    <WorkspaceComposer ref={composer} items={discovery} disabled={disconnected || running || !currentProject} onSend={(draft) => { void runGeneral(draft); }} onBrowse={navigate} onPromote={(draft) => { savePromotionDraft(draft); navigate("/work/new"); }} />
+    <p className="workspace-footnote">General runs on the production Pi runtime in Modal. Promotion keeps a draft for a longer task.</p>
   </section>;
 }

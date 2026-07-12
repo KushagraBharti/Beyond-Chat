@@ -82,6 +82,13 @@ export function getOrganizationCatalog() {
   return sessionRequest<OrganizationCatalog>(`${BASE}/catalog`);
 }
 
+export function executeGeneralAgent(input: { prompt: string; projectId: string }) {
+  return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
+    "/api/runtime/agents/general:execute",
+    { method: "POST", body: JSON.stringify({ prompt: input.prompt, project_id: input.projectId }) },
+  );
+}
+
 export function listProjectRecords(projectId: string, surface: "outputs" | "automations" | "memory") {
   return sessionRequest<{ items?: ProductRecordSummary[] } | ProductRecordSummary[]>(
     `${BASE}/projects/${encodeURIComponent(projectId)}/${surface}`,
