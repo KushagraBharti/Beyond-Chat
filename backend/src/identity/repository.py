@@ -739,11 +739,15 @@ class SupabaseIdentityRepository:
     @staticmethod
     def _one(data: object) -> dict[str, Any] | None:
         data = getattr(data, "data", data)
+        if data is None or data == []:
+            return None
         if isinstance(data, dict):
             return data
-        if isinstance(data, list) and data and isinstance(data[0], dict):
+        if isinstance(data, list) and len(data) == 1 and isinstance(data[0], dict):
             return data[0]
-        return None
+        raise RuntimeError(
+            f"Supabase returned an unexpected single-row response shape: {type(data).__name__}."
+        )
 
     def sync_authenticated_identity(
         self,

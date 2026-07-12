@@ -15,7 +15,9 @@ _SECRET_NAMES = {"credential", "credentials", "credential_reference", "connected
 
 
 def _configuration(payload: Mapping[str, Any]) -> Mapping[str, Any]:
-    value: Any = payload.get("config")
+    value: Any = payload.get("configuration")
+    if not isinstance(value, Mapping):
+        value = payload.get("config")
     if not isinstance(value, Mapping):
         value = payload.get("manifest")
     if isinstance(value, Mapping):
