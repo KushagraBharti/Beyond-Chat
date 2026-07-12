@@ -50,6 +50,14 @@ class RuntimeStreamingService:
         self._validate_snapshot(snapshot)
         return snapshot
 
+    async def preflight(self, scope: RunScope, *, cursor: int | None) -> RunSnapshot:
+        """Validate stream access and cursor bounds before HTTP headers are committed."""
+
+        snapshot = await self.snapshot(scope)
+        if cursor is not None:
+            self._validate_cursor(cursor, snapshot)
+        return snapshot
+
     @staticmethod
     def parse_cursor(last_event_id: str | None, query_cursor: str | None = None) -> int | None:
         raw = last_event_id if last_event_id not in (None, "") else query_cursor
@@ -69,8 +77,12 @@ class RuntimeStreamingService:
         *,
         cursor: int | None,
         disconnected: DisconnectProbe | None = None,
+        initial_snapshot: RunSnapshot | None = None,
     ) -> AsyncIterator[bytes]:
-        snapshot = await self.snapshot(scope)
+        snapshot = initial_snapshot or await self.preflight(scope, cursor=cursor)
+        if snapshot.scope != scope:
+            raise RuntimeError("initial snapshot was outside the requested scope")
+        self._validate_snapshot(snapshot)
         if cursor is None:
             cursor = snapshot.latest_sequence
             yield snapshot_frame(snapshot)
