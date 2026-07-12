@@ -8,6 +8,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@beyond/contracts": fileURLToPath(
+        new URL("../packages/contracts/src/index.ts", import.meta.url),
+      ),
       tslib: fileURLToPath(new URL("./src/shims/tslib.ts", import.meta.url)),
     },
   },
