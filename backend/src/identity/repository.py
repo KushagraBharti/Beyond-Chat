@@ -1415,7 +1415,7 @@ class SupabaseIdentityRepository:
             .select("event_id,state")
             .eq("provider", "workos")
             .eq("event_id", event_id)
-            .maybe_single()
+            .limit(1)
             .execute()
             .data
         )
@@ -1443,7 +1443,7 @@ class SupabaseIdentityRepository:
             .select("*")
             .eq("provider", "workos")
             .eq("event_id", event_id)
-            .maybe_single()
+            .limit(1)
             .execute()
             .data
         )
