@@ -127,7 +127,9 @@ export class LiveAutomationAdapter implements AutomationUiAdapter {
         persistence: "connected",
         runtime: capabilities?.runtime_execution ? "connected" : "simulated",
         scheduler: capabilities?.automation_scheduler ? "connected" : "not_connected",
-        composio: "not_connected",
+        composio: capabilities?.providers.actions?.state === "ready" || capabilities?.providers.actions?.state === "connected"
+          ? "connected"
+          : "not_connected",
         notifications: "in_memory",
       },
     };

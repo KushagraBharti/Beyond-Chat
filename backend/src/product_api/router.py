@@ -780,7 +780,6 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     async def trigger_automation(project_id: str, automation_id: str, idempotency_key: IdempotencyKey,
                                  principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.USE)
-        run(lambda: service.require_provider("automations", principal))
         execution = run(lambda: automation_lifecycle.enqueue(
             scope=target, automation_id=automation_id, trigger_source="manual",
             trigger_key=f"manual:{automation_id}:{idempotency_key}", principal=principal))

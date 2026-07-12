@@ -99,9 +99,9 @@ def test_versions_pin_configuration_and_triggers_require_one(monkeypatch: pytest
     blocked = api.post(f"/api/v2/product/projects/{PROJECT}/automations/{automation_id}/test"
                        .replace("/test", "/trigger"),
                        headers={"Idempotency-Key": "manual-1"})
-    # Manual trigger is provider-gated (503) before anything else; prove the
-    # version rule at the lifecycle layer instead.
-    assert blocked.status_code == 503
+    # Manual triggers now execute through the configured Modal runtime and
+    # reach the pinned-version guard directly.
+    assert blocked.status_code == 409
     with pytest.raises(AutomationTriggerError, match="no_published_version"):
         lifecycle.enqueue(scope=Scope(ORG, PROJECT), automation_id=automation_id,
                           trigger_source="webhook", trigger_key="webhook:x:1")

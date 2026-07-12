@@ -24,6 +24,7 @@ class LiveProviderRegistry:
             "retrieval": self.exa,
             "connections": self.composio,
             "composio_actions": self.composio,
+            "actions": self.composio,
             "billing": self.billing,
         }.get(capability)
         configured = adapter is not None and (getattr(adapter, "ready", True) is True
