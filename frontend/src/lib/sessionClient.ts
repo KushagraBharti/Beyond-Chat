@@ -43,7 +43,14 @@ export async function protectedFetch(path: string, init: RequestInit = {}): Prom
     headers.set("Content-Type", "application/json");
   }
   if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-    const csrf = cookieValue(csrfCookieName);
+    let csrf = cookieValue(csrfCookieName);
+    if (!csrf) {
+      const csrfResponse = await fetch("/api/auth/csrf", { credentials: "same-origin" });
+      if (csrfResponse.ok) {
+        const payload = await csrfResponse.json() as { token?: unknown };
+        csrf = typeof payload.token === "string" ? payload.token : null;
+      }
+    }
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
 

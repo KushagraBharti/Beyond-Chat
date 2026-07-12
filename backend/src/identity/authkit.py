@@ -385,6 +385,25 @@ def session_info(principal: Principal = Depends(require_principal)) -> dict[str,
     }
 
 
+@router.get("/auth/csrf")
+def csrf_token(
+    request: Request,
+    response: Response,
+    _principal: Principal = Depends(require_principal),
+) -> dict[str, str]:
+    token = secrets.token_urlsafe(32)
+    response.set_cookie(
+        settings.workos_csrf_cookie_name,
+        token,
+        httponly=False,
+        secure=_is_secure_cookie(request),
+        samesite="lax",
+        max_age=604_800,
+        path="/",
+    )
+    return {"token": token}
+
+
 @router.get("/organizations")
 def organizations(
     principal: Principal = Depends(require_principal),
