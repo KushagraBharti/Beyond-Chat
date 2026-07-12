@@ -132,9 +132,14 @@ export function OutputWorkspacePage() {
   const { outputId } = useParams();
   const { currentProject } = useProjects();
   const [notice, setNotice] = useState("");
+  const [commentReload, setCommentReload] = useState(0);
   const output = useSection(
     () => currentProject && outputId ? sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}`) : Promise.reject(new Error("Choose the output's project first.")),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}`,
+  );
+  const comments = useSection(
+    () => currentProject && outputId ? sessionRequest<{ items: ProductRecordSummary[] }>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`) : Promise.resolve({ items: [] }),
+    `${currentProject?.id ?? "none"}:${outputId ?? "none"}:comments:${commentReload}`,
   );
   const notSent = (action: string) => setNotice(`${action} was not sent. ${integrationAvailability.deferred.collaboration}`);
   const actions = { onSelectVersion: () => undefined, onCheckpoint: () => notSent("Checkpoint"), onRestore: () => notSent("Restore"), onCompare: () => notSent("Compare"), onBranch: () => notSent("Branch"), onPromote: () => notSent("Promote") };
@@ -144,7 +149,8 @@ export function OutputWorkspacePage() {
   const title = typeof record.payload["name"] === "string" ? record.payload["name"] : `Output ${record.id.slice(0, 8)}`;
   const body = typeof record.payload["description"] === "string" ? record.payload["description"] : "";
   const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId: `v${record.version}`, versions: [{ id: `v${record.version}`, ordinal: record.version, label: `Version ${record.version}`, author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }], preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] } };
-  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={[]} reviews={[]} canComment={false} actions={{ onAddComment: () => notSent("Comment"), onMention: () => notSent("Mention"), onResolve: () => notSent("Resolve"), onRequestReview: () => notSent("Review request") }} /></div></section>;
+  const commentViews = (comments.data?.items ?? []).map((item) => ({ id: item.id, author: item.created_by ?? "Organization member", body: String(item.payload["body"] ?? ""), createdAt: item.created_at, anchorLabel: "Output", resolved: item.state === "resolved", replies: [] }));
+  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={[]} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: () => notSent("Resolve"), onRequestReview: () => notSent("Review request") }} /></div></section>;
 }
 
 export function AutomationsWorkspacePage() {

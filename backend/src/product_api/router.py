@@ -603,7 +603,14 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                              _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
         return run(lambda: service.append(kind="comment", parent_kind="output", parent_id=output_id,
-            scope=target, principal=principal, idempotency_key=idempotency_key, payload=body.model_dump(), state="active"))
+            scope=target, principal=principal, idempotency_key=idempotency_key,
+            payload={**body.model_dump(), "output_id": output_id}, state="active"))
+
+    @router.get("/projects/{project_id}/outputs/{output_id}/comments")
+    async def list_comments(project_id: str, output_id: str, principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": [item for item in service.list("comment", target)
+                          if item["payload"].get("output_id") == output_id]}
 
     @router.post("/projects/{project_id}/outputs/{output_id}/reviews", status_code=201)
     async def create_review(project_id: str, output_id: str, body: ReviewCreate,
