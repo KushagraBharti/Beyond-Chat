@@ -13,6 +13,7 @@ import {
   deleteMemoryEntry,
   exportProjectMemory,
   loadProjectMemory,
+  rememberInProject,
   resolveMemoryProposal,
   type MemoryRecords,
 } from "../../features/memory/apiClient";
@@ -38,6 +39,7 @@ export function AgentBuilderPage() {
 
 export function MemoryWorkspacePage() {
   const [notice, setNotice] = useState("");
+  const [memoryDraft, setMemoryDraft] = useState("");
   const { currentProject } = useProjects();
   const projectId = currentProject?.id ?? null;
   const memory = useSection<MemoryRecords>(
@@ -76,6 +78,15 @@ export function MemoryWorkspacePage() {
         <WorkspaceState state="error">{memory.message ?? "Project memory could not be loaded."}</WorkspaceState>
       ) : null}
       {notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}
+      <form className="workspace-form" onSubmit={(event) => {
+        event.preventDefault();
+        const content = memoryDraft.trim();
+        if (!content) return;
+        void act(() => rememberInProject(projectId, content), "Memory saved.").then(() => setMemoryDraft(""));
+      }}>
+        <label><span>Remember for {currentProject?.name}</span><textarea rows={3} value={memoryDraft} onChange={(event) => setMemoryDraft(event.target.value)} placeholder="A durable preference, fact, or instruction" /></label>
+        <button className="workspace-button" disabled={!memoryDraft.trim()}>Remember</button>
+      </form>
       <MemoryInspector
         entries={records.entries}
         proposals={records.proposals}
