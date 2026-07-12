@@ -453,7 +453,7 @@ export function AgentsPage() {
               <span><b>{recordTitle(record)}</b><small>published immutable version · v{record.version}</small></span>
               <label><span>Run this agent</span><textarea rows={2} value={agentPrompts[record.id] ?? ""} onChange={(event) => setAgentPrompts((current) => ({ ...current, [record.id]: event.target.value }))} placeholder="Give the published agent a task" /></label>
               <button type="button" className="workspace-button" disabled={!runtimeEnabled || !currentProject || runningAgent !== null || !agentPrompts[record.id]?.trim()} onClick={() => void runPublishedAgent(record)}>{runningAgent === record.id ? "Running on Modal…" : "Run published version"}</button>
-              {agentResults[record.id] ? <WorkspaceState state="ready">{agentResults[record.id]}</WorkspaceState> : null}
+              {agentResults[record.id] ? <div className="workspace-notice is-neutral" role="status"><strong>Agent result</strong><span>{agentResults[record.id]}</span></div> : null}
             </article>
           ))
         )}
