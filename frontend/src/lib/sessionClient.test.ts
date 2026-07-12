@@ -12,12 +12,14 @@ describe("WorkOS session client", () => {
   });
 
   it("sends same-origin cookies and double-submit CSRF on mutations", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ token: "signed-token" }), { status: 200, headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetchMock);
     await sessionRequest("/api/organizations/switch", { method: "POST", body: JSON.stringify({ organizationId: "org_2" }) });
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [, init] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(init.credentials).toBe("same-origin");
-    expect(new Headers(init.headers).get("X-CSRF-Token")).toBe("csrf-token");
+    expect(new Headers(init.headers).get("X-CSRF-Token")).toBe("signed-token");
   });
 
   it("invalidates local auth state after a protected 401", async () => {
