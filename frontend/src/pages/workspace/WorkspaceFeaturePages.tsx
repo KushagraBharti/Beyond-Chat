@@ -7,7 +7,7 @@ import { PresenceStrip } from "../../components/collaboration/PresenceStrip";
 import { MemoryInspector } from "../../components/memory";
 import { OutputWorkbench } from "../../components/outputs/OutputWorkbench";
 import { PageHeader, WorkspaceState } from "../../components/workspace/WorkspacePrimitives";
-import type { AgentBuilderAdapter } from "../../features/agent-builder/adapter";
+import { LiveAgentBuilderAdapter } from "../../features/agent-builder";
 import { LiveAutomationAdapter } from "../../features/automations/liveAdapter";
 import {
   deleteMemoryEntry,
@@ -22,19 +22,11 @@ import { integrationAvailability } from "../../features/integration/apiClient";
 import { useSection } from "../../features/workspace/hooks";
 import { useProjects } from "../../features/workspace/ProjectContext";
 
-const unavailable = (surface: keyof typeof integrationAvailability.deferred): never => {
-  throw new Error(integrationAvailability.deferred[surface]);
-};
-
-const agentAdapter: AgentBuilderAdapter = {
-  propose: async () => unavailable("agents"), preflight: async () => unavailable("agents"),
-  test: async () => unavailable("agents"), publish: async () => unavailable("agents"),
-  search: async () => unavailable("agents"), favorite: async () => unavailable("agents"),
-};
-
-
 export function AgentBuilderPage() {
-  return <section className="workspace-page"><WorkspaceState state="disconnected">{integrationAvailability.deferred.agents} Draft controls are visible, but test and publish never report a local success.</WorkspaceState><AgentBuilderWorkspace adapter={agentAdapter} initialDirectory={[]} /></section>;
+  const { currentProject } = useProjects();
+  const adapter = useMemo(() => currentProject ? new LiveAgentBuilderAdapter(currentProject.id) : null, [currentProject]);
+  if (!adapter) return <section className="workspace-page"><WorkspaceState state="empty"><NavLink to="/projects">Choose a current project</NavLink> before building an agent.</WorkspaceState></section>;
+  return <section className="workspace-page"><AgentBuilderWorkspace adapter={adapter} initialDirectory={[]} /></section>;
 }
 
 export function MemoryWorkspacePage() {
