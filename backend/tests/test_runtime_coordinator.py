@@ -21,8 +21,23 @@ def fixture():
     return coordinator, repository, queue, policy, connections, run
 
 
-def identity(run: RuntimeRun) -> RunIdentity:
-    return RunIdentity(run.run_id, run.organization_id, run.project_id, run.actor_id, run.agent_version_id, "tool-gateway", "nonce_1", utc_now() + timedelta(minutes=5))
+def identity(
+    run: RuntimeRun,
+    *,
+    audience: str = "tool-gateway",
+    capabilities: tuple[str, ...] = ("tool.execute",),
+) -> RunIdentity:
+    return RunIdentity(
+        run.run_id,
+        run.organization_id,
+        run.project_id,
+        run.actor_id,
+        run.agent_version_id,
+        audience,
+        "nonce_1",
+        utc_now() + timedelta(minutes=5),
+        capabilities,
+    )
 
 
 def test_multi_worker_claim_idempotency_recovery_and_org_concurrency() -> None:
@@ -55,6 +70,28 @@ def test_gateway_rechecks_current_policy_identity_and_connection_ownership() -> 
         coordinator.authorize_gateway(GatewayRequest(identity(RuntimeRun("run_1", "org_other", "prj_1", "act_1", "agv_1")), "tool.execute"))
 
 
+def test_gateway_identity_is_bound_to_audience_and_explicit_capability() -> None:
+    coordinator, _repository, *_rest, run = fixture()
+    coordinator.accept(run, idempotency_key="request_1")
+
+    with pytest.raises(RuntimeAuthorizationDenied, match="audience"):
+        coordinator.authorize_gateway(GatewayRequest(
+            identity(run, audience="model-gateway", capabilities=("tool.execute",)),
+            "tool.execute",
+        ))
+    with pytest.raises(RuntimeAuthorizationDenied, match="capability"):
+        coordinator.authorize_gateway(GatewayRequest(
+            identity(run, capabilities=("tool.read",)),
+            "tool.execute",
+        ))
+
+    model_request = GatewayRequest(
+        identity(run, audience="model-gateway", capabilities=("model.invoke",)),
+        "model.invoke",
+    )
+    assert coordinator.authorize_gateway(model_request) == "policy-v1"
+
+
 def test_authoritative_event_output_and_actual_failed_cost_are_idempotent() -> None:
     coordinator, repository, *_rest, run = fixture()
     coordinator.accept(run, idempotency_key="request_1")
@@ -83,4 +120,3 @@ def test_api_worker_provider_failure_injection_and_canary_rollback_harness() -> 
         coordinator.finalize_cost(run_id=run.run_id, attempt=attempt, provider="modal", category="sandbox", amount_usd=Decimal("0.001"), provider_usage_id=f"usage_{attempt}", rate_version="modal-2026-07-11", outcome=outcome)
     failed = evaluate_parity([ParityObservation("finance", True, True, .95, .95, 1.1, 1.1, True, False)])
     assert failed == {"passed": False, "failures": ["finance:lifecycle"], "required_traffic_percent": 0}
-

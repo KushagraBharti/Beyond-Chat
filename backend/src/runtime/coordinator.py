@@ -74,6 +74,11 @@ class RuntimeCoordinator:
         )
         if bound != presented or request.identity.audience not in {"tool-gateway", "model-gateway"}:
             raise RuntimeAuthorizationDenied("run identity binding mismatch")
+        expected_audience = "model-gateway" if request.operation == "model.invoke" else "tool-gateway"
+        if request.identity.audience != expected_audience:
+            raise RuntimeAuthorizationDenied("run identity audience does not authorize this operation")
+        if request.operation not in request.identity.capabilities:
+            raise RuntimeAuthorizationDenied("run identity capability does not authorize this operation")
         if request.connection_id and not self.connections.is_owned(
             connection_id=request.connection_id,
             organization_id=run.organization_id,

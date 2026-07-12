@@ -31,6 +31,11 @@ class SupabasePostgresRuntimeRepository:
         "notify_runtime_run",
         "transition_runtime_run",
         "request_runtime_approval",
+        "complete_runtime_cancellation",
+        "reserve_runtime_usage",
+        "adjust_runtime_usage_reservation",
+        "release_runtime_usage_reservation",
+        "record_runtime_attempt_failure",
     })
 
     def __init__(self, client: Any) -> None:
@@ -102,6 +107,61 @@ class SupabasePostgresRuntimeRepository:
             raise RuntimeError("runtime cancellation returned no run")
         return self._run(row)
 
+    def complete_cancellation(self, run_id: str, *, attempt: int, lease_id: str, propagation: dict[str, Any]) -> RuntimeRun:
+        data = self.client.rpc("complete_runtime_cancellation", {
+            "p_run_id": run_id, "p_attempt": attempt, "p_lease_id": lease_id,
+            "p_propagation": propagation,
+        }).execute().data
+        return self._required_run(data, "runtime cancellation completion returned no run")
+
+    def reserve_usage(
+        self, *, reservation_id: str, run_id: str, attempt: int, amount_usd: str,
+        hard_limit_usd: str, expires_at: datetime, idempotency_key: str,
+    ) -> dict[str, Any]:
+        data = self.client.rpc("reserve_runtime_usage", {
+            "p_reservation_id": reservation_id, "p_run_id": run_id, "p_attempt": attempt,
+            "p_amount_usd": amount_usd, "p_hard_limit_usd": hard_limit_usd,
+            "p_expires_at": _iso(expires_at), "p_idempotency_key": idempotency_key,
+        }).execute().data
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError("runtime usage reservation returned no row")
+        return row
+
+    def release_usage_reservation(self, reservation_id: str, *, reason: str) -> dict[str, Any]:
+        data = self.client.rpc("release_runtime_usage_reservation", {
+            "p_reservation_id": reservation_id, "p_reason": reason,
+        }).execute().data
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError("runtime usage release returned no row")
+        return row
+
+    def adjust_usage_reservation(
+        self, reservation_id: str, *, amount_usd: str, hard_limit_usd: str,
+    ) -> dict[str, Any]:
+        data = self.client.rpc("adjust_runtime_usage_reservation", {
+            "p_reservation_id": reservation_id, "p_amount_usd": amount_usd,
+            "p_hard_limit_usd": hard_limit_usd,
+        }).execute().data
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError("runtime usage adjustment returned no row")
+        return row
+
+    def record_attempt_failure(
+        self, run_id: str, *, attempt: int, lease_id: str, failure_class: str,
+        failure_detail: dict[str, Any], retryable: bool, max_attempts: int,
+        retry_delay_seconds: int,
+    ) -> RuntimeRun:
+        data = self.client.rpc("record_runtime_attempt_failure", {
+            "p_run_id": run_id, "p_attempt": attempt, "p_lease_id": lease_id,
+            "p_failure_class": failure_class, "p_failure_detail": failure_detail,
+            "p_retryable": retryable, "p_max_attempts": max_attempts,
+            "p_retry_delay_seconds": retry_delay_seconds,
+        }).execute().data
+        return self._required_run(data, "runtime attempt failure returned no run")
+
     def request_approval(self, approval_id: str, run_id: str, sequence: int, operation: str, argument_summary: dict, expires_at: datetime | None) -> RuntimeRun:
         data = self.client.rpc("request_runtime_approval", {
             "p_approval_id": approval_id, "p_run_id": run_id, "p_sequence": sequence,
@@ -129,6 +189,13 @@ class SupabasePostgresRuntimeRepository:
     def reconcile_expired(self, now: datetime) -> list[str]:
         data = self.client.rpc("reconcile_expired_runtime_leases", {"p_now": _iso(now)}).execute().data or []
         return [str(item["run_id"] if isinstance(item, dict) else item) for item in data]
+
+    @staticmethod
+    def _required_run(data: Any, message: str) -> RuntimeRun:
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError(message)
+        return SupabasePostgresRuntimeRepository._run(row)
 
     @staticmethod
     def _run(row: dict[str, Any]) -> RuntimeRun:

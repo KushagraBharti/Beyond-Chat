@@ -20,6 +20,7 @@ class RunIdentity:
     audience: str
     nonce: str
     expires_at: datetime
+    capabilities: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -88,4 +89,3 @@ class GatewayDecision:
     allowed: bool
     policy_version: str
     reason: str
-
