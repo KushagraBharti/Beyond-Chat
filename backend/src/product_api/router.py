@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Annotated, Any, Awaitable, Callable
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
+from fastapi.responses import RedirectResponse
 
 from ..authorization.policy import OrganizationRole, Principal, ResourcePermission
 from ..identity.authkit import require_csrf, require_principal
@@ -353,6 +354,17 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                         "provider_version": remote.get("provider_version"), "toolkit": remote.get("toolkit")})
         return run(lambda: service.update(kind="connection", record_id=connection_id, scope=target,
             principal=principal, expected_version=record["version"], payload=payload, state="active"))
+
+    @router.get("/apps/composio/callback/projects/{project_id}/connections/{connection_id}/callback")
+    async def composio_browser_callback(project_id: str, connection_id: str, state: str,
+                                        status_value: str = Query(alias="status"),
+                                        connected_account_id: str | None = None,
+                                        principal: Principal = Depends(deps.principal)):
+        await connection_callback(project_id, connection_id, state, status_value,
+                                  connected_account_id, principal)
+        app_url = os.getenv("APP_URL", "").rstrip("/")
+        destination = f"{app_url}/knowledge-apps?view=apps&connected=success" if app_url else "/knowledge-apps?view=apps&connected=success"
+        return RedirectResponse(destination, status_code=303)
 
     @router.get("/projects/{project_id}/connections/{connection_id}/status")
     async def get_connection_status(project_id: str, connection_id: str,
