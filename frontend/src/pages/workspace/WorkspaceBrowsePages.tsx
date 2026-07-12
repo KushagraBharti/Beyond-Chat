@@ -111,6 +111,7 @@ function AppConnections() {
   const [reloadKey, setReloadKey] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [health, setHealth] = useState<Record<string, string>>({});
   const connections = useSection(
     () => currentProject
       ? sessionRequest<{ items: ProductRecordSummary[] }>(
@@ -147,6 +148,39 @@ function AppConnections() {
     }
   }
 
+  async function checkConnection(connection: ProductRecordSummary) {
+    if (!currentProject) return;
+    setBusy(connection.id);
+    setError(null);
+    try {
+      const result = await sessionRequest<{ status: string }>(
+        `/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/connections/${encodeURIComponent(connection.id)}/status`,
+      );
+      setHealth((current) => ({ ...current, [connection.id]: result.status }));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Connection health could not be checked.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function disconnectConnection(connection: ProductRecordSummary) {
+    if (!currentProject) return;
+    setBusy(connection.id);
+    setError(null);
+    try {
+      await sessionRequest(
+        `/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/connections/${encodeURIComponent(connection.id)}/disconnect`,
+        { method: "POST", headers: { "If-Match": String(connection.version) } },
+      );
+      setReloadKey((value) => value + 1);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Connection could not be disconnected.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   if (!currentProject) {
     return <WorkspaceState state="empty">Choose a current project before connecting an app.</WorkspaceState>;
   }
@@ -166,7 +200,13 @@ function AppConnections() {
       return connection ? (
         <article key={app.toolkit} className="workspace-capability-row">
           <div><span className="workspace-capability-meta">Project app · read-only</span><h2>{app.name}</h2><p>{app.name} is {connection.state.replaceAll("_", " ")} for {currentProject.name}.</p></div>
-          <CapabilityState state={connection.state} />
+          <div className="workspace-stack">
+            <CapabilityState state={health[connection.id] ?? connection.state} />
+            {connection.state === "active" ? <>
+              <button type="button" className="workspace-button is-quiet" disabled={busy !== null} onClick={() => void checkConnection(connection)}>Check health</button>
+              <button type="button" className="workspace-button is-quiet" disabled={busy !== null} onClick={() => void disconnectConnection(connection)}>Disconnect</button>
+            </> : null}
+          </div>
         </article>
       ) : (
         <article key={app.toolkit} className="workspace-capability-row">
