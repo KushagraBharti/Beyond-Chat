@@ -219,12 +219,29 @@ def require_csrf(
     csrf_cookie: Annotated[str | None, Cookie(alias=settings.workos_csrf_cookie_name)] = None,
     csrf_header: Annotated[str | None, Header(alias="X-CSRF-Token")] = None,
 ) -> None:
-    if (
-        not csrf_cookie
-        or not csrf_header
-        or not hmac.compare_digest(csrf_cookie, csrf_header)
-    ):
+    cookie_match = bool(
+        csrf_cookie and csrf_header and hmac.compare_digest(csrf_cookie, csrf_header)
+    )
+    signed_match = _valid_signed_csrf(csrf_header)
+    if not cookie_match and not signed_match:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF validation failed.")
+
+
+def _signed_csrf() -> str:
+    nonce = secrets.token_urlsafe(32)
+    secret = (settings.workos_cookie_password or "").encode()
+    signature = hmac.new(secret, nonce.encode(), "sha256").hexdigest()
+    return f"{nonce}.{signature}"
+
+
+def _valid_signed_csrf(value: str | None) -> bool:
+    if not value or not settings.workos_cookie_password or "." not in value:
+        return False
+    nonce, signature = value.rsplit(".", 1)
+    expected = hmac.new(
+        settings.workos_cookie_password.encode(), nonce.encode(), "sha256"
+    ).hexdigest()
+    return bool(nonce) and hmac.compare_digest(signature, expected)
 
 
 async def require_principal(
@@ -391,7 +408,7 @@ def csrf_token(
     response: Response,
     _principal: Principal = Depends(require_principal),
 ) -> dict[str, str]:
-    token = secrets.token_urlsafe(32)
+    token = _signed_csrf()
     response.set_cookie(
         settings.workos_csrf_cookie_name,
         token,
