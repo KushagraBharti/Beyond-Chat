@@ -155,6 +155,9 @@ export function OutputWorkspacePage() {
 
 export function AutomationsWorkspacePage() {
   const { currentProject } = useProjects();
+  const [automationName, setAutomationName] = useState("");
+  const [automationReload, setAutomationReload] = useState(0);
+  const [automationNotice, setAutomationNotice] = useState("");
   const adapter = useMemo(
     () => (currentProject ? new LiveAutomationAdapter(currentProject.id) : null),
     [currentProject],
@@ -171,7 +174,20 @@ export function AutomationsWorkspacePage() {
   }
   return (
     <section className="workspace-page">
-      <AutomationWorkspace key={currentProject!.id} adapter={adapter} />
+      <form className="workspace-form" onSubmit={(event) => {
+        event.preventDefault();
+        setAutomationNotice("");
+        void sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations`, {
+          method: "POST",
+          headers: { "Idempotency-Key": crypto.randomUUID() },
+          body: JSON.stringify({ name: automationName, description: "General Agent scheduled work", agent_version_id: "general", trigger: { kind: "schedule", interval_minutes: 1440 }, max_cost_cents: 500, max_actions: 10, configuration: {} }),
+        }).then(() => { setAutomationName(""); setAutomationNotice("Automation created. Resume it when ready to run."); setAutomationReload((value) => value + 1); }).catch((error) => setAutomationNotice(error instanceof Error ? error.message : "Automation could not be created."));
+      }}>
+        <label><span>New daily automation</span><input value={automationName} onChange={(event) => setAutomationName(event.target.value)} placeholder="Daily market brief" required /></label>
+        <button className="workspace-button" disabled={!automationName.trim()}>Create automation</button>
+      </form>
+      {automationNotice ? <WorkspaceState state="error">{automationNotice}</WorkspaceState> : null}
+      <AutomationWorkspace key={`${currentProject!.id}:${automationReload}`} adapter={adapter} />
     </section>
   );
 }
