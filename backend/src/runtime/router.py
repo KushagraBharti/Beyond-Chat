@@ -3,13 +3,14 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 import os
 from typing import Annotated
+from uuid import uuid4
 
 import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from .coordinator import RuntimeConflict, RuntimeCoordinator
-from .models import RuntimeRun
+from .models import DurableEvent, RuntimeRun
 
 
 class RuntimePrincipal(BaseModel):
@@ -75,6 +76,19 @@ def create_runtime_router(
         principal: RuntimePrincipal = Depends(authenticate),
         _mutation: None = Depends(guard),
     ) -> dict:
+        run_id = body.run_id or str(uuid4())
+        coordinator.accept(RuntimeRun(
+            run_id=run_id,
+            organization_id=principal.organization_id,
+            project_id=body.project_id,
+            actor_id=principal.actor_id,
+            agent_version_id="general:v1",
+        ), idempotency_key=f"general:{run_id}")
+        coordinator.append_event(DurableEvent(
+            run_id=run_id, sequence=None, event_type="input.accepted",
+            payload={"prompt": body.prompt, "agent": "general"},
+            idempotency_key=f"general:{run_id}:input",
+        ))
         url = os.getenv("MODAL_RUNTIME_URL", "").strip()
         secret = os.getenv("MODAL_RUNTIME_SHARED_SECRET", "").strip()
         if not url or not secret:
@@ -83,7 +97,7 @@ def create_runtime_router(
             "prompt": body.prompt,
             "organization_id": principal.organization_id,
             "project_id": body.project_id,
-            **({"run_id": body.run_id} if body.run_id else {}),
+            "run_id": run_id,
             **({"model": body.model} if body.model else {}),
         }
         try:
@@ -96,10 +110,20 @@ def create_runtime_router(
                 response.raise_for_status()
                 result = response.json()
         except (httpx.HTTPError, ValueError) as exc:
+            coordinator.append_event(DurableEvent(
+                run_id=run_id, sequence=None, event_type="run.failed",
+                payload={"reason": "modal_execution_failed"},
+                idempotency_key=f"general:{run_id}:failed",
+            ))
             raise HTTPException(status_code=502, detail="Modal General Agent execution failed") from exc
         if not isinstance(result, dict) or not str(result.get("text", "")).strip():
             raise HTTPException(status_code=502, detail="Modal General Agent returned no output")
-        return result
+        coordinator.append_event(DurableEvent(
+            run_id=run_id, sequence=None, event_type="output.generated",
+            payload={"text": str(result["text"]), "agent": "general"},
+            idempotency_key=f"general:{run_id}:output",
+        ))
+        return {**result, "run_id": run_id}
 
     @router.post("/runs/{run_id}/cancel", status_code=status.HTTP_202_ACCEPTED)
     async def cancel_run(
