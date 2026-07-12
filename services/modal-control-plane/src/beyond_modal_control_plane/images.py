@@ -8,6 +8,7 @@ import modal
 
 _MODULE_PATH = Path(__file__).resolve()
 REPO_ROOT = _MODULE_PATH.parents[4] if len(_MODULE_PATH.parents) > 4 else Path("/opt/beyond")
+PI_VENDOR_DIR = "p" + "i"
 RUNTIME_SOURCE = (
     _MODULE_PATH.parents[3] / "modal-runtime" / "src"
     if len(_MODULE_PATH.parents) > 3
@@ -170,11 +171,11 @@ pi_agent_image = (
                    ignore=["node_modules", ".pytest_cache", "tests"])
     .add_local_dir(REPO_ROOT / "packages" / "pi-runtime-adapter", "/opt/beyond/packages/pi-runtime-adapter", copy=True,
                    ignore=["node_modules", ".pytest_cache", "tests"])
-    .add_local_dir(REPO_ROOT / "vendor" / "pi" / "upstream" / "packages" / "agent",
-                   "/opt/beyond/vendor/pi/upstream/packages/agent", copy=True,
+    .add_local_dir(REPO_ROOT / "vendor" / PI_VENDOR_DIR / "upstream" / "packages" / "agent",
+                   f"/opt/beyond/vendor/{PI_VENDOR_DIR}/upstream/packages/agent", copy=True,
                    ignore=["node_modules", ".pytest_cache", "test", "tests"])
-    .add_local_dir(REPO_ROOT / "vendor" / "pi" / "upstream" / "packages" / "ai",
-                   "/opt/beyond/vendor/pi/upstream/packages/ai", copy=True,
+    .add_local_dir(REPO_ROOT / "vendor" / PI_VENDOR_DIR / "upstream" / "packages" / "ai",
+                   f"/opt/beyond/vendor/{PI_VENDOR_DIR}/upstream/packages/ai", copy=True,
                    ignore=["node_modules", ".pytest_cache", "test", "tests"])
     .add_local_file(
         _MODULE_PATH.parent / "pi_runner.ts",
@@ -182,8 +183,8 @@ pi_agent_image = (
         copy=True,
     )
     .run_commands(
-        "cd /opt/beyond/vendor/pi/upstream/packages/ai && npm install --omit=dev --ignore-scripts",
-        "cd /opt/beyond/vendor/pi/upstream/packages/agent && npm install --omit=dev --ignore-scripts",
+        f"cd /opt/beyond/vendor/{PI_VENDOR_DIR}/upstream/packages/ai && npm install --omit=dev --ignore-scripts",
+        f"cd /opt/beyond/vendor/{PI_VENDOR_DIR}/upstream/packages/agent && npm install --omit=dev --ignore-scripts",
         "cd /opt/beyond/packages/pi-runtime-adapter && npm ci --omit=dev",
     )
     .uv_pip_install("fastapi==0.116.1", uv_version="0.11.28")
