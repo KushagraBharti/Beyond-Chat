@@ -49,6 +49,11 @@ function CatalogRows({ records, kindLabel }: { records: ProductRecordSummary[]; 
 
 function KnowledgeSources() {
   const { currentProject } = useProjects();
+  const [reloadKey, setReloadKey] = useState(0);
+  const [name, setName] = useState("");
+  const [content, setContent] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const sources = useSection(
     () =>
       currentProject
@@ -56,7 +61,7 @@ function KnowledgeSources() {
             `/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/knowledge/sources`,
           )
         : Promise.resolve({ items: [] as ProductRecordSummary[] }),
-    currentProject?.id ?? "none",
+    `${currentProject?.id ?? "none"}:${reloadKey}`,
   );
   if (!currentProject) {
     return (
@@ -70,15 +75,35 @@ function KnowledgeSources() {
     return <WorkspaceState state="error">{sources.message ?? "Sources could not be loaded."}</WorkspaceState>;
   }
   const items = sources.data?.items ?? [];
-  if (items.length === 0) {
-    return (
-      <p className="workspace-muted">
-        No knowledge sources are connected to {currentProject.name}. Retrieval stays deny-by-default until a scoped
-        connection exists.
-      </p>
-    );
+  async function addSource(event: FormEvent) {
+    event.preventDefault();
+    if (!currentProject) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/knowledge/sources`, {
+        method: "POST",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({ name, description: content, configuration: { type: "manual" } }),
+      });
+      setName("");
+      setContent("");
+      setReloadKey((value) => value + 1);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "The source could not be saved.");
+    } finally {
+      setSaving(false);
+    }
   }
-  return <CatalogRows records={items} kindLabel="sources" />;
+  return <div className="workspace-stack">
+    {items.length ? <CatalogRows records={items} kindLabel="sources" /> : <p className="workspace-muted">No knowledge sources are connected to {currentProject.name} yet.</p>}
+    {saveError ? <WorkspaceState state="error">{saveError}</WorkspaceState> : null}
+    <form className="workspace-form" onSubmit={(event) => void addSource(event)}>
+      <label><span>Source name</span><input required value={name} onChange={(event) => setName(event.target.value)} disabled={saving} /></label>
+      <label><span>Source content or URL</span><textarea required rows={5} value={content} onChange={(event) => setContent(event.target.value)} disabled={saving} /></label>
+      <button className="workspace-button" disabled={saving || !name.trim() || !content.trim()}>Add source</button>
+    </form>
+  </div>;
 }
 
 function ReadinessView() {

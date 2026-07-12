@@ -432,6 +432,13 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     async def sources(project_id: str, principal: Principal = Depends(deps.principal)):
         return await list_kind("source", project_id, principal)
 
+    @router.post("/projects/{project_id}/knowledge/sources", status_code=201)
+    async def create_source(project_id: str, body: ResourceCreate, idempotency_key: IdempotencyKey,
+                            principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
+        target = await scope(principal, project_id, body.team_id, ResourcePermission.EDIT)
+        return run(lambda: service.create(kind="source", scope=target, principal=principal,
+            idempotency_key=idempotency_key, payload=body.model_dump(exclude={"team_id"}), state="ready"))
+
     @router.post("/projects/{project_id}/knowledge/connections/{connection_id}/syncs", status_code=202)
     async def start_sync(project_id: str, connection_id: str, idempotency_key: IdempotencyKey,
                          principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
