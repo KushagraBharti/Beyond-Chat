@@ -29,13 +29,15 @@ function describeTrigger(payload: Record<string, unknown>): string {
 function executionState(record: ProductRecordSummary): ExecutionUiState {
   const state = record.state;
   if (state === "queued" || state === "running" || state === "failed" || state === "dead_letter") return state;
-  if (state === "succeeded") return "completed";
+  if (state === "succeeded" || state === "completed") return "completed";
   return "queued";
 }
 
 function runView(record: ProductRecordSummary): AutomationRun {
   const payload = record.payload ?? {};
   const suppressed = payload["destinations_suppressed"] === true;
+  const result = typeof payload["result_text"] === "string" ? payload["result_text"].trim() : "";
+  const error = typeof payload["error"] === "string" ? payload["error"].trim() : "";
   return {
     id: record.id,
     state: executionState(record),
@@ -46,7 +48,7 @@ function runView(record: ProductRecordSummary): AutomationRun {
     startedAt: record.created_at,
     attempt: Number(payload["attempt"] ?? 1),
     costCents: 0,
-    detail: `${String(payload["trigger_key"] ?? "")}${suppressed ? " · destinations suppressed" : ""}`,
+    detail: result || error || `${String(payload["trigger_key"] ?? "")}${suppressed ? " · destinations suppressed" : ""}`,
   };
 }
 
