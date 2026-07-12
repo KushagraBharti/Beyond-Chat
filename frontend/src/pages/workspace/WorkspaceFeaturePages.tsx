@@ -21,6 +21,8 @@ import type { OutputView } from "../../features/outputs/model";
 import { integrationAvailability } from "../../features/integration/apiClient";
 import { useSection } from "../../features/workspace/hooks";
 import { useProjects } from "../../features/workspace/ProjectContext";
+import { sessionRequest } from "../../lib/sessionClient";
+import type { ProductRecordSummary } from "../../features/workspace/api";
 
 export function AgentBuilderPage() {
   const { currentProject } = useProjects();
@@ -128,10 +130,21 @@ const outputFixture: OutputView = {
 
 export function OutputWorkspacePage() {
   const { outputId } = useParams();
+  const { currentProject } = useProjects();
   const [notice, setNotice] = useState("");
+  const output = useSection(
+    () => currentProject && outputId ? sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}`) : Promise.reject(new Error("Choose the output's project first.")),
+    `${currentProject?.id ?? "none"}:${outputId ?? "none"}`,
+  );
   const notSent = (action: string) => setNotice(`${action} was not sent. ${integrationAvailability.deferred.collaboration}`);
   const actions = { onSelectVersion: () => undefined, onCheckpoint: () => notSent("Checkpoint"), onRestore: () => notSent("Restore"), onCompare: () => notSent("Compare"), onBranch: () => notSent("Branch"), onPromote: () => notSent("Promote") };
-  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={outputId ? `Output ${outputId}` : "Output review"}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader><WorkspaceState state="disconnected">Canonical output persistence, comments, reviews, and presence are not connected.</WorkspaceState>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={outputFixture} actions={actions} /><CollaborationRail comments={[]} reviews={[]} canComment={false} actions={{ onAddComment: () => notSent("Comment"), onMention: () => notSent("Mention"), onResolve: () => notSent("Resolve"), onRequestReview: () => notSent("Review request") }} /></div></section>;
+  if (output.status === "loading") return <section className="workspace-page"><WorkspaceState state="loading">Loading output…</WorkspaceState></section>;
+  if (output.status !== "ready" || !output.data) return <section className="workspace-page"><WorkspaceState state="error">{output.message ?? "Output not found."}</WorkspaceState></section>;
+  const record = output.data;
+  const title = typeof record.payload["name"] === "string" ? record.payload["name"] : `Output ${record.id.slice(0, 8)}`;
+  const body = typeof record.payload["description"] === "string" ? record.payload["description"] : "";
+  const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId: `v${record.version}`, versions: [{ id: `v${record.version}`, ordinal: record.version, label: `Version ${record.version}`, author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }], preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] } };
+  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={[]} reviews={[]} canComment={false} actions={{ onAddComment: () => notSent("Comment"), onMention: () => notSent("Mention"), onResolve: () => notSent("Resolve"), onRequestReview: () => notSent("Review request") }} /></div></section>;
 }
 
 export function AutomationsWorkspacePage() {

@@ -577,6 +577,11 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     async def outputs(project_id: str, principal: Principal = Depends(deps.principal)):
         return await list_kind("output", project_id, principal)
 
+    @router.get("/projects/{project_id}/outputs/{output_id}")
+    async def get_output(project_id: str, output_id: str, principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return run(lambda: service.get("output", output_id, target))
+
     @router.post("/projects/{project_id}/outputs", status_code=201)
     async def create_output(project_id: str, body: ResourceCreate, idempotency_key: IdempotencyKey,
                             principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
