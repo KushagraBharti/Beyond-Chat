@@ -103,9 +103,12 @@ export async function executeGeneralAgent(input: { prompt: string; projectId: st
     .join("\n")}\nUse this knowledge when relevant and cite it with [Source: name].` : "";
   const memoryContext = memories.length ? `\n\nApproved project memory:\n${memories.map((content) => `- ${content}`).join("\n")}` : "";
   const groundedPrompt = `${input.prompt}${knowledgeContext}${memoryContext}\n\nDo not claim unsupported facts.`;
+  const body: Record<string, string> = { prompt: groundedPrompt, project_id: input.projectId };
+  if (input.agentVersionId) body.agent_version_id = input.agentVersionId;
+  if (input.instructions?.trim()) body.instructions = input.instructions.trim();
   return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
     "/api/runtime/agents/general:execute",
-    { method: "POST", body: JSON.stringify({ prompt: groundedPrompt, project_id: input.projectId, agent_version_id: input.agentVersionId ?? "general:v1", instructions: input.instructions }) },
+    { method: "POST", body: JSON.stringify(body) },
   );
 }
 
