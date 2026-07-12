@@ -45,7 +45,10 @@ export async function protectedFetch(path: string, init: RequestInit = {}): Prom
   if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
     let csrf = cookieValue(csrfCookieName);
     if (!csrf) {
-      const csrfResponse = await fetch("/api/auth/csrf", { credentials: "same-origin" });
+      const csrfResponse = await fetch(`/api/auth/csrf?nonce=${Date.now()}`, {
+        credentials: "same-origin",
+        cache: "no-store",
+      });
       if (csrfResponse.ok) {
         const payload = await csrfResponse.json() as { token?: unknown };
         csrf = typeof payload.token === "string" ? payload.token : null;
