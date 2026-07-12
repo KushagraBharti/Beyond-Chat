@@ -163,9 +163,30 @@ class SupabasePostgresRuntimeRepository:
         return self._run(row)
 
     def append_event(self, event: DurableEvent) -> DurableEvent:
-        raise ValueError(
-            "worker event append requires run/attempt/lease fencing; use append_worker_event"
+        rows = (
+            self.client.table("runtime_runs")
+            .select("next_event_sequence")
+            .eq("id", event.run_id)
+            .limit(1)
+            .execute()
+            .data
+            or []
         )
+        if not rows:
+            raise RuntimeError("runtime run not found")
+        sequence = int(rows[0]["next_event_sequence"])
+        self.client.rpc(
+            "append_runtime_event",
+            {
+                "p_run_id": event.run_id,
+                "p_sequence": sequence,
+                "p_event_type": event.event_type,
+                "p_payload": event.payload,
+                "p_occurred_at": _iso(event.occurred_at),
+            },
+        ).execute()
+        return DurableEvent(event.run_id, sequence, event.event_type, event.payload,
+                            event.occurred_at, event.idempotency_key)
 
     def append_worker_event(
         self, event: DurableEvent, *, attempt: int, lease_id: str, worker_id: str
