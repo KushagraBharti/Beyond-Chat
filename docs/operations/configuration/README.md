@@ -6,6 +6,16 @@ Current Phase 0–2 pass/fail evidence is recorded in
 [phase0-2-gate-audit.md](phase0-2-gate-audit.md). Configuration-name presence is
 never a substitute for the live provider evidence in that audit.
 
+## Evidence freshness
+
+Every operational evidence record must state both a UTC capture date/time and
+the exact Git commit it describes. Evidence without both fields is historical
+context, not a current gate result. A later capture supersedes an earlier fact
+only when it names the earlier record or claim, states what changed, and links
+the replacement evidence. Never silently rewrite contradictory history. Live
+provider state, CI state, migrations, authentication, and deployment facts must
+be recaptured after the relevant repository or provider mutation.
+
 Beyond uses three environments: local development, ephemeral Vercel previews, and production. There is no standing staging product. Preview and production must use different provider applications, webhook endpoints, databases, and credentials wherever a provider supports isolation. A preview deployment must never receive a production database service role, WorkOS cookie password, webhook secret, Stripe secret, or provider API key.
 
 ## Validate names without exposing values
@@ -38,6 +48,15 @@ The validator exits non-zero for missing, unknown, conflicting, or forbidden nam
 | Modal operator CLI | `env.example` | Local untracked environment or the Modal CLI credential store |
 
 Do not copy the backend template into the frontend. `VITE_*` values are embedded in the browser bundle and therefore must be public. In particular, Supabase service-role, WorkOS, OpenRouter, Composio, Modal, and Stripe secrets are forbidden on the frontend even if a build tool would accept them.
+
+Committed templates and `scripts/config/environment-manifest.json` define the
+canonical variable-name contract. Ignored files such as `backend/.env`,
+`backend/.env.local`, and `frontend/.env.local` are noncanonical, machine-local
+projections and may be stale or belong to another provider resource. Do not use
+their presence as identity or readiness proof. The canonical Supabase production
+project is ref `vffndfwdykxqjlnntuuk`; verify that immutable ref through approved
+CLI/MCP/provider metadata before any database operation, without printing a URL
+credential, key, password, or connection string.
 
 ## Provider configuration
 
@@ -99,3 +118,8 @@ Changing a gate in the manifest documents readiness intent; it does not itself e
 ## Secret handling
 
 All `.env`, `.env.*`, and `*.local` files are ignored. Committed `env.example` files contain names and non-secret local defaults only. Session transcripts and local attachment directories are ignored because they may contain credentials or personal data. Never paste provider values into issue comments, validation output, screenshots, build logs, or readiness reports.
+
+Two historical Git autostashes are inventoried by filename/statistics only in
+[autostash-inventory.md](autostash-inventory.md). They are not canonical source,
+were not applied or dropped during the Phase 0 audit, and require explicit owner
+review before any future mutation.

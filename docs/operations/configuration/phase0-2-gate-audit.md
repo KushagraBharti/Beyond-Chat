@@ -1,8 +1,13 @@
 # Phase 0–2 gate audit
 
-Evidence snapshot: **2026-07-12**. This is a read-only gate assessment,
+Evidence captured: **2026-07-12 UTC**, against commit
+**`a90849180a3f1c230d989bebcf57442382c4778d`**. This is a read-only gate assessment,
 not authorization to mutate a provider. Provider identifiers and credential
 names are recorded; credential values are not.
+
+This capture supersedes the repository/CI/Modal facts in the earlier
+`ced37a4`-scoped audit. Provider facts not recaptured remain historical and do
+not silently inherit current status.
 
 ## Executive result
 
@@ -19,14 +24,14 @@ only when every conjunct in its gate is proven.
 
 | Gate condition | Result | Evidence / exact blocker |
 | --- | --- | --- |
-| Clean reproducible installs and CI green | **Fail** | GitHub Actions run `29173921184` for deployed commit `ced37a44223926f39b21def0b7a280f0ea969183` failed. Frontend tests could not resolve `@beyond/contracts`; Dexter typecheck could not resolve `../skills/index.js`. Backend, runner, product-catalog, secret scan, and the dedicated Phase 1 job passed. |
+| Clean reproducible installs and CI green | **Pass for commit** | GitHub Actions run `29181839190` completed successfully for exact commit `a90849180a3f1c230d989bebcf57442382c4778d`. This supersedes failed run `29173921184` at `ced37a4`; it does not certify later working-tree changes. |
 | Health checks green | **Pass** | Frontend `/` returned 200; frontend `/api/health` and backend `/api/health` returned 200 with the backend health payload. Runner unauthenticated POST `/api/run` returned 401. Runner GET now returns 404, so historical 405 guidance is obsolete. |
-| Canonical repository baseline committed | **Fail** | `main` is at the deployed commit above, but the shared checkout contains tracked changes and the applied migration `20260712004658_cover_product_record_scope_foreign_keys.sql` is currently untracked. |
-| Active provider resources identity-verified | **Partial / fail** | Vercel team and all three projects, Supabase project, WorkOS environment/app/client, GitHub user/repository, Stripe account, and Composio project are recorded. Modal has no app, and Exa/Financial Datasets expose credential acceptance without an immutable account/project ID in the available probe. The exact all-provider gate is therefore not closed. |
+| Canonical repository baseline committed | **Pass for commit** | `main` and `origin/main` resolve to `a90849180a3f1c230d989bebcf57442382c4778d`; the nine canonical migration files through `20260712013100` are tracked. Uncommitted shared-checkout changes are outside this commit-scoped claim. |
+| Active provider resources identity-verified | **Partial / fail** | Vercel, Supabase, WorkOS, GitHub, Stripe, Composio, and the Modal app/image/volume plane have recorded immutable IDs. Modal evidence is release `2026-07-11.4`, with routing disabled at 0%. Exa and Financial Datasets still expose credential acceptance without immutable account/project IDs, and narrow Modal service identity is unproven. |
 | Supabase CLI and MCP agree | **Fail** | Project-scoped MCP returned `https://vffndfwdykxqjlnntuuk.supabase.co`. Supabase CLI 2.109.0 returned 401 Unauthorized for both `projects list` and `migration list --linked`; prior reauthentication evidence is stale. |
-| Legacy schema reset; no customer data | **Pass with controlled auth records** | The remote history includes seven canonical migrations through applied version `20260712004658`; the old 14-table chain is absent. Production authentication now succeeds and has created one internal profile, one organization, and one Owner membership. These are controlled foundation records, not evidence of customer data. The earlier all-empty row snapshot is superseded. |
+| Legacy schema reset; no customer data | **Pass with controlled auth records and migration caveat** | MCP evidence records seven remote migrations through `20260712004658`; the repository now tracks nine migrations through `20260712013100`. The old 14-table chain is absent. One controlled profile, organization, and Owner membership exist; these are foundation records, not customer data. CLI agreement for the two later migrations is not proven. |
 | No unexplained security-advisor warnings | **Pass** | Project-scoped Supabase security advisor returned an empty lint list. Performance findings are only expected `unused_index` INFO notices on the empty database. |
-| No committed secrets | **Pass for checked commit** | The tracked secret/credential-file scan job passed on the deployed commit. This does not certify uncommitted files or external transcripts. |
+| No committed secrets | **Pass for checked commit** | The tracked secret/credential-file scan job passed in CI run `29181839190` for `a908491`. This does not certify ignored env files, uncommitted files, stashes, or external transcripts. |
 | Credential and provider-rate registers exist without values | **Pass** | `credential-register.md`, `secret-scope-matrix.md`, and `rate-register.csv` exist and record names/rates only. Contract-priced Composio and Financial Datasets inputs remain explicitly pending. |
 
 ## Phase 1
@@ -43,7 +48,7 @@ only when every conjunct in its gate is proven.
 
 | Gate condition | Result | Evidence / exact blocker |
 | --- | --- | --- |
-| Old chain absent; canonical history replays and matches remote | **Pass with CLI caveat** | Local PostgreSQL 17.10 validation includes applied migration `20260712004658` in canonical replay and passes the Phase 2 adversarial and service-table policy suites. MCP reports seven remote versions through `20260712004658`; the local shared checkout also contains a later Phase 3 migration. Formal CLI comparison remains blocked by the Phase 0 401. |
+| Old chain absent; canonical history replays and matches remote | **Fail exact agreement gate** | CI passes repository replay/tests at `a908491`, and MCP reports seven remote versions through `20260712004658`. The repository tracks two later Phase 3 migrations through `20260712013100`, but Supabase CLI still returns 401, so exact local/remote agreement is not currently proven. |
 | Cross-organization denial through API, PostgREST, Storage, Realtime, and guessed IDs | **Fail exact gate** | Deterministic database/backend tests cover two-organization and guessed-ID cases, but production currently has only one controlled organization and no live two-organization end-to-end evidence across all five surfaces was captured. |
 | Invitation, switch, and revocation flows work | **Fail production gate** | Production login now works for one controlled profile/organization/Owner, and local route tests exist. Production invitation, organization-switch, and revocation journeys have not all been evidenced. |
 | All protected routes use WorkOS | **Fail exact gate** | Production WorkOS authentication now works for one controlled profile/organization/Owner. The repository still documents transitional Supabase-auth middleware and a legacy frontend login surface for existing product routes, so the all-protected-routes condition is not proven. |
@@ -58,10 +63,12 @@ only when every conjunct in its gate is proven.
 - All three Vercel projects are linked to GitHub repository ID `1160284020`, owner ID `65621922`, production branch `main`.
 - Supabase: `vffndfwdykxqjlnntuuk`; seven remote migrations through `20260712004658`, security advisor clean; the prior all-empty row snapshot is superseded by one controlled profile/organization/Owner foundation.
 - WorkOS canonical environment/app/client: `environment_01KX84DX4GA5XMSN4D4FK9DFND` / `app_01KX84DXGTP1ZKASV4PBVSASM6` / `client_01KX84DX9XT83ZSTCBM0T2XC8G`.
+- Modal production provider plane: app `ap-FbZZRj50uSQRtGe2nwvlYH`, release `2026-07-11.4`, four immutable image IDs and three volume IDs recorded in `provider-identity-register.md`; routing remains disabled at 0%.
 
 ## Required next evidence
 
 1. Reauthenticate Supabase CLI and rerun linked migration comparison without changing migration history.
-2. Return repository-wide CI to green and commit a deliberate canonical baseline, including the already-applied migration file.
-3. Record the now-working canonical production auth configuration, then exercise controlled two-organization invitation/switch/revocation/isolation journeys and migrate every remaining protected route.
-4. Promote a digest-addressed Pi runtime artifact and run a genuine different-commit upstream upgrade rehearsal through the recorded fork gates.
+2. Exercise controlled two-organization invitation/switch/revocation/isolation journeys and migrate every remaining protected route; one successful production login is not the full auth gate.
+3. Promote a digest-addressed Pi runtime artifact and run a genuine different-commit upstream upgrade rehearsal through the recorded fork gates.
+4. Rotate transcript/session-exposed credentials before external access; exercise the narrow Composio key through shipped runtime code and revoke the legacy full-access key.
+5. Keep live Stripe blocked until the intended account is activated and an account-matched key, product, price, webhook, and controlled charge/refund are verified.

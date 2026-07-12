@@ -1,0 +1,54 @@
+# Normalize repository text so Windows and Linux checkouts produce identical commits.
+* text=auto
+
+# Executable and cross-platform source/config files use LF.
+*.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.ps1 text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.md text eol=lf
+*.sql text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.env text eol=lf
+*.example text eol=lf
+
+# Windows-native launchers retain CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Intentional binary artifacts must never be line-ending normalized.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.gz binary
+*.tgz binary
+*.mp3 binary
+*.mp4 binary
+*.mov binary
+*.webm binary
+*.wav binary
+*.sqlite binary
+*.sqlite3 binary
+*.db binary

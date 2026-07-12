@@ -1,6 +1,11 @@
 # Provider Identity and Authentication Register
 
-Evidence date: **2026-07-11 UTC**. “Verified” means an authenticated provider surface returned the recorded immutable ID or a provider-authenticated request succeeded. It does not mean the corresponding product integration is implemented.
+Evidence captured: **2026-07-12 UTC**, against commit
+**`a90849180a3f1c230d989bebcf57442382c4778d`**. “Verified” means an
+authenticated provider surface returned the recorded immutable ID or a
+provider-authenticated request succeeded. It does not mean the corresponding
+product integration is implemented. Later evidence supersedes a row only when
+it identifies this capture and records the replacement immutable facts.
 
 | Provider/surface | Immutable resource identity | Authentication evidence | Status | Next gate |
 |---|---|---|---|---|
@@ -11,7 +16,7 @@ Evidence date: **2026-07-11 UTC**. “Verified” means an authenticated provide
 | Vercel legacy runner | `prj_C0NH6PmkehZKvrVbWjijd6G9l18k`; production alias `beyond-chat-sandbox-runner.vercel.app` | CLI link/project inspect; production redeploy READY; unauthenticated POST returns 401 | Verified, temporary | Retire after Modal parity and rollback proof |
 | Supabase organization | `nwvyypcrdwhzwpurtonm` | CLI project listing | Verified | Restrict operational tokens to project scope where supported |
 | Supabase project | Ref `vffndfwdykxqjlnntuuk`; URL `https://vffndfwdykxqjlnntuuk.supabase.co` | MCP URL/migration/table/advisor calls; linked ref files match; CLI 2.109.0 currently returns 401 | MCP verified; CLI gate failed | Reauthenticate CLI, then compare the seven local/remote versions without repairing history |
-| Modal | Profile/workspace slug `kushagrabharti`; no immutable workspace ID exposed by CLI | `modal profile current/list`; `modal app list --json` authenticated and returned `[]` | Auth verified; app absent | Phase 4 creates named app, images, identities, and recovery resources |
+| Modal | Profile `kushagrabharti`; environment `beyond-chat-production`; app `ap-FbZZRj50uSQRtGe2nwvlYH`; release `2026-07-11.4` images `im-sM7PhCwKy46WBkVzcK23iM`, `im-kGV2kfZyxOSCnGQWnkHA7m`, `im-HbHwCRRnHDWgjdoNTB0bx9`, `im-QDEEaGhyZNLNQ3JdR0PWwe`; volumes `vo-32ghh7cJPxUHAg54jwujdl`, `vo-Vji1FReSJUHavoZX6WsIEL`, `vo-k3pPcHikaFcfChazNxkILK` | Immutable bindings in `infra/modal/rollout.json` and `fixtures/phase4/releases/2026-07-11.4/modal-provider-state.json`; supersedes the 2026-07-11 empty app-list snapshot | Provider plane verified; production routing disabled at 0% | Complete production database/RPC admission, real gateway parity, controlled canary, rollback observation, and service-identity proof before routing or retiring the legacy runner |
 | WorkOS team | Team `Kushagra`; caller `Kushagra Bharti <kushagrabharti@gmail.com>`; role `ADMIN` | Current MCP process returned `whoami` and authoritative canonical-environment queries | Verified | Always pass the canonical environment ID explicitly |
 | WorkOS production legacy A | Environment `environment_01KX6XSE77SSHVD4SVM8ZY0QZJ`; app `app_01KX6XSERQW6QCG30ZE2KTD410`; client `client_01KX6XSED33RARK1GY1B5J9X0M` | MCP application and organization-count queries | Explicitly unused/legacy; read-only | Never delete automatically; retain only as rollback evidence until the canonical environment is live |
 | WorkOS canonical production B | Environment `environment_01KX84DX4GA5XMSN4D4FK9DFND`; app `app_01KX84DXGTP1ZKASV4PBVSASM6`; client `client_01KX84DX9XT83ZSTCBM0T2XC8G` | Provider metadata plus successful production auth | Selected canonical pair; auth working | One controlled profile/organization/Owner exists; invitation, switch, revocation, custom-role, and all-route evidence remain open |
