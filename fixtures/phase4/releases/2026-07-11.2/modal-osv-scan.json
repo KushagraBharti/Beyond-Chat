@@ -1,0 +1,3942 @@
+{
+  "blocking_count": 30,
+  "captured_at": "2026-07-11T17:18:56.570774+00:00",
+  "components_scanned": 1853,
+  "finding_count": 217,
+  "finding_occurrence_count": 652,
+  "findings": [
+    {
+      "cvss_score": null,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2005-2541",
+      "modified": "2026-04-28T20:05:02.937588Z",
+      "name": "tar",
+      "purl": "pkg:deb/debian/tar@1.34%2Bdfsg-1.2%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "1.34+dfsg-1.2+deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2010-4651",
+      "modified": "2026-04-28T20:11:43.742869Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": 3.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2011-3374",
+      "modified": "2026-04-28T20:07:05.372730Z",
+      "name": "apt",
+      "purl": "pkg:deb/debian/apt@2.6.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.6.1"
+    },
+    {
+      "cvss_score": 3.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2011-4116",
+      "modified": "2026-04-28T20:07:16.851516Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2012-5639",
+      "modified": "2026-04-28T20:12:09.784178Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/debian/libreoffice@4%3A7.4.7-1%2Bdeb12u14",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "4:7.4.7-1+deb12u14"
+    },
+    {
+      "cvss_score": 5.0,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2013-4392",
+      "modified": "2026-04-28T20:10:10.368741Z",
+      "name": "systemd",
+      "purl": "pkg:deb/debian/systemd@252.39-1~deb12u2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "252.39-1~deb12u2"
+    },
+    {
+      "cvss_score": 9.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2016-1585",
+      "modified": "2026-04-28T20:15:12.031670Z",
+      "name": "apparmor",
+      "purl": "pkg:deb/debian/apparmor@3.0.8-3",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "3.0.8-3"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "low",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2016-2781",
+      "modified": "2026-04-28T20:15:21.375201Z",
+      "name": "coreutils",
+      "purl": "pkg:deb/debian/coreutils@9.1-1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "9.1-1"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2017-13716",
+      "modified": "2026-06-15T19:02:23.292364Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2017-15131",
+      "modified": "2026-06-15T19:02:53.664485Z",
+      "name": "xdg-user-dirs",
+      "purl": "pkg:deb/debian/xdg-user-dirs@0.18-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "0.18-1"
+    },
+    {
+      "cvss_score": 4.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2017-18018",
+      "modified": "2026-06-15T19:03:03.254047Z",
+      "name": "coreutils",
+      "purl": "pkg:deb/debian/coreutils@9.1-1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "9.1-1"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-10583",
+      "modified": "2026-04-28T20:18:10.606846Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/debian/libreoffice@4%3A7.4.7-1%2Bdeb12u14",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "4:7.4.7-1+deb12u14"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-20673",
+      "modified": "2026-04-28T20:19:14.502228Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-20712",
+      "modified": "2026-04-28T20:19:14.812013Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-6829",
+      "modified": "2026-04-28T20:19:30.599344Z",
+      "name": "libgcrypt20",
+      "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "1.10.1-3+deb12u1"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-6951",
+      "modified": "2026-04-28T20:19:30.629303Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-6952",
+      "modified": "2026-04-28T20:19:31.408043Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2018-9996",
+      "modified": "2026-04-28T20:19:52.557549Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2020-27748",
+      "modified": "2026-06-15T19:02:48.064101Z",
+      "name": "xdg-utils",
+      "purl": "pkg:deb/debian/xdg-utils@1.1.3-4.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "1.1.3-4.1"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2021-32256",
+      "modified": "2026-06-15T19:03:43.349136Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2021-37819",
+      "modified": "2026-06-15T19:03:48.434698Z",
+      "name": "libitext-java",
+      "purl": "pkg:deb/debian/libitext-java@2.1.7-14",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "2.1.7-14"
+    },
+    {
+      "cvss_score": 3.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2021-4217",
+      "modified": "2026-06-15T19:03:50.941585Z",
+      "name": "unzip",
+      "purl": "pkg:deb/debian/unzip@6.0-28",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "6.0-28"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2021-45261",
+      "modified": "2026-06-15T19:03:52.817984Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2022-0563",
+      "modified": "2026-06-15T19:03:59.250197Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2022-27943",
+      "modified": "2026-06-15T19:04:05.955802Z",
+      "name": "gcc-12",
+      "purl": "pkg:deb/debian/gcc-12@12.2.0-14%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "12.2.0-14+deb12u1"
+    },
+    {
+      "cvss_score": 7.4,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2022-4055",
+      "modified": "2026-06-15T19:04:12.253302Z",
+      "name": "xdg-utils",
+      "purl": "pkg:deb/debian/xdg-utils@1.1.3-4.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "1.1.3-4.1"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-1972",
+      "modified": "2026-06-15T19:04:30.806766Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-31437",
+      "modified": "2026-06-15T19:04:35.041177Z",
+      "name": "systemd",
+      "purl": "pkg:deb/debian/systemd@252.39-1~deb12u2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "252.39-1~deb12u2"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-31438",
+      "modified": "2026-06-15T19:04:35.048277Z",
+      "name": "systemd",
+      "purl": "pkg:deb/debian/systemd@252.39-1~deb12u2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "252.39-1~deb12u2"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-31439",
+      "modified": "2026-06-15T19:04:34.997631Z",
+      "name": "systemd",
+      "purl": "pkg:deb/debian/systemd@252.39-1~deb12u2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "252.39-1~deb12u2"
+    },
+    {
+      "cvss_score": 8.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-31486",
+      "modified": "2026-06-15T19:04:35.160442Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-38560",
+      "modified": "2026-06-15T19:04:37.890616Z",
+      "name": "ghostscript",
+      "purl": "pkg:deb/debian/ghostscript@10.0.0~dfsg-11%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "10.0.0~dfsg-11+deb12u8"
+    },
+    {
+      "cvss_score": 2.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2023-4016",
+      "modified": "2026-06-15T19:04:39.135991Z",
+      "name": "procps",
+      "purl": "pkg:deb/debian/procps@2%3A4.0.2-3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "2:4.0.2-3"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2024-2236",
+      "modified": "2026-06-15T19:04:58.645370Z",
+      "name": "libgcrypt20",
+      "purl": "pkg:deb/debian/libgcrypt20@1.10.1-3%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "1.10.1-3+deb12u1"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2024-2379",
+      "modified": "2026-06-15T19:04:58.951944Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2024-29511",
+      "modified": "2026-06-15T19:05:06.834747Z",
+      "name": "ghostscript",
+      "purl": "pkg:deb/debian/ghostscript@10.0.0~dfsg-11%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "10.0.0~dfsg-11+deb12u8"
+    },
+    {
+      "cvss_score": 8.4,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2024-53589",
+      "modified": "2026-06-15T19:05:31.856681Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2024-57360",
+      "modified": "2026-06-15T19:05:30.120581Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-0725",
+      "modified": "2026-06-15T19:05:38.349395Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-0840",
+      "modified": "2026-06-15T19:05:38.367227Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-10148",
+      "modified": "2026-06-15T19:05:38.303504Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "predictable WebSocket mask",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 4.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-10966",
+      "modified": "2026-06-15T19:05:38.594590Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11081",
+      "modified": "2026-06-15T19:05:38.848583Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11082",
+      "modified": "2026-06-15T19:05:38.676097Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11083",
+      "modified": "2026-06-15T19:05:38.656280Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11412",
+      "modified": "2026-06-15T19:05:38.794123Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11413",
+      "modified": "2026-06-15T19:05:38.920934Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11414",
+      "modified": "2026-06-15T19:05:38.799676Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1147",
+      "modified": "2026-06-15T19:05:35.636266Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 3.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1148",
+      "modified": "2026-06-15T19:05:38.777527Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 3.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1149",
+      "modified": "2026-06-15T19:05:38.873677Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11494",
+      "modified": "2026-06-15T19:05:19.323598Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11495",
+      "modified": "2026-06-15T19:05:38.820356Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 3.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1150",
+      "modified": "2026-06-15T19:05:38.847320Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 2.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1151",
+      "modified": "2026-06-15T19:05:18.923518Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 3.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1152",
+      "modified": "2026-06-15T19:05:18.930241Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1153",
+      "modified": "2026-06-15T19:05:38.848352Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.0,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1176",
+      "modified": "2026-06-15T19:05:18.940788Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1178",
+      "modified": "2026-06-15T19:05:38.875136Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1179",
+      "modified": "2026-06-15T19:05:35.716141Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 2.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1180",
+      "modified": "2026-06-15T19:05:35.776114Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 2.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1181",
+      "modified": "2026-06-15T19:05:35.773117Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 2.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-1182",
+      "modified": "2026-06-15T19:05:35.632048Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11839",
+      "modified": "2026-06-15T19:05:35.634717Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-11840",
+      "modified": "2026-06-15T19:05:35.779689Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-12781",
+      "modified": "2026-06-15T19:05:39.461380Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "base64.b64decode() always accepts \"+/\" characters, despite setting altchars",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-13151",
+      "modified": "2026-06-15T19:05:39.540117Z",
+      "name": "libtasn1-6",
+      "purl": "pkg:deb/debian/libtasn1-6@4.19.0-2%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "CVE-2025-13151",
+      "version": "4.19.0-2+deb12u1"
+    },
+    {
+      "cvss_score": 2.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-13462",
+      "modified": "2026-06-16T05:00:10.296620Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "tarfile: Skip DIRTYPE normalization during GNU LONGNAME/LONGLINK handling",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-14017",
+      "modified": "2026-06-15T19:05:39.835785Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 6.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-14104",
+      "modified": "2026-06-15T19:05:39.770160Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-14524",
+      "modified": "2026-06-15T19:05:18.806387Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "bearer token leak on cross-protocol redirect",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-14819",
+      "modified": "2026-06-15T19:05:18.652442Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "OpenSSL partial chain store policy bypass",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-15079",
+      "modified": "2026-06-15T19:05:19.014278Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 3.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-15224",
+      "modified": "2026-06-15T19:05:18.995564Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-15366",
+      "modified": "2026-06-15T19:05:19.778657Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "IMAP command injection in user-controlled commands",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-15367",
+      "modified": "2026-06-15T19:05:19.787521Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "POP3 command injection in user-controlled commands",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-15649",
+      "modified": "2026-06-15T19:05:19.420530Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "IO::Uncompress::Unzip versions before 2.215 for Perl propagate uncaught exception when parsing zip header with malformed DOS date",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-27587",
+      "modified": "2026-06-15T19:05:22.788453Z",
+      "name": "openssl",
+      "purl": "pkg:deb/debian/openssl@3.0.20-1~deb12u2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "3.0.20-1~deb12u2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-3198",
+      "modified": "2026-06-15T19:05:23.446122Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-40918",
+      "modified": "2026-06-15T19:05:51.449716Z",
+      "name": "libauthen-sasl-perl",
+      "purl": "pkg:deb/debian/libauthen-sasl-perl@2.1600-3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Authen::SASL::Perl::DIGEST_MD5 versions 2.04 through 2.1800 for Perl generates the cnonce insecurely",
+      "version": "2.1600-3"
+    },
+    {
+      "cvss_score": 3.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-48708",
+      "modified": "2026-06-15T19:05:52.930733Z",
+      "name": "ghostscript",
+      "purl": "pkg:deb/debian/ghostscript@10.0.0~dfsg-11%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "10.0.0~dfsg-11+deb12u8"
+    },
+    {
+      "cvss_score": 3.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-51591",
+      "modified": "2026-06-15T19:05:47.094903Z",
+      "name": "pandoc",
+      "purl": "pkg:deb/debian/pandoc@2.17.1.1-2~deb12u1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.17.1.1-2~deb12u1"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-5244",
+      "modified": "2026-06-15T19:05:53.512782Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-5245",
+      "modified": "2026-06-15T19:05:53.402841Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 4.4,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-5278",
+      "modified": "2026-06-15T19:05:53.911862Z",
+      "name": "coreutils",
+      "purl": "pkg:deb/debian/coreutils@9.1-1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "9.1-1"
+    },
+    {
+      "cvss_score": 2.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-52968",
+      "modified": "2026-06-15T19:05:53.936722Z",
+      "name": "xdg-utils",
+      "purl": "pkg:deb/debian/xdg-utils@1.1.3-4.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "1.1.3-4.1"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-59800",
+      "modified": "2026-06-15T19:05:55.380103Z",
+      "name": "ghostscript",
+      "purl": "pkg:deb/debian/ghostscript@10.0.0~dfsg-11%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "10.0.0~dfsg-11+deb12u8"
+    },
+    {
+      "cvss_score": 4.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-59801",
+      "modified": "2026-06-15T19:05:55.366602Z",
+      "name": "ghostscript",
+      "purl": "pkg:deb/debian/ghostscript@10.0.0~dfsg-11%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "10.0.0~dfsg-11+deb12u8"
+    },
+    {
+      "cvss_score": 4.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-60018",
+      "modified": "2026-06-15T19:05:55.575943Z",
+      "name": "glib-networking",
+      "purl": "pkg:deb/debian/glib-networking@2.74.0-4",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.74.0-4"
+    },
+    {
+      "cvss_score": 3.7,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-60019",
+      "modified": "2026-06-15T19:05:55.757983Z",
+      "name": "glib-networking",
+      "purl": "pkg:deb/debian/glib-networking@2.74.0-4",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.74.0-4"
+    },
+    {
+      "cvss_score": 2.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66861",
+      "modified": "2026-06-15T19:05:57.245796Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66862",
+      "modified": "2026-06-15T19:05:57.279584Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66863",
+      "modified": "2026-06-15T19:05:57.237722Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66864",
+      "modified": "2026-06-15T19:05:57.404036Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66865",
+      "modified": "2026-06-15T19:05:57.322659Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-66866",
+      "modified": "2026-06-15T19:05:57.534927Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69534",
+      "modified": "2026-06-15T19:06:00.273998Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 5.0,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69644",
+      "modified": "2026-06-15T19:06:00.166069Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69645",
+      "modified": "2026-06-15T19:06:00.220424Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69646",
+      "modified": "2026-06-15T19:06:00.082285Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.2,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69647",
+      "modified": "2026-06-15T19:06:00.267400Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.2,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69648",
+      "modified": "2026-06-15T19:06:00.079913Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69649",
+      "modified": "2026-06-15T19:06:00.313575Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69650",
+      "modified": "2026-06-15T19:06:00.112062Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69651",
+      "modified": "2026-06-15T19:06:00.159238Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.2,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-69652",
+      "modified": "2026-06-15T19:06:00.043769Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-7545",
+      "modified": "2026-06-15T19:06:01.433158Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-7546",
+      "modified": "2026-06-15T19:06:01.690201Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-8224",
+      "modified": "2026-06-15T19:06:01.721556Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 1.9,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-8225",
+      "modified": "2026-06-15T19:06:01.793030Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 1.9,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2025-8732",
+      "modified": "2026-06-15T19:06:01.879543Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 4.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-0864",
+      "modified": "2026-06-26T20:00:10.568971Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Configuration Injection via Carriage Return (\\r) in write() method",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 3.7,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-0989",
+      "modified": "2026-06-15T19:06:02.459568Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Libxml2: unbounded relaxng include recursion leading to stack overflow",
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-0990",
+      "modified": "2026-06-15T19:06:02.474403Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Libxml2: libxml2: denial of service via uncontrolled recursion in xml catalog processing",
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 2.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-0992",
+      "modified": "2026-06-15T19:06:02.509422Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Libxml2: libxml2: denial of service via crafted xml catalogs",
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-10028",
+      "modified": "2026-06-15T19:05:52.603610Z",
+      "name": "glib-networking",
+      "purl": "pkg:deb/debian/glib-networking@2.74.0-4",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "2.74.0-4"
+    },
+    {
+      "cvss_score": 9.8,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-10536",
+      "modified": "2026-07-07T10:00:10.015435Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "HTTP/2 stream-dependency tree UAF",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 9.8,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-11856",
+      "modified": "2026-07-07T10:00:09.796747Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "cross-origin Digest auth state leak",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-11940",
+      "modified": "2026-06-26T20:00:10.621648Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "tarfile extraction filter bypass allows escaping the destination directory",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 8.2,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-11972",
+      "modified": "2026-07-06T05:00:10.970049Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "tarfile opened in streaming mode mishandles EOF",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-11979",
+      "modified": "2026-07-01T18:00:10.769750Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-12003",
+      "modified": "2026-06-18T10:00:08.095976Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-12064",
+      "modified": "2026-07-07T10:00:08.388751Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "proto-default skips SSH verification",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 9.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-12087",
+      "modified": "2026-06-17T18:00:11.750305Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Socket versions before 2.041 for Perl have an out-of-bounds heap read",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 6.8,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-13595",
+      "modified": "2026-07-08T10:00:07.900022Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Util-linux: util-linux: heap use-after-free in libblkid nested partition probing",
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-14741",
+      "modified": "2026-07-09T22:00:08.139214Z",
+      "name": "libhttp-date-perl",
+      "purl": "pkg:deb/debian/libhttp-date-perl@6.05-2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "6.05-2"
+    },
+    {
+      "cvss_score": 5.7,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-1502",
+      "modified": "2026-06-16T05:00:10.498880Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "HTTP client proxy tunnel headers not validated for CR/LF",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15107",
+      "modified": "2026-07-10T09:00:10.915639Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15108",
+      "modified": "2026-07-10T09:00:11.294887Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15109",
+      "modified": "2026-07-10T09:00:09.428321Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15110",
+      "modified": "2026-07-10T09:00:11.406047Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15111",
+      "modified": "2026-07-10T09:00:11.216379Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15112",
+      "modified": "2026-07-10T09:00:12.531083Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15113",
+      "modified": "2026-07-10T09:00:11.222105Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15114",
+      "modified": "2026-07-10T09:00:11.172447Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15115",
+      "modified": "2026-07-10T09:00:11.226801Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15116",
+      "modified": "2026-07-10T09:00:10.795100Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15117",
+      "modified": "2026-07-10T09:00:12.520732Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15118",
+      "modified": "2026-07-10T09:00:07.980880Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15119",
+      "modified": "2026-07-10T09:00:07.963614Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15120",
+      "modified": "2026-07-10T09:00:08.036536Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15121",
+      "modified": "2026-07-10T09:00:08.021445Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15122",
+      "modified": "2026-07-10T09:00:07.970287Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15123",
+      "modified": "2026-07-10T09:00:08.026741Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15124",
+      "modified": "2026-07-10T09:00:09.278913Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15125",
+      "modified": "2026-07-10T09:00:09.386140Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15126",
+      "modified": "2026-07-10T09:00:09.335816Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15127",
+      "modified": "2026-07-10T09:00:11.341876Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15128",
+      "modified": "2026-07-10T09:00:11.224617Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15129",
+      "modified": "2026-07-10T09:00:12.514959Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15130",
+      "modified": "2026-07-10T09:00:08.025881Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15131",
+      "modified": "2026-07-10T09:00:09.429259Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15132",
+      "modified": "2026-07-10T09:00:09.424636Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-15133",
+      "modified": "2026-07-10T09:00:09.445130Z",
+      "name": "chromium",
+      "purl": "pkg:deb/debian/chromium@150.0.7871.100-1~deb12u1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "cvss_score": 6.2,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-1757",
+      "modified": "2026-06-15T19:06:07.689307Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-1965",
+      "modified": "2026-06-15T19:06:07.720273Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "bad reuse of HTTP Negotiate connection",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.7,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-2297",
+      "modified": "2026-06-16T05:00:10.409817Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "SourcelessFileLoader does not use io.open_code()",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-2574",
+      "modified": "2026-04-01T06:02:36.950286Z",
+      "name": "glib-networking",
+      "purl": "pkg:deb/debian/glib-networking@2.74.0-4",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.74.0-4"
+    },
+    {
+      "cvss_score": 4.7,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-27456",
+      "modified": "2026-06-15T19:06:13.644847Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "util-linux: TOCTOU Race Condition in util-linux mount(8) - Loop Device Setup",
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3184",
+      "modified": "2026-07-03T23:00:09.066270Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3276",
+      "modified": "2026-07-05T22:00:10.283494Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Potential DoS via quadratic complexity in unicodedata.normalize()",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 7.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3441",
+      "modified": "2026-06-15T19:06:20.126272Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3442",
+      "modified": "2026-06-15T19:06:20.231396Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3446",
+      "modified": "2026-07-05T21:00:11.413300Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Base64 decoding stops at first padded quad by default",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 1.7,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-34743",
+      "modified": "2026-06-15T19:06:20.289200Z",
+      "name": "xz-utils",
+      "purl": "pkg:deb/debian/xz-utils@5.4.1-1%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "XZ Utils: Buffer overflow in lzma_index_append()",
+      "version": "5.4.1-1+deb12u1"
+    },
+    {
+      "cvss_score": 0.0,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3479",
+      "modified": "2026-06-15T19:06:20.506530Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 6.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3644",
+      "modified": "2026-06-16T05:00:10.536718Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Incomplete control character validation in http.cookies",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3783",
+      "modified": "2026-06-15T19:06:21.482858Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "token leak with redirect and netrc",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-3784",
+      "modified": "2026-06-15T19:06:21.555008Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "wrong proxy connection reuse with credentials",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 2.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-40228",
+      "modified": "2026-06-15T19:06:22.262521Z",
+      "name": "systemd",
+      "purl": "pkg:deb/debian/systemd@252.39-1~deb12u2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": null,
+      "version": "252.39-1~deb12u2"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-41991",
+      "modified": "2026-07-02T10:03:18.347139Z",
+      "name": "gzip",
+      "purl": "pkg:deb/debian/gzip@1.12-1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "1.12-1"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-41992",
+      "modified": "2026-07-02T10:03:18.483652Z",
+      "name": "gzip",
+      "purl": "pkg:deb/debian/gzip@1.12-1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "1.12-1"
+    },
+    {
+      "cvss_score": 6.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-4224",
+      "modified": "2026-06-16T05:00:12.117095Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Stack overflow parsing XML with deeply nested DTD content models",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-42250",
+      "modified": "2026-06-15T19:06:24.122394Z",
+      "name": "bzip2",
+      "purl": "pkg:deb/debian/bzip2@1.0.8-5%2Bb1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "1.0.8-5+b1"
+    },
+    {
+      "cvss_score": 9.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-42496",
+      "modified": "2026-06-15T19:06:24.165786Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Archive::Tar versions before 3.08 for Perl extract symlinks with attacker controlled targets outside the extraction directory",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-42497",
+      "modified": "2026-06-15T19:06:24.214158Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Archive::Tar versions before 3.08 for Perl extract hardlinks to attacker controlled paths outside the extraction directory",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-42767",
+      "modified": "2026-06-16T05:00:12.647179Z",
+      "name": "openssl",
+      "purl": "pkg:deb/debian/openssl@3.0.20-1~deb12u2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "NULL Pointer Dereference in CRMF EncryptedValue Decryption",
+      "version": "3.0.20-1~deb12u2"
+    },
+    {
+      "cvss_score": 2.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-4360",
+      "modified": "2026-07-10T23:00:11.390832Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Tarfile.extract() doesn't fully respect filter parameter",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 7.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-4519",
+      "modified": "2026-06-16T05:00:14.066947Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "webbrowser.open() allows leading dashes in URLs",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 6.1,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-4647",
+      "modified": "2026-06-15T19:06:29.486242Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-4873",
+      "modified": "2026-06-15T19:06:30.082874Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "connection reuse ignores TLS requirement",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-48959",
+      "modified": "2026-06-15T19:06:30.309989Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "IO::Uncompress::Unzip versions before 2.220 for Perl allow CPU exhaustion via per-byte read loop in fastForward",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 7.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-48961",
+      "modified": "2026-06-15T19:06:30.278805Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "IO::Compress versions from 2.207 before 2.220 for Perl ship a zipdetails CLI tool that crashes with undefined subroutine on Info-ZIP Unix Extra Field with 8-byte UID or GID",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 7.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-48962",
+      "modified": "2026-06-15T19:06:30.385227Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "IO::Compress versions before 2.220 for Perl can execute arbitrary code in File::GlobMapper via an attacker-controlled output glob",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-53613",
+      "modified": "2026-06-26T22:00:13.040059Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-53615",
+      "modified": "2026-06-17T08:00:09.756963Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/debian/util-linux@2.38.1-5%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "2.38.1-5+deb12u3"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-5545",
+      "modified": "2026-06-15T19:06:31.236488Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "wrong reuse of HTTP Negotiate connection",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 4.6,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-56288",
+      "modified": "2026-07-10T09:00:13.795208Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": 4.6,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-56289",
+      "modified": "2026-07-10T09:00:15.607149Z",
+      "name": "patch",
+      "purl": "pkg:deb/debian/patch@2.7.6-7",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.7.6-7"
+    },
+    {
+      "cvss_score": null,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-5704",
+      "modified": "2026-06-15T19:06:31.372681Z",
+      "name": "tar",
+      "purl": "pkg:deb/debian/tar@1.34%2Bdfsg-1.2%2Bdeb12u1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unknown",
+      "severity_basis": "unscored",
+      "summary": null,
+      "version": "1.34+dfsg-1.2+deb12u1"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-5773",
+      "modified": "2026-06-15T19:06:31.353479Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "wrong reuse of SMB connection",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 2.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6019",
+      "modified": "2026-06-16T05:00:14.096370Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "BaseCookie.js_output() does not neutralize embedded characters",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 9.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6100",
+      "modified": "2026-06-16T05:00:14.680145Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Use-after-free in lzma.LZMADecompressor, bz2.BZ2Decompressor, and gzip.GzipFile after re-use under memory pressure",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6253",
+      "modified": "2026-06-15T19:06:31.823851Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "proxy credentials leak over redirect-to proxy",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6276",
+      "modified": "2026-06-15T19:06:31.808388Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "stale custom cookie host causes cookie leak",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6429",
+      "modified": "2026-06-15T19:06:32.331359Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "netrc credential leak with reused proxy connection",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.0,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6653",
+      "modified": "2026-06-23T05:00:15.700358Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/debian/libxml2@2.9.14%2Bdfsg-1.3~deb12u6",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "libxml2: Use after free in xmlParseInternalSubset via improper entity resolution handling",
+      "version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "cvss_score": 5.5,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6844",
+      "modified": "2026-06-15T19:06:32.726468Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 5.0,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6845",
+      "modified": "2026-06-15T19:06:32.651797Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 7.8,
+      "debian_urgency": "unimportant",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-6846",
+      "modified": "2026-06-15T19:06:32.690416Z",
+      "name": "binutils",
+      "purl": "pkg:deb/debian/binutils@2.40-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "debian-urgency",
+      "summary": null,
+      "version": "2.40-2"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-7010",
+      "modified": "2026-06-15T19:06:32.892437Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "HTTP::Tiny versions before 0.093 for Perl do not validate CRLF in HTTP request lines or control field header values",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 7.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-7017",
+      "modified": "2026-07-11T05:00:10.175081Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "HTTP::Tiny versions before 0.095 for Perl forward credential headers to cross-origin redirect targets",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 5.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-7168",
+      "modified": "2026-06-15T19:06:32.748890Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "cross-proxy Digest auth state leak",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 6.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-7210",
+      "modified": "2026-07-05T22:00:10.391595Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "The expat and elementtree parsers use insufficient entropy for XML hash-flooding protection",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 6.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-7774",
+      "modified": "2026-06-16T05:00:14.137458Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "tarfile.data_filter path traversal bypass allows writing outside the extraction directory",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 8.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8286",
+      "modified": "2026-07-07T10:00:21.735106Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "wrong STARTTLS connection reuse",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 5.9,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8328",
+      "modified": "2026-06-16T05:00:15.473870Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "FTP PASV SSRF, ftpcp() does not use actual peer address, trusts server-supplied PASV host address",
+      "version": "3.11.2-6+deb12u8"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8368",
+      "modified": "2026-06-15T19:06:34.271397Z",
+      "name": "libwww-perl",
+      "purl": "pkg:deb/debian/libwww-perl@6.68-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "LWP::UserAgent versions before 6.83 for Perl leak Authorization and Proxy-Authorization headers on cross-origin redirects",
+      "version": "6.68-1"
+    },
+    {
+      "cvss_score": 7.3,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8376",
+      "modified": "2026-06-15T19:06:34.282925Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Perl versions through 5.43.10 have a heap buffer overflow when compiling regular expressions with a repeated fixed string on 32-bit builds",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 6.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8458",
+      "modified": "2026-07-07T10:00:16.797811Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "wrong reuse for different services",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8829",
+      "modified": "2026-06-28T12:00:08.592820Z",
+      "name": "libhtml-parser-perl",
+      "purl": "pkg:deb/debian/libhtml-parser-perl@3.81-1%2Bdeb12u1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "HTML::Entities versions before 3.84 for Perl read freed heap memory in _decode_entities",
+      "version": "3.81-1+deb12u1"
+    },
+    {
+      "cvss_score": 9.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8924",
+      "modified": "2026-07-07T10:00:13.613659Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "trailing dot domain super cookie",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 9.1,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8927",
+      "modified": "2026-07-07T10:00:16.807962Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "critical",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "env-set cross-proxy Digest auth state leak",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-8932",
+      "modified": "2026-07-07T10:00:13.718920Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "incomplete mTLS config matching in conn reuse",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 7.5,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-9538",
+      "modified": "2026-06-15T19:06:35.584055Z",
+      "name": "perl",
+      "purl": "pkg:deb/debian/perl@5.36.0-7%2Bdeb12u3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "Archive::Tar versions before 3.10 for Perl allow memory exhaustion via attacker controlled entry size field in tar header",
+      "version": "5.36.0-7+deb12u3"
+    },
+    {
+      "cvss_score": 7.4,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-9547",
+      "modified": "2026-07-07T10:00:17.414672Z",
+      "name": "curl",
+      "purl": "pkg:deb/debian/curl@7.88.1-10%2Bdeb12u15",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "SSH improper host validation",
+      "version": "7.88.1-10+deb12u15"
+    },
+    {
+      "cvss_score": 8.2,
+      "debian_urgency": "not yet assigned",
+      "ecosystem": "Debian:12",
+      "id": "DEBIAN-CVE-2026-9669",
+      "modified": "2026-06-16T05:00:14.606666Z",
+      "name": "python3.11",
+      "purl": "pkg:deb/debian/python3.11@3.11.2-6%2Bdeb12u8",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "high",
+      "severity_basis": "cve-cvss-fallback",
+      "summary": "bz2.BZ2Decompressor reuse after error can cause a stack buffer overflow",
+      "version": "3.11.2-6+deb12u8"
+    }
+  ],
+  "gate": "no high/critical or unclassified findings in exact deployed-image SBOMs",
+  "limitations": [
+    "OSV coverage varies by ecosystem and package; this is not a substitute for continuous image scanning.",
+    "The scan covers the exact Python and Debian package versions captured from each deployed image.",
+    "Debian findings use Debian's ecosystem urgency; PyPI findings prefer advisory severity and fall back to CVSS.",
+    "Unclassified findings fail this one-time gate and require manual review; unimportant/low/medium findings remain visible."
+  ],
+  "manual_review_count": 36,
+  "passed": false,
+  "sboms": [
+    "..\\..\\fixtures\\phase4\\sbom-base.cdx.json",
+    "..\\..\\fixtures\\phase4\\sbom-documents.cdx.json",
+    "..\\..\\fixtures\\phase4\\sbom-research.cdx.json",
+    "..\\..\\fixtures\\phase4\\sbom-data-finance.cdx.json"
+  ],
+  "schema_version": 1,
+  "severity_counts": {
+    "critical": 7,
+    "high": 23,
+    "low": 9,
+    "medium": 34,
+    "unimportant": 108,
+    "unknown": 36
+  },
+  "source": "https://api.osv.dev/v1/querybatch",
+  "unique_versions_scanned": 935
+}

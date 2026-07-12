@@ -1,0 +1,7 @@
+# The repository-level ignore rules intentionally hide local `.pi/` and
+# `skills/` directories. These paths are authored, hashed upstream source and
+# must remain visible so the vendored Git archive is complete.
+!upstream/.pi/
+!upstream/.pi/**
+!upstream/packages/coding-agent/test/fixtures/skills/
+!upstream/packages/coding-agent/test/fixtures/skills/**

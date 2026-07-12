@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-07-11T11:42:31.262Z",
+  "baselineCommit": "19fe0e01c5eca791c9da0372b49256845555a783",
+  "candidateCommit": "19fe0e01c5eca791c9da0372b49256845555a783",
+  "checks": {
+    "sourceStaged": true,
+    "sourceDiff": {
+      "added": 0,
+      "removed": 0,
+      "changed": 0
+    },
+    "dependencyLock": {
+      "baselineSha256": "94dff387e60a036d5313bd8c9f26d397f3fa306f79d50ba293fed54a5bb79227",
+      "candidateSha256": "94dff387e60a036d5313bd8c9f26d397f3fa306f79d50ba293fed54a5bb79227",
+      "changed": false
+    },
+    "license": {
+      "spdx": "MIT",
+      "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48",
+      "unchanged": true
+    },
+    "cleanInstall": true,
+    "selectedBuild": true,
+    "selectedTests": {
+      "platform": "win32",
+      "workspaces": [
+        {
+          "workspace": "@earendil-works/pi-ai",
+          "excludedFiles": 0
+        },
+        {
+          "workspace": "@earendil-works/pi-agent-core",
+          "excludedFiles": 3
+        },
+        {
+          "workspace": "@earendil-works/pi-coding-agent",
+          "excludedFiles": 11
+        }
+      ],
+      "platformExceptions": {
+        "@earendil-works/pi-agent-core": [
+          "test/harness/nodejs-env.test.ts",
+          "test/harness/prompt-templates.test.ts",
+          "test/harness/skills.test.ts"
+        ],
+        "@earendil-works/pi-coding-agent": [
+          "test/config.test.ts",
+          "test/footer-width.test.ts",
+          "test/interactive-mode-suspend.test.ts",
+          "test/package-command-paths.test.ts",
+          "test/package-manager.test.ts",
+          "test/sdk-session-manager.test.ts",
+          "test/tools.test.ts",
+          "test/trust-manager.test.ts",
+          "test/trust-selector.test.ts",
+          "test/suite/regressions/2791-fswatch-error-crash.test.ts",
+          "test/suite/regressions/3302-find-path-glob.test.ts"
+        ]
+      },
+      "fullLinuxSuiteRequiredForPromotion": true,
+      "passed": true
+    },
+    "audit": {
+      "exitCode": 0,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    }
+  },
+  "packages": [
+    {
+      "name": "@earendil-works/pi-ai",
+      "version": "0.80.6",
+      "license": "MIT"
+    },
+    {
+      "name": "@earendil-works/pi-agent-core",
+      "version": "0.80.6",
+      "license": "MIT"
+    },
+    {
+      "name": "@earendil-works/pi-coding-agent",
+      "version": "0.80.6",
+      "license": "MIT"
+    }
+  ],
+  "completedAt": "2026-07-11T11:45:22.751Z",
+  "result": "pass"
+}

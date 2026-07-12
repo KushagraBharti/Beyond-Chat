@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "seat_price_usd": 30,
+  "scenarios": [
+    {"name":"light","seats":500,"activation_ratio":0.5,"runs_per_active_seat":8,"acceptance_rate":0.8,"fixed_cogs_usd":500,"variable_run_cogs_usd":0.25},
+    {"name":"expected","seats":500,"activation_ratio":0.72,"runs_per_active_seat":20,"acceptance_rate":0.7,"fixed_cogs_usd":750,"variable_run_cogs_usd":0.5},
+    {"name":"heavy","seats":500,"activation_ratio":0.9,"runs_per_active_seat":50,"acceptance_rate":0.55,"fixed_cogs_usd":1200,"variable_run_cogs_usd":1.2}
+  ],
+  "external_gates": ["actual pilot usage", "current provider rates", "Stripe realized fees", "Composio contract rate", "support labor"]
+}

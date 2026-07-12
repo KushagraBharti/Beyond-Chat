@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "component": "pi",
+  "ownership": "Beyond Chat maintained vendored fork",
+  "source": {
+    "repository": "https://github.com/earendil-works/pi",
+    "git": "https://github.com/earendil-works/pi.git",
+    "historicalRepository": "https://github.com/badlogic/pi-mono",
+    "defaultBranch": "main",
+    "commit": "19fe0e01c5eca791c9da0372b49256845555a783",
+    "tree": "d77910df21965dcf37f4a577bf8e3625e6babbd4",
+    "commitDate": "2026-07-11T11:12:23Z",
+    "commitSubject": "fix(ai): preserve ambient AWS auth for Bedrock",
+    "retrievedAt": "2026-07-11T11:30:30Z"
+  },
+  "fork": {
+    "remoteCreated": true,
+    "repository": "https://github.com/KushagraBharti/beyond-pi",
+    "git": "https://github.com/KushagraBharti/beyond-pi.git",
+    "repositoryId": 1297429140,
+    "createdAt": "2026-07-11T12:36:40Z",
+    "parentRepository": "https://github.com/earendil-works/pi",
+    "baselineCommit": "19fe0e01c5eca791c9da0372b49256845555a783",
+    "currentForkCommit": "19fe0e01c5eca791c9da0372b49256845555a783",
+    "patchSeries": "patches/series.json",
+    "patchCount": 0,
+    "revisionRule": "With no local patches, the first Beyond fork revision is the preserved upstream commit object present in the full-history Beyond-controlled fork. Future patches require a Beyond fork commit and an updated series."
+  },
+  "license": {
+    "spdx": "MIT",
+    "copyright": "Copyright (c) 2025 Mario Zechner",
+    "file": "upstream/LICENSE",
+    "copy": "LICENSE.upstream.txt",
+    "sha256": "0457f5bcec3b3b211605dfb5d1a49042fd638f3686a410fe099c24a25af13c48"
+  },
+  "integrity": {
+    "manifest": "UPSTREAM_FILES.sha256",
+    "manifestSha256": "d7f3178aff53828bf93505820623f5ccc63f1bfa24e13bb1e3349b0f2868eceb",
+    "fileCount": 1017,
+    "sbom": "SBOM.spdx.json",
+    "sbomSha256": "00020550e10945a382a8bc5cb82e224e5c4750e8fe2d951d93c8af8c0018df5d"
+  },
+  "toolchain": {
+    "packageManager": "npm",
+    "lockfile": "upstream/package-lock.json",
+    "nodeRequirement": ">=22.19.0",
+    "verifiedNode": "24.18.0",
+    "verifiedNpm": "11.16.0"
+  },
+  "packages": {
+    "runtimeSelected": [
+      {
+        "name": "@earendil-works/pi-ai",
+        "path": "packages/ai",
+        "version": "0.80.6",
+        "purpose": "provider-neutral model and streaming types"
+      },
+      {
+        "name": "@earendil-works/pi-agent-core",
+        "path": "packages/agent",
+        "version": "0.80.6",
+        "purpose": "agent loop, lifecycle events, state, cancellation, and harness primitives"
+      },
+      {
+        "name": "@earendil-works/pi-coding-agent",
+        "path": "packages/coding-agent",
+        "version": "0.80.6",
+        "purpose": "selected headless tools, skill loading, compaction, and session utilities only"
+      }
+    ],
+    "compileOnly": [
+      {
+        "name": "@earendil-works/pi-tui",
+        "path": "packages/tui",
+        "version": "0.80.6",
+        "reason": "The upstream coding-agent build references TUI declarations. It is not an approved Beyond runtime import or production UI."
+      }
+    ],
+    "excluded": [
+      {
+        "name": "@earendil-works/pi-orchestrator",
+        "reason": "Beyond owns orchestration, tenancy, permissions, durability, and delegation contracts."
+      },
+      {
+        "name": "@earendil-works/pi-tui",
+        "reason": "Beyond has a browser UI; the package remains compile-only until upstream exposes a fully headless coding-agent entry point."
+      }
+    ]
+  },
+  "rollback": {
+    "commit": "19fe0e01c5eca791c9da0372b49256845555a783",
+    "tree": "d77910df21965dcf37f4a577bf8e3625e6babbd4",
+    "manifestSha256": "d7f3178aff53828bf93505820623f5ccc63f1bfa24e13bb1e3349b0f2868eceb"
+  }
+}

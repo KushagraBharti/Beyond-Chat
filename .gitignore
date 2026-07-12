@@ -68,8 +68,16 @@ __pycache__/
 api-credentials.txt
 supabase/.temp/
 
-# Session transcript: contains cleartext API keys, OAuth tokens, and personal data — never commit
+# Session transcripts and local attachments may contain credentials or personal data.
 transcript.md
+transcript-*.md
+**/transcript.local.*
+.attachments/
+attachments.local/
 
 .presentation-workspace
 .vercel
+
+# Dexter runtime cache and scratchpad state
+**/.dexter/cache/
+**/.dexter/scratchpad/

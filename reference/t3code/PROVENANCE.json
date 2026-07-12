@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "kind": "reference-only",
+  "name": "T3 Code",
+  "repository": "https://github.com/pingdotgg/t3code",
+  "defaultBranch": "main",
+  "commit": "f61fa9499d96fee825492aba204593c37b27e0cb",
+  "tree": "e81d10ce7ecce748dc0793dfecc17bdf23054732",
+  "commitDate": "2026-07-09T14:00:51Z",
+  "retrievedAt": "2026-07-11T11:30:30Z",
+  "license": {
+    "spdx": "MIT",
+    "file": "LICENSE.upstream.txt",
+    "sha256": "935d8f2af0c703f9c39517ee57cc4930b19d02d533be930b63f0e82f93614b43"
+  },
+  "sourceReferences": [
+    {
+      "path": "apps/server/src/orchestration/Layers/OrchestrationEngine.ts",
+      "sha256": "fa96b5affa922fd9eff2e5103345dd54d50648bcf4c12700aea267bda68fbd47"
+    },
+    {
+      "path": "apps/server/src/orchestration/Layers/ProjectionPipeline.ts",
+      "sha256": "f342828f7e60ef294a4b522877f46e16b2567ae94d4a70542610074a736852a7"
+    },
+    {
+      "path": "apps/server/src/orchestration/Normalizer.ts",
+      "sha256": "28b9ac9e6b93bd288c983728035113f4d8a72bd2eb77c0027554d17cd911c77d"
+    },
+    {
+      "path": "packages/contracts/src/orchestration.ts",
+      "sha256": "c0857d47728df48b610cff4be861337eb928132535a1cda9a244d916485f359d"
+    },
+    {
+      "path": "packages/effect-codex-app-server/src/client.ts",
+      "sha256": "87869fbc0857ba0b97c0b99509e15e2fd994250df2c110e5a1cd289ad5249d5c"
+    },
+    {
+      "path": "apps/web/src/orchestrationRecovery.ts",
+      "sha256": "d4f194c75bdfbfee472ef0ef9c3740d052a986b7b1ef5132f4afd3e115122705"
+    }
+  ],
+  "noCodeCopied": true
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "organization_id": "org_load_fixture",
+  "members": 500,
+  "activation_ratio": 0.72,
+  "runs_per_active_seat_per_month": 20,
+  "accepted_output_rate": 0.7,
+  "peak_concurrent_runs": 50,
+  "event_replay_page_size": 250,
+  "events_per_run_p95": 160,
+  "notes": "Synthetic only. Contains no customer or provider data."
+}

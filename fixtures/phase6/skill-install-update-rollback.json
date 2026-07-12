@@ -1,0 +1,1 @@
+{ "scenario": "skill-install-update-rollback", "versions": ["1.0.0", "1.1.0"], "expected": ["installed", "updated", "rolled_back"] }

@@ -1,0 +1,30 @@
+[project]
+name = "beyond-modal-control-plane"
+version = "0.1.0"
+description = "Deployment and verification tooling for the Beyond Chat Modal sandbox execution plane"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "beyond-modal-runtime",
+  "cryptography==49.0.0",
+  "cvss==3.6",
+  "modal==1.5.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.0.2",
+]
+
+[tool.uv.sources]
+beyond-modal-runtime = { path = "../modal-runtime", editable = true }
+
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/beyond_modal_control_plane"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

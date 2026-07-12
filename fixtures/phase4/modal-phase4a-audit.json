@@ -1,0 +1,83 @@
+{
+  "app_id": "ap-FbZZRj50uSQRtGe2nwvlYH",
+  "billing": {
+    "by_resource": {
+      "A10G": "0E-8",
+      "CPU": "0.03176742",
+      "L4": "0E-8",
+      "L40S": "0E-8",
+      "Memory": "0.00139568"
+    },
+    "currency": "USD",
+    "scope": "current UTC provider day; build, probe, and smoke activity for the deployed app",
+    "total": "0.03316310"
+  },
+  "captured_at": "2026-07-11T22:56:50.497733+00:00",
+  "checks": {
+    "deployed_image_probes": true,
+    "documents_finance_research_outputs": true,
+    "durable_recovery_proven": true,
+    "fresh_scoped_volumes_exist": true,
+    "immutable_images_published": true,
+    "legacy_runner_retained": true,
+    "memory_snapshots_not_used": true,
+    "no_master_secret_in_sandbox": true,
+    "production_routing_remains_disabled": true,
+    "provider_identity_and_bindings": true,
+    "remote_lifecycle_and_output_smoke": true,
+    "security_promotion_gate": false,
+    "transient_sandboxes_cleaned": true
+  },
+  "environment": "beyond-chat-production",
+  "phase4_gate_satisfied": false,
+  "phase4b_required": [
+    "Resolve or explicitly risk-accept exact-image security findings, then produce a passing promotion scan.",
+    "Wire the durable product coordinator and run identity issuer to ModalSandboxProvider.",
+    "Replace deterministic fake model/tool probes with real policy-rechecked gateway traffic in controlled tests.",
+    "Prove browser/API/worker failure injection, organization concurrency, actual usage finalization, and legacy Finance parity.",
+    "Execute a controlled canary and rollback observation window before any legacy runner decommission."
+  ],
+  "provider_plane_complete": true,
+  "release": "2026-07-11.2",
+  "remote_smoke": {
+    "captured_at": "2026-07-11T17:07:43.813840+00:00",
+    "checkpoint_image_id": "im-01KX92B67GRQ5Y0G6G2AREC1NQ",
+    "elapsed_seconds": 49.672,
+    "single_sandbox_cost_floor": {
+      "cpu": 1,
+      "cpu_cost_usd": 0.00195807,
+      "duration_seconds": 49.671999999991385,
+      "memory_cost_usd": 0.0003338,
+      "memory_gib": 1.0,
+      "total_cost_usd": 0.00229187
+    }
+  },
+  "resource_ids": {
+    "images": {
+      "base": "im-D5dkQAFtfYmGYfWlYd2Fk3",
+      "data-finance": "im-bau2LHUDl4L1XU7SPQKyQ7",
+      "documents": "im-IrwPQpqMUA8v6VoV6tIuLm",
+      "research": "im-SBLo5XHyKWBL7JHrVtW1y5"
+    },
+    "volumes": {
+      "artifacts": "vo-k3pPcHikaFcfChazNxkILK",
+      "cache": "vo-32ghh7cJPxUHAg54jwujdl",
+      "workspaces": "vo-Vji1FReSJUHavoZX6WsIEL"
+    }
+  },
+  "schema_version": 1,
+  "security": {
+    "blocking_count": 30,
+    "manual_review_count": 36,
+    "passed": false,
+    "severity_counts": {
+      "critical": 7,
+      "high": 23,
+      "low": 9,
+      "medium": 34,
+      "unimportant": 108,
+      "unknown": 36
+    }
+  },
+  "status": "provider-plane-complete-rollout-blocked"
+}

@@ -7,13 +7,13 @@ const c = {
   primary: "#4F3FE8",
 };
 
-const studios = [
-  { name: "Writing Studio", color: "#4F3FE8" },
-  { name: "Research Studio", color: "#0E7AE6" },
-  { name: "Image Studio", color: "#E5484D" },
-  { name: "Data Studio", color: "#30A46C" },
-  { name: "Finance Studio", color: "#E55613" },
-  { name: "Model Compare", color: "#8B5CF6" },
+const capabilities = [
+  { name: "Draft and edit", color: "#4F3FE8" },
+  { name: "Research with sources", color: "#0E7AE6" },
+  { name: "Create visual outputs", color: "#E5484D" },
+  { name: "Analyze data", color: "#30A46C" },
+  { name: "Work with financial evidence", color: "#E55613" },
+  { name: "Compare approaches", color: "#8B5CF6" },
 ];
 
 function CognitiveCore() {
@@ -83,8 +83,8 @@ function CognitiveCore() {
           <sphereGeometry args={[0.5, 32, 32]} />
           <meshStandardMaterial color={c.primary} emissive={c.primary} emissiveIntensity={2.5} toneMapped={false} />
         </mesh>
-        {studios.map((studio, i) => {
-          const angle = (i / studios.length) * Math.PI * 2;
+        {capabilities.map((capability, i) => {
+          const angle = (i / capabilities.length) * Math.PI * 2;
           const radius = 3.2;
           const x = Math.cos(angle) * radius;
           const z = Math.sin(angle) * radius;
@@ -92,9 +92,9 @@ function CognitiveCore() {
           const NodeGeometry = i % 3 === 0 ? Box : i % 3 === 1 ? Sphere : Octahedron;
 
           return (
-            <Float key={studio.name} speed={3 + i * 0.5} rotationIntensity={2} floatIntensity={1} position={[x, y, z]}>
+            <Float key={capability.name} speed={3 + i * 0.5} rotationIntensity={2} floatIntensity={1} position={[x, y, z]}>
               <NodeGeometry args={i % 3 === 1 ? ([0.25, 32, 32] as never) : ([0.3] as never)}>
-                <meshPhysicalMaterial color={studio.color} emissive={studio.color} emissiveIntensity={0.8} roughness={0.1} metalness={0.9} clearcoat={1} />
+                <meshPhysicalMaterial color={capability.color} emissive={capability.color} emissiveIntensity={0.8} roughness={0.1} metalness={0.9} clearcoat={1} />
               </NodeGeometry>
             </Float>
           );

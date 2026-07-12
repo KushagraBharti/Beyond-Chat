@@ -1,9 +1,12 @@
 {
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://beyond-chat-backend.vercel.app/api/$1"
+      "src": "/api/(.*)",
+      "dest": "${API_BASE_URL}/api/$1",
+      "env": ["API_BASE_URL"]
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

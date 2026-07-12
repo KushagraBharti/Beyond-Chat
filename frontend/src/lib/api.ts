@@ -1,8 +1,7 @@
-import { supabase } from "./supabaseClient";
+import { protectedFetch } from "./sessionClient";
 
 export type ProviderStatus = "connected" | "not_configured" | "disconnected" | "error";
 
-const apiBaseUrl = "";
 const workspaceStorageKey = "bc.workspace_id";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let providerStatusesCache: Record<string, ProviderRecord> | null = null;
@@ -158,17 +157,14 @@ export function setStoredWorkspaceId(workspaceId: string | null) {
 }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
-  const session = supabase ? await supabase.auth.getSession() : null;
-  const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await protectedFetch(path, {
+    ...init,
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
       ...(init?.headers ?? {}),
     },
-    ...init,
   });
 
   if (!response.ok) {
@@ -186,33 +182,6 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     return payload as T;
   }
   return (await response.text()) as T;
-}
-
-export async function bootstrapAuth(accessToken?: string) {
-  const token = accessToken ?? (supabase ? (await supabase.auth.getSession()).data.session?.access_token : null);
-  const response = await fetch(`${apiBaseUrl}/api/auth/bootstrap`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  if (!response.ok) {
-    const maybeJson = await response.json().catch(() => null);
-    const detail = maybeJson?.detail ?? maybeJson?.error ?? response.statusText;
-    throw new Error(typeof detail === "string" ? detail : "Workspace bootstrap failed.");
-  }
-
-  const rawPayload = await response.json();
-  const payload = (rawPayload?.data ?? rawPayload) as {
-    workspace: Workspace;
-    role: string;
-    created: boolean;
-    source?: string;
-  };
-  setStoredWorkspaceId(payload.workspace.id);
-  return payload;
 }
 
 export async function getWorkspace() {
@@ -310,15 +279,12 @@ export async function streamThreadMessage(
   payload: { content: string; model: string; context_ids?: string[] },
   handlers: { onDelta?: (chunk: string, fullText: string) => void } = {},
 ) {
-  const session = supabase ? await supabase.auth.getSession() : null;
-  const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
 
-  const response = await fetch(`${apiBaseUrl}/api/chat/threads/${threadId}/messages/stream`, {
+  const response = await protectedFetch(`/api/chat/threads/${threadId}/messages/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
     },
     body: JSON.stringify(payload),
@@ -525,14 +491,11 @@ export async function deleteArtifact(artifactId: string) {
 }
 
 export async function exportArtifact(artifactId: string, format: "markdown" | "pdf") {
-  const session = supabase ? await supabase.auth.getSession() : null;
-  const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
-  const response = await fetch(`${apiBaseUrl}/api/artifact/${artifactId}/export`, {
+  const response = await protectedFetch(`/api/artifact/${artifactId}/export`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
     },
     body: JSON.stringify({ format }),
@@ -546,14 +509,11 @@ export async function exportArtifact(artifactId: string, format: "markdown" | "p
 }
 
 export async function exportArtifactBundle(payload: { title: string; artifact_ids: string[] }) {
-  const session = supabase ? await supabase.auth.getSession() : null;
-  const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
-  const response = await fetch(`${apiBaseUrl}/api/artifacts/export-bundle`, {
+  const response = await protectedFetch("/api/artifacts/export-bundle", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
     },
     body: JSON.stringify(payload),
@@ -595,17 +555,14 @@ export interface DataPreviewResult {
 export async function uploadArtifactFile(
   file: File,
 ): Promise<{ artifactId: string; path: string; signedUrl: string }> {
-  const session = supabase ? await supabase.auth.getSession() : null;
-  const accessToken = session?.data.session?.access_token;
   const workspaceId = getStoredWorkspaceId();
 
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${apiBaseUrl}/api/storage/artifacts/upload`, {
+  const response = await protectedFetch("/api/storage/artifacts/upload", {
     method: "POST",
     headers: {
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(workspaceId ? { "X-Workspace-Id": workspaceId } : {}),
     },
     body: formData,

@@ -1,0 +1,1 @@
+{ "scenario": "mcp-schema-and-cache", "expected": { "required_input_added": "breaking", "expired_cache": "unavailable", "credential_reference_expired": "unavailable" } }

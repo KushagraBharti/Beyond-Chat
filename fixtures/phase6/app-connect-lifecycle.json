@@ -1,0 +1,1 @@
+{ "scenario": "app-connect-lifecycle", "app": "app.google-drive", "actions": ["files.search"], "expected": ["connect_requested", "connected", "revoked"] }

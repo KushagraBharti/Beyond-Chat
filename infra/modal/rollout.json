@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "environment": "beyond-chat-production",
+  "app": {
+    "name": "beyond-chat-runtime",
+    "object_id": "ap-FbZZRj50uSQRtGe2nwvlYH"
+  },
+  "release": "2026-07-11.4",
+  "enabled": false,
+  "traffic_percent": 0,
+  "production_routing_authorized": false,
+  "legacy_runner": {
+    "state": "retained",
+    "decommission_authorized": false,
+    "reason": "The v4 provider and security gates pass, but production database/RPC rollout, real General/Research/Finance gateway parity, a controlled canary, and the rollback observation window remain incomplete."
+  },
+  "images": {
+    "base": {
+      "name": "beyond-chat-runtime-base:2026-07-11.4",
+      "object_id": "im-sM7PhCwKy46WBkVzcK23iM"
+    },
+    "documents": {
+      "name": "beyond-chat-runtime-documents:2026-07-11.4",
+      "object_id": "im-kGV2kfZyxOSCnGQWnkHA7m"
+    },
+    "research": {
+      "name": "beyond-chat-runtime-research:2026-07-11.4",
+      "object_id": "im-HbHwCRRnHDWgjdoNTB0bx9"
+    },
+    "data-finance": {
+      "name": "beyond-chat-runtime-data-finance:2026-07-11.4",
+      "object_id": "im-QDEEaGhyZNLNQ3JdR0PWwe"
+    }
+  },
+  "volumes": {
+    "cache": {
+      "name": "beyond-chat-runtime-cache-v1",
+      "object_id": "vo-32ghh7cJPxUHAg54jwujdl"
+    },
+    "workspaces": {
+      "name": "beyond-chat-runtime-workspaces-v1",
+      "object_id": "vo-Vji1FReSJUHavoZX6WsIEL"
+    },
+    "artifacts": {
+      "name": "beyond-chat-runtime-artifacts-v1",
+      "object_id": "vo-k3pPcHikaFcfChazNxkILK"
+    }
+  },
+  "rollback_release": {
+    "release": "2026-07-11.2",
+    "images": {
+      "base": "im-D5dkQAFtfYmGYfWlYd2Fk3",
+      "documents": "im-IrwPQpqMUA8v6VoV6tIuLm",
+      "research": "im-SBLo5XHyKWBL7JHrVtW1y5",
+      "data-finance": "im-bau2LHUDl4L1XU7SPQKyQ7"
+    }
+  },
+  "promotion_requirements": [
+    "Exact deployed image SBOM scan has no high, critical, or unclassified finding.",
+    "Product durable-run coordinator invokes ModalSandboxProvider using run-scoped identity.",
+    "Real model and tool gateway flows recheck current organization, project, actor, policy, and connection ownership.",
+    "Legacy Finance parity, failure injection, gradual traffic controls, and rollback observation window pass.",
+    "A human authorized for production routing approves a nonzero traffic percentage."
+  ],
+  "current_blockers": [
+    "The production runtime RPC/schema contract has not been admitted to the canonical migration or exercised against the linked database.",
+    "Real General/Research/Finance gateway parity, a controlled nonzero canary, and the rollback observation window remain incomplete."
+  ]
+}

@@ -1,0 +1,24 @@
+[project]
+name = "beyond-modal-runtime"
+version = "0.1.0"
+description = "Hardened runtime sidecar and deterministic output jobs for Beyond Chat Modal sandboxes"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "cryptography==49.0.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.0.2",
+]
+
+[build-system]
+requires = ["hatchling==1.28.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/beyond_modal_runtime"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "reference-only",
+  "name": "OpenAI Codex",
+  "repository": "https://github.com/openai/codex",
+  "defaultBranch": "main",
+  "commit": "5c19155cbd93bfa099016e7487259f61669823ff",
+  "tree": "e4b7749de1aab51bbc724733d5bb22338714a292",
+  "commitDate": "2026-07-11T04:15:42Z",
+  "retrievedAt": "2026-07-11T11:30:30Z",
+  "license": {
+    "spdx": "Apache-2.0",
+    "file": "LICENSE.upstream.txt",
+    "sha256": "d17f227e4df5da1600391338865ce0f3055211760a36688f816941d58232d8dc"
+  },
+  "sourceReferences": [
+    {
+      "path": "codex-rs/app-server/README.md",
+      "sha256": "3670ffb7f5f035000f873a02a56ce9cd1e4fec750a9b7120712f9e30aecb5c56",
+      "url": "https://github.com/openai/codex/blob/5c19155cbd93bfa099016e7487259f61669823ff/codex-rs/app-server/README.md"
+    }
+  ],
+  "noCodeCopied": true
+}

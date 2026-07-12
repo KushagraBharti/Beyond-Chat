@@ -1,9 +1,41 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { existsSync, mkdirSync, writeFileSync, rmSync } from 'fs';
-import { join } from 'path';
+import { describe, test, expect, beforeAll, beforeEach, afterEach, afterAll } from 'bun:test';
+import { createHash } from 'crypto';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { isAbsolute, join, relative, resolve, sep } from 'path';
 import { buildCacheKey, readCache, writeCache } from './cache.js';
 
-const TEST_CACHE_DIR = '.dexter/cache';
+const DEFAULT_CACHE_DIR = resolve('.dexter/cache');
+const previousCacheDir = process.env.DEXTER_CACHE_DIR;
+let testRoot = '';
+let testCacheDir = '';
+let defaultCacheFingerprint = '';
+
+function directoryFingerprint(root: string): string {
+  const hash = createHash('sha256');
+  if (!existsSync(root)) return hash.update('missing').digest('hex');
+  const visit = (directory: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true }).sort((left, right) => left.name.localeCompare(right.name))) {
+      const absolute = join(directory, entry.name);
+      const rel = relative(root, absolute).replaceAll('\\', '/');
+      hash.update(rel);
+      if (entry.isDirectory()) visit(absolute);
+      else if (entry.isFile()) hash.update(readFileSync(absolute));
+    }
+  };
+  visit(root);
+  return hash.digest('hex');
+}
+
+beforeAll(() => {
+  defaultCacheFingerprint = directoryFingerprint(DEFAULT_CACHE_DIR);
+});
+
+afterAll(() => {
+  if (previousCacheDir === undefined) delete process.env.DEXTER_CACHE_DIR;
+  else process.env.DEXTER_CACHE_DIR = previousCacheDir;
+  expect(directoryFingerprint(DEFAULT_CACHE_DIR)).toBe(defaultCacheFingerprint);
+});
 
 // ---------------------------------------------------------------------------
 // buildCacheKey
@@ -48,15 +80,20 @@ describe('buildCacheKey', () => {
 
 describe('readCache / writeCache', () => {
   beforeEach(() => {
-    if (existsSync(TEST_CACHE_DIR)) {
-      rmSync(TEST_CACHE_DIR, { recursive: true });
-    }
+    testRoot = mkdtempSync(join(tmpdir(), 'beyond-dexter-cache-'));
+    testCacheDir = join(testRoot, 'cache');
+    process.env.DEXTER_CACHE_DIR = testCacheDir;
   });
 
   afterEach(() => {
-    if (existsSync(TEST_CACHE_DIR)) {
-      rmSync(TEST_CACHE_DIR, { recursive: true });
+    const resolvedRoot = resolve(testRoot);
+    const relativeToTemp = relative(resolve(tmpdir()), resolvedRoot);
+    if (!relativeToTemp || relativeToTemp === '..' || relativeToTemp.startsWith(`..${sep}`) || isAbsolute(relativeToTemp)) {
+      throw new Error(`Refusing to remove cache test directory outside the OS temp root: ${resolvedRoot}`);
     }
+    rmSync(resolvedRoot, { recursive: true, force: true });
+    testRoot = '';
+    testCacheDir = '';
   });
 
   test('round-trips data through write then read', () => {
@@ -83,8 +120,8 @@ describe('readCache / writeCache', () => {
     const params = { ticker: 'AAPL', start_date: '2024-01-01', end_date: '2024-12-31', interval: 'day', interval_multiplier: 1 };
 
     const key = buildCacheKey(endpoint, params);
-    const filepath = join(TEST_CACHE_DIR, key);
-    const dir = join(TEST_CACHE_DIR, key.split('/')[0]!);
+    const filepath = join(testCacheDir, key);
+    const dir = join(testCacheDir, key.split('/')[0]!);
     mkdirSync(dir, { recursive: true });
     writeFileSync(filepath, '{ broken json!!!');
 
@@ -98,8 +135,8 @@ describe('readCache / writeCache', () => {
     const params = { ticker: 'AAPL', start_date: '2024-01-01', end_date: '2024-12-31', interval: 'day', interval_multiplier: 1 };
 
     const key = buildCacheKey(endpoint, params);
-    const filepath = join(TEST_CACHE_DIR, key);
-    const dir = join(TEST_CACHE_DIR, key.split('/')[0]!);
+    const filepath = join(testCacheDir, key);
+    const dir = join(testCacheDir, key.split('/')[0]!);
     mkdirSync(dir, { recursive: true });
     writeFileSync(filepath, JSON.stringify({ wrong: 'shape' }));
 

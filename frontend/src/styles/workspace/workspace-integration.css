@@ -1,0 +1,80 @@
+.workspace-discovery button[aria-disabled="true"] {
+  color: #8a918b;
+  cursor: not-allowed;
+}
+
+.workspace-section-tabs {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.3rem 0;
+}
+
+.workspace-section-tabs button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  color: var(--ws-muted);
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.workspace-section-tabs button[aria-selected="true"] {
+  border-color: var(--ws-line);
+  background: var(--ws-panel);
+  color: var(--ws-ink);
+  box-shadow: 0 5px 18px rgba(23, 33, 28, 0.05);
+}
+
+.workspace-capability-list {
+  display: grid;
+}
+
+.workspace-capability-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.25rem;
+  align-items: start;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid var(--ws-line);
+}
+
+.workspace-capability-row:first-child { padding-top: 0.25rem; }
+.workspace-capability-row:last-child { border-bottom: 0; }
+.workspace-capability-row h2 { margin: 0.3rem 0; }
+.workspace-capability-row p { max-width: 48rem; margin: 0.25rem 0; }
+.workspace-capability-row small,
+.workspace-capability-meta { color: var(--ws-muted); font-size: 0.73rem; }
+
+.workspace-state-pill {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.32rem 0.55rem;
+  background: #edf1e8;
+  color: var(--ws-moss);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workspace-state-pill:is(.is-disconnected, .is-not-connected, .is-unavailable, .is-offline) {
+  background: #f0eee8;
+  color: #757269;
+}
+
+.workspace-state-pill:is(.is-review-required, .is-stale, .is-target) {
+  background: #fbf2dd;
+  color: #8a5b18;
+}
+
+@media (max-width: 620px) {
+  .workspace-capability-row { grid-template-columns: 1fr; gap: 0.7rem; }
+  .workspace-state-pill { justify-self: start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-section-tabs button { transition: none; }
+}

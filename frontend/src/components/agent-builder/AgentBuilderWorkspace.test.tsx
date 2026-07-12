@@ -1,0 +1,4 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { AgentBuilderWorkspace } from "./AgentBuilderWorkspace";
+describe("AgentBuilderWorkspace", () => { it("synchronizes a conversational proposal and blocks publishing until preflight", async () => { render(<AgentBuilderWorkspace/>); expect(screen.getByRole("button", { name: /Publish/ })).toBeDisabled(); fireEvent.change(screen.getByLabelText(/Describe what this agent should own/), { target: { value: "Coordinate weekly operations reviews." } }); fireEvent.click(screen.getByRole("button", { name: /Apply proposal/ })); await waitFor(() => expect(screen.getByDisplayValue("New department agent")).toBeInTheDocument()); fireEvent.click(screen.getByRole("button", { name: /Run preflight/ })); await waitFor(() => expect(screen.getByText("12/12")).toBeInTheDocument()); expect(screen.getByRole("button", { name: /^Publish/ })).toBeEnabled(); }); });

@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "actor": { "id": "user.fixture-builder", "organization_id": "org.fixture", "role": "builder", "team_ids": ["team.operations"], "group_ids": [] },
+  "target": { "audience": "team", "audience_ids": ["team.operations"] },
+  "expected": {
+    "validation_domains": ["instructions", "model", "skills", "apps", "mcp", "knowledge", "memory", "runtime", "policy", "budget", "evals", "outputs"],
+    "immutable_version": true,
+    "publish_reresolves_dependencies": true,
+    "run_pins_exact_version": true
+  }
+}

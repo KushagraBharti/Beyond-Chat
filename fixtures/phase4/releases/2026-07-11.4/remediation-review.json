@@ -1,0 +1,1035 @@
+{
+  "all_previous_blocking_and_unclassified_resolved": true,
+  "captured_at": "2026-07-11T23:19:00.222870+00:00",
+  "current_gate": {
+    "blocking_count": 0,
+    "manual_review_count": 0,
+    "passed": true
+  },
+  "current_scan": "..\\..\\fixtures\\phase4\\releases\\2026-07-11.4\\modal-osv-scan.json",
+  "disposition_counts": {
+    "package_removed": 38,
+    "replaced_version_not_affected": 28
+  },
+  "dispositions": [
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2021-37819",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "libitext-java",
+      "previous_sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "2.1.7-14"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2022-4055",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "xdg-utils",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "1.1.3-4.1"
+    },
+    {
+      "current_versions": [
+        "4.21.0-2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2025-13151",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "libtasn1-6",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "4.19.0-2+deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2025-69534",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.11.2-6+deb12u8"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-10028",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "glib-networking",
+      "previous_sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "2.74.0-4"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-10536",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-11856",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-11940",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.11.2-6+deb12u8"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-11972",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.11.2-6+deb12u8"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-12064",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-12087",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-14741",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "libhttp-date-perl",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "6.05-2"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15107",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15108",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15109",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15110",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15111",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15112",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15113",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15114",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15115",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15116",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15117",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15118",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15119",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15120",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15121",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15122",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15123",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15124",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15125",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15126",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15127",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15128",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15129",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15130",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15131",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15132",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-15133",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "chromium",
+      "previous_sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "150.0.7871.100-1~deb12u1"
+    },
+    {
+      "current_versions": [
+        "1:2.41.3-3ubuntu2",
+        "1:4.16.0-2+really2.41.3-3ubuntu2",
+        "2.41.3-3ubuntu2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-3184",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "util-linux",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "2.38.1-5+deb12u3"
+    },
+    {
+      "current_versions": [
+        "1.14-1~exp2ubuntu1.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-41991",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "gzip",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "1.12-1"
+    },
+    {
+      "current_versions": [
+        "1.14-1~exp2ubuntu1.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-41992",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "gzip",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "1.12-1"
+    },
+    {
+      "current_versions": [
+        "1.0.8-6build2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-42250",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "bzip2",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "1.0.8-5+b1"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-42496",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-42497",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-4519",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.11.2-6+deb12u8"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-48959",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-48961",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-48962",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "1:2.41.3-3ubuntu2",
+        "1:4.16.0-2+really2.41.3-3ubuntu2",
+        "2.41.3-3ubuntu2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-53613",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "util-linux",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "2.38.1-5+deb12u3"
+    },
+    {
+      "current_versions": [
+        "1:2.41.3-3ubuntu2",
+        "1:4.16.0-2+really2.41.3-3ubuntu2",
+        "2.41.3-3ubuntu2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-53615",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "util-linux",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "2.38.1-5+deb12u3"
+    },
+    {
+      "current_versions": [
+        "1.35+dfsg-4ubuntu0.2"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-5704",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "tar",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "unknown",
+      "previous_version": "1.34+dfsg-1.2+deb12u1"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-5773",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-6100",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "3.11.2-6+deb12u8"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-6276",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "2.15.2+dfsg-0.1ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-6653",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "libxml2",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "2.9.14+dfsg-1.3~deb12u6"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-7017",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-8286",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-8376",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-8829",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "libhtml-parser-perl",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.81-1+deb12u1"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-8924",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-8927",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "critical",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-8932",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [
+        "5.40.1-7ubuntu0.1"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-9538",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "perl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "5.36.0-7+deb12u3"
+    },
+    {
+      "current_versions": [
+        "8.18.0-1ubuntu2.3"
+      ],
+      "disposition": "replaced_version_not_affected",
+      "evidence": "The package remains only at the listed replacement version(s), and the exact current SBOM scan does not report this advisory.",
+      "id": "DEBIAN-CVE-2026-9547",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "curl",
+      "previous_sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "7.88.1-10+deb12u15"
+    },
+    {
+      "current_versions": [],
+      "disposition": "package_removed",
+      "evidence": "The package name is absent from every exact current image SBOM.",
+      "id": "DEBIAN-CVE-2026-9669",
+      "previous_ecosystem": "Debian:12",
+      "previous_package": "python3.11",
+      "previous_sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "previous_severity": "high",
+      "previous_version": "3.11.2-6+deb12u8"
+    }
+  ],
+  "previous_blocking_and_unclassified_counts": {
+    "critical": 7,
+    "high": 23,
+    "unknown": 36
+  },
+  "previous_scan": "..\\..\\fixtures\\phase4\\releases\\2026-07-11.2\\modal-osv-scan.json",
+  "reviewed_count": 66,
+  "schema_version": 1
+}

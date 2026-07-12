@@ -1,0 +1,128 @@
+{
+  "all_passed": true,
+  "app": "beyond-chat-runtime",
+  "captured_at": "2026-07-11T17:07:43.813840+00:00",
+  "checkpoint_image_id": "im-01KX92B67GRQ5Y0G6G2AREC1NQ",
+  "cleanup": "all tagged transient smoke sandboxes terminated",
+  "elapsed_seconds": 49.672,
+  "environment": "beyond-chat-production",
+  "memory_snapshots_used": false,
+  "results": {
+    "cancel": {
+      "ok": true
+    },
+    "checkpoint": {
+      "image_id": "im-01KX92B67GRQ5Y0G6G2AREC1NQ",
+      "kind": "filesystem",
+      "logical_fallback": true,
+      "manifest_digest": "sha256:ca1b7637281b141a2fd1650d16a106c5e40f1e6be755af972c69c72e22d6572f",
+      "memory_snapshot": false,
+      "ok": true
+    },
+    "create": {
+      "dashboard_url": "https://modal.com/id/sb-v9cde1cLTol9YdWC6xLpyS",
+      "ok": true,
+      "sandbox_id": "sb-v9cde1cLTol9YdWC6xLpyS"
+    },
+    "delete_restore_replay": {
+      "ok": true,
+      "sandbox_id": "sb-PMFcz9tVRfApqDUbRDNSpS"
+    },
+    "document": {
+      "diagnostic": "",
+      "ok": true,
+      "outputs": [
+        {
+          "digest": "sha256:25660ba4c538f87e39c27a9b0a8ab6a77d7a450d78143fefe34a15f5f3202a01",
+          "path": "/artifacts/generated.pptx",
+          "slides": 1
+        },
+        {
+          "digest": "sha256:4389114146d89464f315e74d06bf0df1a8981a498829097584c01265d6e4f2ad",
+          "edited": true,
+          "path": "/artifacts/edited.pptx"
+        },
+        {
+          "byte_size": 14145,
+          "digest": "sha256:d05ed8e9bbf109af6dcf59f539e9f001716b9ef0eeadc0ec53e156045355485b",
+          "path": "/artifacts/rendered/edited.pdf"
+        }
+      ],
+      "pdf_bytes": 14145,
+      "pptx_bytes": 28467
+    },
+    "durable_events": {
+      "ok": true,
+      "sequence": 1
+    },
+    "exec": {
+      "ok": true
+    },
+    "finance": {
+      "diagnostic": "",
+      "ok": true,
+      "output": {
+        "average": 15.0,
+        "count": 2,
+        "digest": "sha256:972042d43edb0babeec5761973f844573dec1e62b142b4f15f23e9828ec26652",
+        "maximum": 20.0,
+        "minimum": 10.0,
+        "path": "/artifacts/finance.json",
+        "sum": 30.0
+      }
+    },
+    "logical_volume_restore": {
+      "ok": true,
+      "uses_memory_snapshot": false,
+      "uses_snapshot_image": false
+    },
+    "model": {
+      "ok": true
+    },
+    "research": {
+      "chromium": "Chromium 150.0.7871.100 built on Debian GNU/Linux 12 (bookworm)",
+      "diagnostic": "",
+      "ok": true
+    },
+    "sbom_base": {
+      "components": 232,
+      "digest": "sha256:60c0b55b1dd93e6d9ecee1e562ffeb2249f7e4e118f5637d8a4db2f2d7370060",
+      "ok": true,
+      "path": "..\\..\\fixtures\\phase4\\sbom-base.cdx.json"
+    },
+    "sbom_data_finance": {
+      "components": 250,
+      "digest": "sha256:4571e6e4a6dbebb9360047ae11f9c46ea84f3cc00c53ef91eadbd07796dfa797",
+      "ok": true,
+      "path": "..\\..\\fixtures\\phase4\\sbom-data-finance.cdx.json"
+    },
+    "sbom_documents": {
+      "components": 839,
+      "digest": "sha256:7a47632030c2b369c0f8aca7a2af96916dd73cb897f02aaa354161a3e7f91f4d",
+      "ok": true,
+      "path": "..\\..\\fixtures\\phase4\\sbom-documents.cdx.json"
+    },
+    "sbom_research": {
+      "components": 532,
+      "digest": "sha256:a6c70342e2f96feae6952fe87f3b8bea9f141acea84e8f573bf8cd77f0f0def4",
+      "ok": true,
+      "path": "..\\..\\fixtures\\phase4\\sbom-research.cdx.json"
+    },
+    "timeout": {
+      "ok": true
+    },
+    "tool": {
+      "ok": true
+    }
+  },
+  "schema_version": 1,
+  "secrets_in_sandbox": false,
+  "single_sandbox_cost_floor": {
+    "cpu": 1,
+    "cpu_cost_usd": 0.00195807,
+    "duration_seconds": 49.671999999991385,
+    "memory_cost_usd": 0.0003338,
+    "memory_gib": 1.0,
+    "total_cost_usd": 0.00229187
+  }
+}

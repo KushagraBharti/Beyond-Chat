@@ -33,6 +33,17 @@ from .auth import RequestContext, require_request_context, resolve_request_conte
 from .artifact_drafts import build_run_artifact_payload
 from .billing import record_usage_event, router as billing_router
 from .config import settings
+from .identity.authkit import router as identity_router
+from .identity.authkit import get_identity_repository
+from .product_api import ProductApiDependencies, create_product_router
+from .product_api.authorization import WorkOSScopeAuthorizer
+from .product_api.provider_factory import create_live_provider_registry
+from .product_persistence import (
+    InMemoryProductRepository,
+    ProductPersistenceUnavailable,
+    SupabaseProductRepository,
+    UnavailableProductRepository,
+)
 from .providers import (
     OPENROUTER_NOT_CONFIGURED,
     build_google_connect_url,
@@ -43,6 +54,7 @@ from .providers import (
     provider_statuses,
 )
 from .runtime_store import RuntimeStoreError, get_runtime_store
+from .runtime.integration import router as runtime_router
 from .supabase_service import supabase_service
 from .workflows import run_studio_workflow
 
@@ -60,6 +72,34 @@ LOGGER = logging.getLogger("beyond_chat.api")
 
 app = FastAPI(title="Beyond Chat API", version="0.3.0")
 app.include_router(billing_router)
+app.include_router(identity_router)
+app.include_router(runtime_router)
+
+# The aggregate product plane always mounts behind the canonical WorkOS
+# principal. Durable Supabase persistence wins whenever configured. The memory
+# adapter is deliberately reachable only through an explicit local test/dev
+# switch and never as an implicit production fallback.
+_product_client = supabase_service.client()
+_product_environment = os.getenv("BEYOND_ENV", "production").strip().lower()
+_allow_product_memory = os.getenv("PRODUCT_API_ALLOW_IN_MEMORY", "").strip().lower() == "true"
+if _allow_product_memory and _product_environment not in {"development", "dev", "test"}:
+    raise RuntimeError("PRODUCT_API_ALLOW_IN_MEMORY is restricted to explicit development/test environments.")
+_product_repository = (
+    SupabaseProductRepository(_product_client)
+    if _product_client is not None
+    else InMemoryProductRepository() if _allow_product_memory else UnavailableProductRepository()
+)
+_product_identity_repository = get_identity_repository()
+app.include_router(create_product_router(ProductApiDependencies(
+    repository=_product_repository,
+    authorize_scope=WorkOSScopeAuthorizer(_product_identity_repository, _product_client),
+    providers=create_live_provider_registry(),
+)))
+
+
+@app.exception_handler(ProductPersistenceUnavailable)
+async def product_persistence_unavailable_handler(_request: Request, exc: ProductPersistenceUnavailable):
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 cors_allow_origins = [
     "http://localhost:5173",
@@ -86,7 +126,19 @@ async def runtime_store_error_handler(_request: Request, exc: RuntimeStoreError)
 
 @app.middleware("http")
 async def attach_request_context(request: Request, call_next):
-    if request.url.path.startswith("/api") and request.url.path != "/api/health":
+    identity_paths = (
+        "/api/auth", "/api/organizations", "/api/invitations", "/api/webhooks/workos",
+        "/api/v2/product",
+    )
+    is_identity_path = any(
+        request.url.path == path or request.url.path.startswith(f"{path}/")
+        for path in identity_paths
+    )
+    if (
+        request.url.path.startswith("/api")
+        and request.url.path != "/api/health"
+        and not is_identity_path
+    ):
         try:
             request.state.request_context = resolve_request_context(
                 request.headers.get("authorization"),

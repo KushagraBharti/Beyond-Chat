@@ -1,0 +1,160 @@
+{
+  "all_passed": true,
+  "app": "beyond-chat-runtime",
+  "captured_at": "2026-07-11T23:17:56.705211+00:00",
+  "checkpoint_image_id": "im-01KX9QGR8KF3DAG334KFSEPBFN",
+  "cleanup": "all tagged transient smoke sandboxes terminated",
+  "elapsed_seconds": 68.063,
+  "environment": "beyond-chat-production",
+  "memory_snapshots_used": false,
+  "results": {
+    "base_surface": {
+      "diagnostic": "",
+      "inventory": {
+        "curl": null,
+        "perl": "/usr/bin/perl",
+        "pip": null,
+        "python": "3.12.12",
+        "system_python": null,
+        "uv": null
+      },
+      "ok": true
+    },
+    "cancel": {
+      "ok": true
+    },
+    "checkpoint": {
+      "image_id": "im-01KX9QGR8KF3DAG334KFSEPBFN",
+      "kind": "filesystem",
+      "logical_fallback": true,
+      "manifest_digest": "sha256:14f839b62461f9802ad310a3cbe12cd95e2eee44f8118573a5e003967357f8cd",
+      "memory_snapshot": false,
+      "ok": true
+    },
+    "create": {
+      "dashboard_url": "https://modal.com/id/sb-ta25L6Bf3nxXr4D8CJtVTg",
+      "ok": true,
+      "sandbox_id": "sb-ta25L6Bf3nxXr4D8CJtVTg"
+    },
+    "data_finance_surface": {
+      "diagnostic": "",
+      "ok": true
+    },
+    "delete_restore_replay": {
+      "ok": true,
+      "sandbox_id": "sb-Ku7iwXfFbRWKyuOE8PQQ8S"
+    },
+    "document": {
+      "diagnostic": "",
+      "ok": true,
+      "outputs": [
+        {
+          "digest": "sha256:d221b092931d1d4cdbbd5998e4f30e08e55b69e50eef9a235642c9242c6e69ca",
+          "path": "/artifacts/generated.pptx",
+          "slides": 1
+        },
+        {
+          "digest": "sha256:ccad5eab3489434f60d49325bf51a10aedb4313769989a15c256cc4205799039",
+          "edited": true,
+          "path": "/artifacts/edited.pptx"
+        },
+        {
+          "byte_size": 26901,
+          "digest": "sha256:1b72774f7b223407795deb2b8d19242bcff69417f65745751f5fab66fa4ccdca",
+          "path": "/artifacts/rendered/edited.pdf"
+        }
+      ],
+      "pdf_bytes": 26901,
+      "pptx_bytes": 28467
+    },
+    "document_surface": {
+      "diagnostic": "",
+      "inventory": {
+        "curl": null,
+        "libreoffice": "LibreOffice 26.2.4.2 620(Build:2)",
+        "pandoc": "pandoc 3.7.0.2",
+        "perl": "/usr/bin/perl",
+        "system_python": null
+      },
+      "ok": true
+    },
+    "durable_events": {
+      "ok": true,
+      "sequence": 1
+    },
+    "exec": {
+      "ok": true
+    },
+    "finance": {
+      "diagnostic": "",
+      "ok": true,
+      "output": {
+        "average": 15.0,
+        "count": 2,
+        "digest": "sha256:972042d43edb0babeec5761973f844573dec1e62b142b4f15f23e9828ec26652",
+        "maximum": 20.0,
+        "minimum": 10.0,
+        "path": "/artifacts/finance.json",
+        "sum": 30.0
+      }
+    },
+    "logical_volume_restore": {
+      "ok": true,
+      "uses_memory_snapshot": false,
+      "uses_snapshot_image": false
+    },
+    "model": {
+      "ok": true
+    },
+    "research": {
+      "chromium": "Google Chrome for Testing 150.0.7871.114",
+      "diagnostic": "1111:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:45:0711/231751.361251:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[30:45:0711/231751.363078:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[30:45:0711/231751.364378:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:51:0711/231751.370174:ERROR:net/base/address_tracker_linux.cc:243] Could not bind NETLINK socket: Operation not supported (95)\n[30:45:0711/231751.499282:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:45:0711/231751.617124:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n\n(process:30): GLib-GIO-CRITICAL **: 23:17:51.704: g_settings_schema_source_lookup: assertion 'source != NULL' failed\n[66:105:0711/231751.706715:ERROR:base/files/file_path_watcher_inotify.cc:925] Failed to read /proc/sys/fs/inotify/max_user_watches\n[30:30:0711/231751.842420:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:30:0711/231751.842529:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:30:0711/231751.842756:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:45:0711/231751.842955:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:45:0711/231751.842990:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:30:0711/231751.852555:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:30:0711/231751.896411:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:30:0711/231751.896793:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:45:0711/231751.897171:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[30:45:0711/231751.898984:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Failed to connect to socket /run/dbus/system_bus_socket: No such file or directory\n[30:45:0711/231751.899055:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:30:0711/231751.954886:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: unknown error type: \n[30:30:0711/231751.956539:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:45:0711/231751.956747:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:30:0711/231751.989397:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:45:0711/231751.989594:ERROR:dbus/bus.cc:405] Failed to connect to the bus: Could not parse server address: Unknown address type (examples of valid types are \"tcp\" and on UNIX \"unix\")\n[30:30:0711/231752.004294:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.NameHasOwner: object_path= /org/freedesktop/DBus: unknown error type: \n[30:30:0711/231752.104332:ERROR:chrome/browser/component_updater/soda_language_pack_component_installer.cc:84] On demand update of the SODA language component failed with error: 5\n[30:30:0711/231752.137200:ERROR:chrome/browser/component_updater/soda_component_installer.cc:96] On demand update of the SODA component failed with error: 5\n[0711/231753.538053:ERROR:third_party/crashpad/crashpad/util/linux/socket.cc:182] incorrect payload size 0\n[0711/231753.547374:ERROR:third_party/crashpad/crashpad/util/linux/socket.cc:182] incorrect payload size 0\n",
+      "ok": true,
+      "vendor": {
+        "SHA256": "03963c0dd9bf91e9b0e760cff37680f9b92ff42758182286382787622323cf9d",
+        "SOURCE_URL": "https://storage.googleapis.com/chrome-for-testing-public/150.0.7871.114/linux64/chrome-linux64.zip",
+        "VERSION": "150.0.7871.114"
+      }
+    },
+    "sbom_base": {
+      "components": 67,
+      "digest": "sha256:a663ae76dbcf5f6ec10eb43efe54ab25ba17c274ae259c0d0b45ac7c76290c4e",
+      "ok": true,
+      "path": "C:\\Users\\kushagra\\OneDrive\\Documents\\CS Projects\\Beyond-Chat\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-base.cdx.json"
+    },
+    "sbom_data_finance": {
+      "components": 86,
+      "digest": "sha256:6b1fc06c6ffd3c0f78d68404a0a49d5c9d2852f9f5dc57bb8b413d3ee9013b6d",
+      "ok": true,
+      "path": "C:\\Users\\kushagra\\OneDrive\\Documents\\CS Projects\\Beyond-Chat\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-data-finance.cdx.json"
+    },
+    "sbom_documents": {
+      "components": 192,
+      "digest": "sha256:eb66112025d902e80266bb2bf985191563098bbb283938c56863c9871462e039",
+      "ok": true,
+      "path": "C:\\Users\\kushagra\\OneDrive\\Documents\\CS Projects\\Beyond-Chat\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-documents.cdx.json"
+    },
+    "sbom_research": {
+      "components": 171,
+      "digest": "sha256:02e834619b1b484f3a7f9e79876eff9b2fc0ae37e35fe6a372d625a5d768e28d",
+      "ok": true,
+      "path": "C:\\Users\\kushagra\\OneDrive\\Documents\\CS Projects\\Beyond-Chat\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-research.cdx.json"
+    },
+    "timeout": {
+      "ok": true
+    },
+    "tool": {
+      "ok": true
+    }
+  },
+  "schema_version": 1,
+  "secrets_in_sandbox": false,
+  "single_sandbox_cost_floor": {
+    "cpu": 1,
+    "cpu_cost_usd": 0.00268304,
+    "duration_seconds": 68.06299999999464,
+    "memory_cost_usd": 0.00045738,
+    "memory_gib": 1.0,
+    "total_cost_usd": 0.00314043
+  }
+}

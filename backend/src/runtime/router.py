@@ -1,0 +1,104 @@
+from __future__ import annotations
+
+from collections.abc import Awaitable, Callable
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from pydantic import BaseModel, ConfigDict, Field
+
+from .coordinator import RuntimeConflict, RuntimeCoordinator
+from .models import RuntimeRun
+
+
+class RuntimePrincipal(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    actor_id: str = Field(min_length=3, max_length=128)
+    organization_id: str = Field(min_length=3, max_length=128)
+
+
+class CreateRunRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    run_id: str = Field(min_length=3, max_length=128)
+    project_id: str = Field(min_length=3, max_length=128)
+    agent_version_id: str = Field(min_length=3, max_length=128)
+
+
+class ResolveApprovalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    decision: str = Field(pattern="^(approved|denied)$")
+    reason: str | None = Field(default=None, max_length=1000)
+
+
+Authenticator = Callable[[], RuntimePrincipal | Awaitable[RuntimePrincipal]]
+MutationGuard = Callable[[], None | Awaitable[None]]
+
+
+def create_runtime_router(
+    coordinator: RuntimeCoordinator,
+    authenticate: Authenticator,
+    mutation_guard: MutationGuard | None = None,
+) -> APIRouter:
+    """Return a deny-by-default integration router for the manager to mount in `main.py`."""
+
+    router = APIRouter(prefix="/api/runtime", tags=["runtime"], dependencies=[Depends(authenticate)])
+    guard = mutation_guard or (lambda: None)
+
+    @router.post("/runs", status_code=status.HTTP_202_ACCEPTED)
+    async def create_run(
+        body: CreateRunRequest,
+        idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=8, max_length=200)],
+        principal: RuntimePrincipal = Depends(authenticate),
+        _mutation: None = Depends(guard),
+    ) -> dict:
+        run = coordinator.accept(RuntimeRun(
+            run_id=body.run_id,
+            organization_id=principal.organization_id,
+            project_id=body.project_id,
+            actor_id=principal.actor_id,
+            agent_version_id=body.agent_version_id,
+        ), idempotency_key=idempotency_key)
+        return {"run_id": run.run_id, "state": run.state, "version": run.version}
+
+    @router.post("/runs/{run_id}/cancel", status_code=status.HTTP_202_ACCEPTED)
+    async def cancel_run(
+        run_id: str, principal: RuntimePrincipal = Depends(authenticate),
+        _mutation: None = Depends(guard),
+    ) -> dict:
+        run = coordinator.repository.get_run(run_id)
+        if run is None or run.organization_id != principal.organization_id:
+            raise HTTPException(status_code=404, detail="run not found")
+        if run.actor_id != principal.actor_id:
+            raise HTTPException(status_code=403, detail="run actor mismatch")
+        canceled = coordinator.cancel(run_id=run_id, actor_id=principal.actor_id)
+        return {"run_id": canceled.run_id, "state": canceled.state, "version": canceled.version}
+
+    @router.post("/approvals/{approval_id}/resolve")
+    async def resolve_approval(
+        approval_id: str, body: ResolveApprovalRequest,
+        principal: RuntimePrincipal = Depends(authenticate),
+        _mutation: None = Depends(guard),
+    ) -> dict:
+        try:
+            run = coordinator.resolve_approval(
+                approval_id=approval_id, organization_id=principal.organization_id, actor_id=principal.actor_id,
+                decision=body.decision, reason=body.reason,
+            )
+        except (RuntimeConflict, RuntimeError) as exc:
+            raise HTTPException(status_code=404, detail="approval not found") from exc
+        if run.organization_id != principal.organization_id:
+            raise HTTPException(status_code=404, detail="approval not found")
+        return {"run_id": run.run_id, "state": run.state, "version": run.version}
+
+    @router.get("/runs/{run_id}/events")
+    async def replay_events(
+        run_id: str,
+        after: int = 0,
+        principal: RuntimePrincipal = Depends(authenticate),
+    ) -> dict:
+        run = coordinator.repository.get_run(run_id)
+        if run is None or run.organization_id != principal.organization_id:
+            raise HTTPException(status_code=404, detail="run not found")
+        events = coordinator.repository.events_after(run_id, after)
+        return {"events": [{"sequence": item.sequence, "event_type": item.event_type, "payload": item.payload} for item in events], "cursor": events[-1].sequence if events else after}
+
+    return router

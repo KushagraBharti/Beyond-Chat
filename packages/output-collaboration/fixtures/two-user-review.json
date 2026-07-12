@@ -1,0 +1,13 @@
+{
+  "organization_id": "org_fixture",
+  "project_id": "project_fixture",
+  "owner": { "user_id": "user_mara", "permissions": ["view", "comment", "edit", "review", "share"] },
+  "collaborator": { "user_id": "user_ivo", "permissions": ["view", "comment", "edit"] },
+  "reviewer": { "user_id": "user_nia", "permissions": ["view", "comment", "review"] },
+  "operations": [
+    { "kind": "insert", "op_id": "mara_1", "after_id": null, "value": "Plan " },
+    { "kind": "insert", "op_id": "ivo_1", "after_id": "mara_1", "value": "approved" }
+  ],
+  "expected_text": "Plan approved",
+  "revocation_expectation": "Existing editor session and durable write both fail closed; accepted operations and comments remain unchanged."
+}

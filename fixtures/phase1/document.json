@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "id": "document-generation",
+  "kind": "pi_document",
+  "prompt": "Create a concise project brief for an organization-wide AI workspace rollout.",
+  "output": {
+    "name": "project-brief.md",
+    "required_headings": ["# Project Brief", "## Objective", "## Rollout", "## Success"],
+    "required_phrases": ["organization", "pilot", "measurable"],
+    "minimum_words": 45
+  },
+  "trace": {
+    "required_tools": ["write_document"],
+    "maximum_tool_calls": 1,
+    "maximum_model_turns": 2
+  },
+  "budget": {
+    "maximum_latency_ms": 3000,
+    "maximum_cost_usd": 0
+  }
+}

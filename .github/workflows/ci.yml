@@ -6,9 +6,39 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  secret-scan:
+    name: Tracked secret and credential-file scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject tracked credential files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | grep -E '(^|/)(\.env($|\.)|[^/]+\.(pem|p12|pfx|key)$|api-credentials\.txt$)'; then
+            echo "Tracked credential-shaped files are forbidden."
+            exit 1
+          fi
+
+      - name: Reject common live-secret signatures
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E '(sk_live_[A-Za-z0-9]{16,}|whsec_[A-Za-z0-9]{16,}|sbp_[A-Za-z0-9]{16,}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY)' -- ':!vendor/pi/upstream/**'; then
+            echo "A tracked file matched a live-secret signature."
+            exit 1
+          fi
+
   frontend:
-    name: Frontend build and tests
+    name: Frontend lint, build, and tests
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -20,18 +50,31 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit high-severity dependencies
+        run: npm audit --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
       - name: Run tests
         run: npm run test
 
       - name: Build
         run: npm run build
+
+      - name: Assert build and tests left the checkout clean
+        working-directory: .
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
 
   backend:
     name: Backend tests
@@ -52,10 +95,58 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --locked --dev
 
       - name: Run tests
-        run: uv run pytest
+        run: uv run --locked pytest
+
+      - name: Assert build and tests left the checkout clean
+        working-directory: .
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  dexter:
+    name: Dexter typecheck and tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/dexter
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/dexter/package-lock.json
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit all dependency severities
+        run: npm audit --audit-level=low
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Assert build and tests left the checkout clean
+        working-directory: .
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
 
   sandbox-runner:
     name: Sandbox runner typecheck
@@ -70,12 +161,127 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/sandbox-runner/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit high-severity dependencies
+        run: npm audit --audit-level=high
+
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Assert build and tests left the checkout clean
+        working-directory: .
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  phase1-foundations:
+    name: Phase 1 contracts, Pi, runtime, sandbox, and fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            vendor/pi/upstream/package-lock.json
+            packages/contracts/package-lock.json
+            packages/runtime-contracts/package-lock.json
+            packages/pi-runtime-adapter/package-lock.json
+            packages/sandbox-provider/package-lock.json
+            services/local-app-server/package-lock.json
+
+      - name: Verify local and online Pi provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/pi/verify-provenance.mjs
+          node scripts/pi/verify-upstreams-online.mjs
+          node scripts/pi/verify-import-boundary.mjs
+
+      - name: Build selected vendored Pi packages reproducibly
+        run: node scripts/pi/build-selected.mjs
+
+      - name: Audit vendored Pi production dependencies
+        working-directory: vendor/pi/upstream
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Install, audit, typecheck, and test Phase 1 packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          for package in \
+            packages/contracts \
+            packages/runtime-contracts \
+            packages/pi-runtime-adapter \
+            packages/sandbox-provider \
+            services/local-app-server
+          do
+            npm --prefix "$package" ci
+            npm --prefix "$package" audit --audit-level=high
+            npm --prefix "$package" run typecheck
+            npm --prefix "$package" test
+          done
+
+      - name: Run real offline document and Dexter-compatible finance fixtures
+        run: node --experimental-strip-types scripts/phase1/run-fixtures.ts
+
+      - name: Reverify provenance and import boundary after build and tests
+        run: |
+          node scripts/pi/verify-provenance.mjs
+          node scripts/pi/verify-import-boundary.mjs
+
+      - name: Assert build and tests left the checkout clean
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  product-catalog:
+    name: Product catalog contracts and frozen-journey evals
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/product-catalog
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/product-catalog/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit high-severity dependencies
+        run: npm audit --audit-level=high
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run frozen-journey evals
+        run: npm run eval
+
+      - name: Assert build and tests left the checkout clean
+        working-directory: .
+        shell: bash
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"

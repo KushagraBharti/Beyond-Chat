@@ -43,6 +43,7 @@
     "typescript": "^5.9.3"
   },
   "overrides": {
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "esbuild": "0.28.1"
   }
 }

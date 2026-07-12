@@ -11,10 +11,8 @@ def test_health_endpoint() -> None:
     assert response.json()["status"] == "ok"
 
 
-def test_workspace_bootstrap_contract(client: TestClient) -> None:
-    response = client.post("/api/auth/bootstrap")
+def test_workspace_bootstrap_requires_auth(unauthenticated_client: TestClient) -> None:
+    response = unauthenticated_client.post("/api/auth/bootstrap")
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["data"]["workspace"]["id"]
-    assert payload["data"]["source"] == "supabase_jwt"
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Authentication is required for this endpoint."

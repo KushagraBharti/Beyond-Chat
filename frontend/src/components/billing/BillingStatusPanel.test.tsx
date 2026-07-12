@@ -1,0 +1,2 @@
+import {render,screen} from "@testing-library/react";import {describe,expect,it} from "vitest";import {DisabledBillingAdapter} from "../../features/billing";import {BillingStatusPanel} from "./BillingStatusPanel";
+describe("BillingStatusPanel",()=>{it("labels external billing as inactive truthfully",async()=>{render(<BillingStatusPanel adapter={new DisabledBillingAdapter()}/>);expect(await screen.findByText("Not activated")).toBeInTheDocument();expect(screen.getByText(/never grant access/)).toBeInTheDocument();});});

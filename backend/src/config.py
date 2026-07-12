@@ -44,6 +44,22 @@ class Settings:
     supabase_anon_key: str | None = os.getenv("SUPABASE_ANON_KEY")
     supabase_service_role_key: str | None = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     supabase_storage_bucket: str = SUPABASE_STORAGE_BUCKET
+    workos_api_key: str | None = os.getenv("WORKOS_API_KEY")
+    workos_client_id: str | None = os.getenv("WORKOS_CLIENT_ID")
+    workos_cookie_password: str | None = os.getenv("WORKOS_COOKIE_PASSWORD")
+    workos_redirect_uri: str = os.getenv(
+        "WORKOS_REDIRECT_URI",
+        "http://127.0.0.1:8000/api/auth/callback",
+    )
+    workos_logout_uri: str = os.getenv("WORKOS_LOGOUT_URI", APP_URL)
+    workos_webhook_secret: str | None = os.getenv("WORKOS_WEBHOOK_SECRET")
+    workos_issuer: str = os.getenv(
+        "WORKOS_ISSUER",
+        f"https://api.workos.com/user_management/{os.getenv('WORKOS_CLIENT_ID', '')}",
+    )
+    workos_session_cookie_name: str = os.getenv("WORKOS_SESSION_COOKIE_NAME", "beyond_session")
+    workos_state_cookie_name: str = os.getenv("WORKOS_STATE_COOKIE_NAME", "beyond_auth_state")
+    workos_csrf_cookie_name: str = os.getenv("WORKOS_CSRF_COOKIE_NAME", "beyond_csrf")
     openrouter_image_default_model: str = OPENROUTER_IMAGE_DEFAULT_MODEL
     stripe_secret_key: str | None = os.getenv("STRIPE_SECRET_KEY")
     stripe_webhook_secret: str | None = os.getenv("STRIPE_WEBHOOK_SECRET")

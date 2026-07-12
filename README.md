@@ -1,49 +1,51 @@
 # Beyond Chat
 
-Beyond Chat is a production-style AI workspace that turns conversations into durable artifacts. Instead of treating every task as a disposable transcript, the app organizes work into dedicated studios for chat, writing, research, image, data, finance, artifacts, and settings, with saved outputs that can be searched, reused, exported, and compared.
+Beyond Chat is a transitional AI workspace prototype that turns conversations into durable artifacts. The current checkout still contains studio-oriented routes and legacy integrations, but the product is being rebuilt toward an organization-ready workspace centered on projects, agents, durable work, sources, approvals, and outputs.
 
-The strongest proof point is Finance Studio: Dexter, a sandboxed finance agent with a 12-tool research surface, live tool traces, and final memo output. Dexter streams NDJSON from the runner into persisted `run_steps`, so the UI can show tool starts, progress, completions, errors, sources, and the final answer as the agent works. The deployed architecture moved away from Railway and now targets three Vercel projects plus a Daytona-backed sandbox path.
+The current prototype includes Dexter-derived finance workflows with live tool traces and final memo output. Dexter streams NDJSON from the runner into persisted `run_steps`, so the UI can show tool starts, progress, completions, errors, sources, and the final answer as the agent works. These are useful internal/demo behaviors, not claims about the final architecture or generally available capabilities.
+
+`plan.md` is the canonical product, architecture, and execution plan. The legacy schema, Supabase-centric auth, studio navigation, OpenRouter/provider wiring, and Vercel Sandbox assumptions described below are transitional prototype infrastructure and must not be read as the locked target architecture.
 
 Project inventory:
 
-- 14 Supabase/Postgres tables in the canonical SQL files.
+- 14 transitional Supabase/Postgres tables in the legacy SQL files.
 - 39 API paths across the backend product surface.
 - 14 core backend request/response models.
 - 42 curated tests across backend, frontend, Dexter, and sandbox-runner surfaces.
-- Three Vercel deployment roots: frontend, backend, and Dexter sandbox runner.
+- Three current Vercel deployment roots: frontend, backend, and Dexter sandbox runner.
 
 ## Technical Architecture
 
-Beyond Chat is a full-stack React/FastAPI product with Supabase as the hosted system of record.
+The current prototype is a full-stack React/FastAPI product with Supabase as its hosted system of record. This is a transitional baseline; the locked first-generation architecture is defined in `plan.md`.
 
 Core stack:
 
 - Frontend: React, TypeScript, Vite, Tailwind CSS, React Router.
 - Backend: FastAPI on Python `3.11+`, run with `uv`.
-- Auth: Supabase Auth.
+- Auth: Supabase Auth in the current prototype; WorkOS AuthKit is the locked target.
 - Persistence: Supabase Postgres.
 - Storage: Supabase Storage for uploaded artifacts and data files.
-- Model access: OpenRouter.
+- Model access: OpenRouter in the current prototype; public model availability is not guaranteed.
 - Research search: Exa.
-- Billing: Stripe checkout, portal, webhook, and plan status endpoints.
-- Deployment: three Vercel projects, with Vercel Sandbox/Daytona for cloud Dexter execution.
+- Billing: Stripe scaffolding and status endpoints in the current prototype; no live Beyond product, price, or paid checkout is enabled.
+- Deployment: current Vercel projects and legacy runner paths; Modal is the locked target execution provider.
 
-The product surface is split into public routes and authenticated studios. Public routes cover landing, pricing, login, signup, auth callback, password reset, and billing result pages. Protected routes include Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, and Settings. Compare is implemented as a shared panel capability rather than a standalone route.
+The current product surface is split into public routes and authenticated legacy studio routes. Public routes cover landing, pricing, login, signup, auth callback, password reset, billing result pages, and clearly labeled draft Terms and Privacy pages. Protected routes include Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, and Settings. The canonical target navigation is documented in `plan.md` and replaces studio-centric product framing over time.
 
 ### Runtime Flow
 
 The frontend sends authenticated API requests with the Supabase access token and an internal workspace header. FastAPI validates the request, writes runs/artifacts through Supabase-aware stores, and calls provider adapters for model, search, billing, data, and Dexter workflows. Profile-scoped ownership is the product-facing model; workspace IDs remain internal routing/bootstrap plumbing where the schema still requires them.
 
-Finance Studio uses Dexter through two execution paths:
+The prototype finance flow uses Dexter through two execution paths:
 
 - Local development: backend launches the local Dexter TypeScript runtime and parses JSONL output.
 - Hosted execution: backend calls the sandbox runner, which streams NDJSON from Dexter and returns the same event shape.
 
 Both paths persist live events into `run_steps`, giving the UI a durable audit trail instead of only a final blob of text.
 
-### Data Model
+### Transitional Data Model
 
-The canonical schema lives in `backend/sql-related-files/` and covers:
+The legacy schema inventory in `backend/sql-related-files/` covers:
 
 - profiles, workspaces, and membership
 - chat collections, threads, and messages
@@ -52,7 +54,7 @@ The canonical schema lives in `backend/sql-related-files/` and covers:
 - reminders, billing plans, and usage events
 - storage setup and row-level security policies
 
-`backend/sql-related-files/` is the source of truth for the live Supabase schema. Older proposal and weekly-update docs are useful context but should not override the root README, `spec.md`, or API docs.
+`backend/sql-related-files/` describes the current transitional Supabase schema. `plan.md` is the source of truth for the target product and architecture; the legacy schema and migration chain are explicitly non-authoritative and are planned for replacement before customer data.
 
 ### Repository Map
 
@@ -165,8 +167,9 @@ Verify deployment with:
 
 ## Status Notes
 
-- Hosted runtime is Supabase-only for auth, database, and storage.
+- Hosted prototype runtime is Supabase-based for auth, database, and storage; this is transitional and not the locked identity architecture.
 - SQLite and local auth bypass are legacy/testing concerns, not product architecture.
 - `backend/src/store.py` remains only as a legacy local test store.
 - `frontend-mock/` is archived reference material, not an active product surface.
-- Usage tracking and billing state support plan-aware limits; verify middleware before claiming fully enforced application-level quotas.
+- Usage tracking and billing state support prototype plan-aware limits; no public page should claim unlimited usage or a live paid entitlement.
+- The public pricing target is $30 per user per month, but paid checkout is not enabled and billing status must be server-verified before access changes.

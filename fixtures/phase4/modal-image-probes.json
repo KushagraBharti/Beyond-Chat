@@ -1,0 +1,38 @@
+{
+  "all_passed": true,
+  "app": "beyond-chat-runtime",
+  "captured_at": "2026-07-11T22:55:05.282294+00:00",
+  "environment": "beyond-chat-production",
+  "probes": {
+    "base": {
+      "app": "beyond-chat-runtime",
+      "image_kind": "base",
+      "ok": true,
+      "release": "2026-07-11.2",
+      "runtime": "49.0.0"
+    },
+    "data-finance": {
+      "app": "beyond-chat-runtime",
+      "image_kind": "data-finance",
+      "ok": true,
+      "release": "2026-07-11.2",
+      "runtime": "49.0.0"
+    },
+    "documents": {
+      "app": "beyond-chat-runtime",
+      "image_kind": "documents",
+      "ok": true,
+      "release": "2026-07-11.2",
+      "runtime": "49.0.0"
+    },
+    "research": {
+      "app": "beyond-chat-runtime",
+      "image_kind": "research",
+      "ok": true,
+      "release": "2026-07-11.2",
+      "runtime": "49.0.0"
+    }
+  },
+  "release": "2026-07-11.2",
+  "schema_version": 1
+}

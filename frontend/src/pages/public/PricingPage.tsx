@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, useMotionValue, AnimatePresence, type Variants } from "framer-motion";
-import { useAuth } from "../../context/AuthContext";
-import { createCheckoutSession } from "../../lib/api";
 
 const heading = "'Bricolage Grotesque', sans-serif";
 const body = "'Plus Jakarta Sans', sans-serif";
@@ -103,13 +101,7 @@ const CustomCursor = ({ variant }: { variant: "default" | "play" | "rotate" }) =
 
 type CursorVariant = "default" | "play" | "rotate";
 
-const ROICalculator = ({ setCursorVariant }: { setCursorVariant: Dispatch<SetStateAction<CursorVariant>> }) => {
-  const [hours, setHours] = useState(15);
-  const costPerHour = 75; // Average skilled knowledge worker rate
-  const weeks = 4;
-  const teamSize = 5; 
-  const totalSaved = hours * costPerHour * weeks * teamSize;
-
+const PricingStatusCard = () => {
   return (
     <motion.div 
       variants={fadeUp}
@@ -120,75 +112,27 @@ const ROICalculator = ({ setCursorVariant }: { setCursorVariant: Dispatch<SetSta
 
       <div style={{ position: "relative", zIndex: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "4rem", alignItems: "center" }}>
         <div>
-          <h3 style={{ fontFamily: heading, fontSize: "2.5rem", fontWeight: 800, marginBottom: "1rem", letterSpacing: "-0.02em" }}>Calculate your ROI</h3>
-          <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "3rem", fontSize: "1.1rem", lineHeight: 1.6 }}>How many hours does your team spend writing, pasting context, and wrangling generic prompts each week?</p>
-          
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem", fontWeight: 600 }}>
-            <span>{hours} hours / week</span>
-            <span style={{ color: "rgba(255,255,255,0.5)" }}>Team of {teamSize}</span>
-          </div>
-          
-          <div 
-            onMouseEnter={() => setCursorVariant("play")}
-            onMouseLeave={() => setCursorVariant("default")}
-          >
-            <input 
-              type="range" 
-              min="1" max="50" 
-              value={hours} 
-              onChange={(e) => setHours(Number(e.target.value))}
-              className="roi-slider"
-              style={{ cursor: "none" }}
-            />
-          </div>
+          <h3 style={{ fontFamily: heading, fontSize: "2.5rem", fontWeight: 800, marginBottom: "1rem", letterSpacing: "-0.02em" }}>A clear starting point.</h3>
+          <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "1.5rem", fontSize: "1.1rem", lineHeight: 1.6 }}>The initial commercial target is simple organization pricing. It is a plan, not an active offer.</p>
+          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.95rem", lineHeight: 1.6 }}>Paid checkout, entitlements, and billing operations are not enabled yet.</p>
         </div>
 
         <div style={{ background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)", padding: "3rem", borderRadius: "24px", textAlign: "center", border: "1px solid rgba(255,255,255,0.1)" }}>
-          <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1rem", fontWeight: 700 }}>Atelier Plus saves you</div>
+          <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: "1rem", fontWeight: 700 }}>Planned starting price</div>
           <div style={{ fontFamily: heading, fontSize: "4.5rem", fontWeight: 800, color: "#fff", lineHeight: 1 }}>
-            ${totalSaved.toLocaleString()}
+            $30
           </div>
-          <div style={{ fontSize: "1.2rem", color: c.primary, fontWeight: 700, marginTop: "0.5rem" }}>/ month</div>
-          <p style={{ marginTop: "1.5rem", color: "rgba(255,255,255,0.6)", fontSize: "0.9rem" }}>By standardizing outputs and autonomous workflows.</p>
+          <div style={{ fontSize: "1.2rem", color: c.primary, fontWeight: 700, marginTop: "0.5rem" }}>/ user / month</div>
+          <p style={{ marginTop: "1.5rem", color: "rgba(255,255,255,0.6)", fontSize: "0.9rem" }}>Subject to final launch readiness and server-verified billing.</p>
         </div>
       </div>
     </motion.div>
   )
 }
 
-export default function AtelierPlusPricing() {
+export default function PricingPage() {
   const [cursorVariant, setCursorVariant] = useState<CursorVariant>("default");
-  const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const scrollHome = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
-  const handleUpgrade = useCallback(async () => {
-    if (!user) {
-      window.sessionStorage.setItem("upgrade_intent", "1");
-      navigate("/login?mode=signup");
-      return;
-    }
-
-    setCheckoutLoading(true);
-    setCheckoutError(null);
-    try {
-      const { checkoutUrl } = await createCheckoutSession();
-      window.location.href = checkoutUrl;
-    } catch (err) {
-      setCheckoutError(err instanceof Error ? err.message : "Checkout failed. Please try again.");
-      setCheckoutLoading(false);
-    }
-  }, [navigate, user]);
-
-  useEffect(() => {
-    if (user && window.sessionStorage.getItem("upgrade_intent") === "1") {
-      window.sessionStorage.removeItem("upgrade_intent");
-      const id = window.setTimeout(() => void handleUpgrade(), 0);
-      return () => window.clearTimeout(id);
-    }
-  }, [handleUpgrade, user]);
 
   return (
     <div style={{ minHeight: "100vh", background: c.canvas, color: c.ink, fontFamily: body, overflow: "hidden", cursor: "none" }}>
@@ -197,24 +141,6 @@ export default function AtelierPlusPricing() {
 
       <style>{`
         * { cursor: none !important; }
-        .roi-slider {
-          -webkit-appearance: none;
-          width: 100%;
-          height: 8px;
-          border-radius: 4px;
-          background: rgba(255, 255, 255, 0.2);
-          outline: none;
-        }
-        .roi-slider::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          appearance: none;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: #4F3FE8;
-          cursor: none;
-          box-shadow: 0 0 20px rgba(79, 63, 232, 0.6);
-        }
       `}</style>
 
       {/* Precision Grid Background */}
@@ -251,11 +177,13 @@ export default function AtelierPlusPricing() {
             <div style={{ position: "absolute", inset: "6px", borderRadius: "2px", background: c.ink }} />
           </div>
           <span style={{ fontFamily: heading, fontSize: "1.2rem", fontWeight: 800, color: c.ink, letterSpacing: "-0.03em" }}>
-            Beyond Chat <span style={{ color: c.primary, fontWeight: 500, fontSize: "1rem" }}>+</span>
+            Beyond Chat
           </span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "2rem" }}>
           <Link to="/" onClick={scrollHome} onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 600, color: c.muted, textDecoration: "none" }}>Home</Link>
+          <Link to="/terms" style={{ fontFamily: body, fontSize: "0.8rem", fontWeight: 600, color: c.muted, textDecoration: "none" }}>Terms</Link>
+          <Link to="/privacy" style={{ fontFamily: body, fontSize: "0.8rem", fontWeight: 600, color: c.muted, textDecoration: "none" }}>Privacy</Link>
           <Link to="/login" onMouseEnter={() => setCursorVariant("play")} onMouseLeave={() => setCursorVariant("default")} style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 700, color: "#fff", background: c.ink, padding: "0.6rem 1.4rem", borderRadius: "99px", textDecoration: "none" }}>Log in</Link>
         </div>
       </nav>
@@ -265,16 +193,16 @@ export default function AtelierPlusPricing() {
         
         <motion.div initial="hidden" animate="visible" variants={stagger} style={{ textAlign: "center", marginBottom: "4rem" }}>
           <motion.h1 variants={fadeUp} style={{ fontFamily: heading, fontSize: "clamp(3rem, 5vw, 4.5rem)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: "1rem" }}>
-            Invest in <span style={{ color: c.primary }}>intelligence.</span>
+            Pricing that is <span style={{ color: c.primary }}>honest.</span>
           </motion.h1>
           <motion.p variants={fadeUp} style={{ fontFamily: body, fontSize: "1.2rem", color: c.muted, maxWidth: "600px", margin: "0 auto" }}>
-            Start for free, upgrade when your workflow demands more power and autonomy.
+            Beyond Chat is still in product transition. The initial target is $30 per user per month; paid checkout is not enabled.
           </motion.p>
         </motion.div>
 
-        {/* The New ROI Calculator */}
+        {/* Pricing status */}
         <motion.div initial="hidden" animate="visible" variants={stagger}>
-          <ROICalculator setCursorVariant={setCursorVariant} />
+          <PricingStatusCard />
         </motion.div>
 
         <motion.div initial="hidden" animate="visible" variants={stagger} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "center" }}>
@@ -291,23 +219,22 @@ export default function AtelierPlusPricing() {
               boxShadow: "0 10px 40px rgba(0,0,0,0.03)",
             }}
           >
-            <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, color: c.ink, marginBottom: "0.5rem" }}>Starter</h3>
+            <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, color: c.ink, marginBottom: "0.5rem" }}>Current prototype</h3>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem", marginBottom: "1rem" }}>
-              <span style={{ fontFamily: heading, fontSize: "3rem", fontWeight: 800, letterSpacing: "-0.04em" }}>$0</span>
-              <span style={{ color: c.muted, fontWeight: 500 }}>/mo</span>
+              <span style={{ fontFamily: heading, fontSize: "2.4rem", fontWeight: 800, letterSpacing: "-0.04em" }}>Not for sale</span>
             </div>
-            <p style={{ color: c.muted, lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>For individuals exploring structured AI workflows.</p>
+            <p style={{ color: c.muted, lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>Explore the available prototype flows while the canonical product is being built.</p>
             
             <Link 
               to="/signup" 
               onMouseEnter={() => setCursorVariant("play")} 
               onMouseLeave={() => setCursorVariant("default")}
               style={{ display: "block", textAlign: "center", background: c.canvas, border: `1px solid ${c.border}`, color: c.ink, padding: "1rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", marginBottom: "2.5rem" }}>
-              Get Started Free
+              Create an account
             </Link>
 
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {["Access to 3 basic studios", "50 artifact saves per month", "Standard models (GPT-3.5, Claude Haiku)", "Community support"].map((feat, i) => (
+              {["Prototype access only", "Availability may change during migration", "No paid entitlement is granted", "Draft legal pages are labeled"].map((feat, i) => (
                 <li key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: c.ink, fontSize: "0.95rem" }}>
                   <div style={{ width: "16px", height: "16px", borderRadius: "50%", background: `${c.border}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: c.muted }} />
@@ -335,34 +262,27 @@ export default function AtelierPlusPricing() {
             <div style={{ position: "absolute", top: "-50px", right: "-50px", width: "150px", height: "150px", background: c.primary, filter: "blur(60px)", opacity: 0.5, borderRadius: "50%" }} />
             
             <div style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: `linear-gradient(90deg, ${c.primary}, ${c.accent})`, padding: "0.3rem 1rem", borderRadius: "99px", fontSize: "0.75rem", fontWeight: 800, color: "#fff", letterSpacing: "0.05em" }}>
-              RECOMMENDED
+              PLANNED
             </div>
 
-            <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, color: "#fff", marginBottom: "0.5rem" }}>Professional</h3>
+            <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, color: "#fff", marginBottom: "0.5rem" }}>Organization plan</h3>
             <div style={{ display: "flex", alignItems: "baseline", gap: "0.2rem", marginBottom: "1rem", color: "#fff" }}>
-              <span style={{ fontFamily: heading, fontSize: "3.5rem", fontWeight: 800, letterSpacing: "-0.04em" }}>$10</span>
-              <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>/mo</span>
+              <span style={{ fontFamily: heading, fontSize: "3.5rem", fontWeight: 800, letterSpacing: "-0.04em" }}>$30</span>
+              <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 500 }}>/ user / month</span>
             </div>
-            <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>For power users who need advanced models and unlimited context.</p>
+            <p style={{ color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "2.5rem", minHeight: "50px" }}>Planned initial price for organization subscriptions. This is not an active offer.</p>
             
-            <button
-              type="button"
-              onClick={handleUpgrade}
-              disabled={checkoutLoading}
+            <Link
+              to="/login?mode=signup"
               onMouseEnter={(e) => { setCursorVariant("play"); e.currentTarget.style.transform = "scale(1.02)"; }}
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "scale(1)"; }}
-              style={{ display: "block", width: "100%", textAlign: "center", background: checkoutLoading ? `${c.primary}80` : c.primary, color: "#fff", padding: "1rem", borderRadius: "12px", fontWeight: 700, border: "none", marginBottom: checkoutError ? "1rem" : "2.5rem", boxShadow: `0 8px 20px ${c.primary}40`, transition: "transform 0.2s", fontSize: "1rem" }}
+              style={{ display: "block", width: "100%", textAlign: "center", background: c.primary, color: "#fff", padding: "1rem", borderRadius: "12px", fontWeight: 700, border: "none", marginBottom: "2.5rem", boxShadow: `0 8px 20px ${c.primary}40`, transition: "transform 0.2s", fontSize: "1rem", textDecoration: "none" }}
             >
-              {checkoutLoading ? "Redirecting..." : "Upgrade to Pro"}
-            </button>
-            {checkoutError ? (
-              <p style={{ color: "#E55613", fontSize: "0.85rem", marginBottom: "2.5rem", textAlign: "center" }}>
-                {checkoutError}
-              </p>
-            ) : null}
+              Request access
+            </Link>
 
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {["All 6 advanced studios", "Unlimited artifact saves", "Premium models (GPT-4o, Claude 3.5 Sonnet)", "Model Compare feature", "Priority email support"].map((feat, i) => (
+              {["Organization workspace is planned", "Built-in agents are planned", "Billing will be server-verified", "Launch scope remains subject to validation", "No checkout is enabled today"].map((feat, i) => (
                 <li key={i} style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "#fff", fontSize: "0.95rem" }}>
                   <div style={{ width: "16px", height: "16px", borderRadius: "50%", background: `${c.primary}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: c.primary }} />

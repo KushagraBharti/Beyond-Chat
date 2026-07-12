@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "tenants": ["org_north", "org_south"],
+  "cases": [
+    { "id": "tenant-isolation", "expect": "south cannot retrieve north" },
+    { "id": "external-group-revocation", "expect": "changed group loses retrieval" },
+    { "id": "inherited-folder-acl", "expect": "team grant permits child" },
+    { "id": "link-sharing", "expect": "explicit group grant permits access" },
+    { "id": "stale-cursor", "expect": "replay deduplicates" },
+    { "id": "acl-revocation", "expect": "ACL refresh removes prior grant" },
+    { "id": "deletion", "expect": "tombstone removes retrieval" },
+    { "id": "reconciliation", "expect": "absent source is tombstoned as lost permission" },
+    { "id": "citation-access", "expect": "citation resolves only when revision remains accessible" },
+    { "id": "prompt-injection", "expect": "source stays untrusted" },
+    { "id": "glean-federation", "expect": "requires actor assertion" },
+    { "id": "databricks-governed", "expect": "requires governed catalog and schema" },
+    { "id": "cross-source-ranking", "expect": "deterministic hybrid order" }
+  ]
+}

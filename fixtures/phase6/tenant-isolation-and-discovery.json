@@ -1,0 +1,1 @@
+{ "scenario": "tenant-isolation-and-discovery", "expected": { "shared_agent_personal_connection": "withheld", "skills": "deterministic", "apps": "deterministic", "mcp": "deterministic", "version_audit": "pinned" } }

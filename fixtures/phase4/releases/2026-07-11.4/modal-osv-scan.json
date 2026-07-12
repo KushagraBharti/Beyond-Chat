@@ -1,0 +1,2708 @@
+{
+  "blocking_count": 0,
+  "captured_at": "2026-07-11T23:18:13.435478+00:00",
+  "components_scanned": 515,
+  "finding_count": 151,
+  "finding_occurrence_count": 408,
+  "findings": [
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2017-7475",
+      "modified": "2026-05-20T16:03:22.545669Z",
+      "name": "cairo",
+      "purl": "pkg:deb/ubuntu/cairo@1.18.4-3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.18.4-3"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2018-10126",
+      "modified": "2026-05-20T16:03:22.413580Z",
+      "name": "libjpeg-turbo",
+      "purl": "pkg:deb/ubuntu/libjpeg-turbo@2.1.5-4ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.1.5-4ubuntu4"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2018-18064",
+      "modified": "2026-05-20T16:03:33.631278Z",
+      "name": "cairo",
+      "purl": "pkg:deb/ubuntu/cairo@1.18.4-3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.18.4-3"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2019-6988",
+      "modified": "2026-05-20T16:04:00.451484Z",
+      "name": "openjpeg2",
+      "purl": "pkg:deb/ubuntu/openjpeg2@2.5.4-1ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.5.4-1ubuntu0.1"
+    },
+    {
+      "cvss_score": 8.8,
+      "distribution_priority": "negligible",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2019-9543",
+      "modified": "2026-06-08T18:50:22.460087Z",
+      "name": "poppler",
+      "purl": "pkg:deb/ubuntu/poppler@26.01.0-2ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "26.01.0-2ubuntu0.1"
+    },
+    {
+      "cvss_score": 8.8,
+      "distribution_priority": "negligible",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2019-9545",
+      "modified": "2026-06-08T18:50:21.411793Z",
+      "name": "poppler",
+      "purl": "pkg:deb/ubuntu/poppler@26.01.0-2ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "26.01.0-2ubuntu0.1"
+    },
+    {
+      "cvss_score": 6.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2023-35936",
+      "modified": "2026-05-20T16:13:42.334588Z",
+      "name": "pandoc",
+      "purl": "pkg:deb/ubuntu/pandoc@3.7.0.2%2Bds-1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.7.0.2+ds-1"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2023-37769",
+      "modified": "2026-05-20T16:13:45.961071Z",
+      "name": "pixman",
+      "purl": "pkg:deb/ubuntu/pixman@0.46.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.46.4-1"
+    },
+    {
+      "cvss_score": 6.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2023-38745",
+      "modified": "2026-05-20T16:13:47.013553Z",
+      "name": "pandoc",
+      "purl": "pkg:deb/ubuntu/pandoc@3.7.0.2%2Bds-1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.7.0.2+ds-1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2023-39328",
+      "modified": "2026-05-29T10:45:23.722290Z",
+      "name": "openjpeg2",
+      "purl": "pkg:deb/ubuntu/openjpeg2@2.5.4-1ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.5.4-1ubuntu0.1"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2023-39329",
+      "modified": "2026-05-29T10:45:20.515542Z",
+      "name": "openjpeg2",
+      "purl": "pkg:deb/ubuntu/openjpeg2@2.5.4-1ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.5.4-1ubuntu0.1"
+    },
+    {
+      "cvss_score": 5.9,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2024-2236",
+      "modified": "2026-07-01T23:40:15.314704Z",
+      "name": "libgcrypt20",
+      "purl": "pkg:deb/ubuntu/libgcrypt20@1.12.0-2ubuntu1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.12.0-2ubuntu1"
+    },
+    {
+      "cvss_score": 3.6,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2024-56433",
+      "modified": "2026-05-20T16:19:41.251440Z",
+      "name": "shadow",
+      "purl": "pkg:deb/ubuntu/shadow@1%3A4.17.4-2ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.17.4-2ubuntu3"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-1352",
+      "modified": "2026-05-20T16:20:22.741388Z",
+      "name": "elfutils",
+      "purl": "pkg:deb/ubuntu/elfutils@0.194-4",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.194-4"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-1376",
+      "modified": "2026-05-20T16:20:22.954555Z",
+      "name": "elfutils",
+      "purl": "pkg:deb/ubuntu/elfutils@0.194-4",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.194-4"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-15649",
+      "modified": "2026-07-01T13:50:56.760041Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-50422",
+      "modified": "2026-05-20T16:23:33.815845Z",
+      "name": "cairo",
+      "purl": "pkg:deb/ubuntu/cairo@1.18.4-3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.18.4-3"
+    },
+    {
+      "cvss_score": 3.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-51591",
+      "modified": "2026-05-20T16:23:33.618824Z",
+      "name": "pandoc",
+      "purl": "pkg:deb/ubuntu/pandoc@3.7.0.2%2Bds-1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.7.0.2+ds-1"
+    },
+    {
+      "cvss_score": 7.0,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-5222",
+      "modified": "2026-05-20T16:23:33.798734Z",
+      "name": "icu",
+      "purl": "pkg:deb/ubuntu/icu@78.2-2ubuntu1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "78.2-2ubuntu1"
+    },
+    {
+      "cvss_score": 4.4,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-5278",
+      "modified": "2026-05-20T16:23:34.282155Z",
+      "name": "coreutils",
+      "purl": "pkg:deb/ubuntu/coreutils@9.7-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "9.7-3ubuntu2"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-59529",
+      "modified": "2026-05-20T16:23:41.368056Z",
+      "name": "avahi",
+      "purl": "pkg:deb/ubuntu/avahi@0.8-18ubuntu1.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8-18ubuntu1.1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-61143",
+      "modified": "2026-05-29T10:45:27.803482Z",
+      "name": "tiff",
+      "purl": "pkg:deb/ubuntu/tiff@4.7.0-3ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4.7.0-3ubuntu4"
+    },
+    {
+      "cvss_score": 9.8,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-61144",
+      "modified": "2026-05-29T10:45:34.218149Z",
+      "name": "tiff",
+      "purl": "pkg:deb/ubuntu/tiff@4.7.0-3ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4.7.0-3ubuntu4"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-66382",
+      "modified": "2026-07-09T17:15:11.321887Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2025-7425",
+      "modified": "2026-05-20T16:24:01.822983Z",
+      "name": "libxslt",
+      "purl": "pkg:deb/ubuntu/libxslt@1.1.45-0.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.1.45-0.1"
+    },
+    {
+      "cvss_score": 5.0,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-11850",
+      "modified": "2026-06-17T04:27:00Z",
+      "name": "krb5",
+      "purl": "pkg:deb/ubuntu/krb5@1.22.1-2ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.22.1-2ubuntu4"
+    },
+    {
+      "cvss_score": 9.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-11856",
+      "modified": "2026-07-10T02:26:18.634104Z",
+      "name": "curl",
+      "purl": "pkg:deb/ubuntu/curl@8.18.0-1ubuntu2.3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "8.18.0-1ubuntu2.3"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "negligible",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-11979",
+      "modified": "2026-07-07T21:03:18.551932Z",
+      "name": "libxml2",
+      "purl": "pkg:deb/ubuntu/libxml2@2.15.2%2Bdfsg-0.1ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "unimportant",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.15.2+dfsg-0.1ubuntu0.1"
+    },
+    {
+      "cvss_score": 9.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-12087",
+      "modified": "2026-07-01T13:51:29.763714Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 7.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-12912",
+      "modified": "2026-07-01T21:19:39Z",
+      "name": "tiff",
+      "purl": "pkg:deb/ubuntu/tiff@4.7.0-3ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4.7.0-3ubuntu4"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13573",
+      "modified": "2026-07-09T17:15:47.039683Z",
+      "name": "llvm-toolchain-21",
+      "purl": "pkg:deb/ubuntu/llvm-toolchain-21@1%3A21.1.8-6ubuntu1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:21.1.8-6ubuntu1"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13574",
+      "modified": "2026-07-09T17:15:27.580496Z",
+      "name": "llvm-toolchain-21",
+      "purl": "pkg:deb/ubuntu/llvm-toolchain-21@1%3A21.1.8-6ubuntu1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:21.1.8-6ubuntu1"
+    },
+    {
+      "cvss_score": 6.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13595",
+      "modified": "2026-07-09T17:15:27.672147Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 6.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13595",
+      "modified": "2026-07-09T17:15:27.672147Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 6.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13595",
+      "modified": "2026-07-09T17:15:27.672147Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 6.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-13757",
+      "modified": "2026-07-01T21:19:39Z",
+      "name": "p11-kit",
+      "purl": "pkg:deb/ubuntu/p11-kit@0.26.2-2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.26.2-2"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-14164",
+      "modified": "2026-07-01T21:19:39Z",
+      "name": "libarchive",
+      "purl": "pkg:deb/ubuntu/libarchive@3.8.5-1ubuntu2.1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.8.5-1ubuntu2.1"
+    },
+    {
+      "cvss_score": 3.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-15028",
+      "modified": "2026-07-11T00:15:13.900627Z",
+      "name": "libarchive",
+      "purl": "pkg:deb/ubuntu/libarchive@3.8.5-1ubuntu2.1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.8.5-1ubuntu2.1"
+    },
+    {
+      "cvss_score": 7.0,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-23868",
+      "modified": "2026-06-30T18:17:38.682531Z",
+      "name": "giflib",
+      "purl": "pkg:deb/ubuntu/giflib@5.2.2-1ubuntu3",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.2.2-1ubuntu3"
+    },
+    {
+      "cvss_score": 8.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-26740",
+      "modified": "2026-06-30T18:17:41.538343Z",
+      "name": "giflib",
+      "purl": "pkg:deb/ubuntu/giflib@5.2.2-1ubuntu3",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.2.2-1ubuntu3"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-27171",
+      "modified": "2026-06-25T19:15:26.467051Z",
+      "name": "zlib",
+      "purl": "pkg:deb/ubuntu/zlib@1%3A1.3.dfsg%2Breally1.3.1-1ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:1.3.dfsg+really1.3.1-1ubuntu3"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-27456",
+      "modified": "2026-05-20T16:24:53.388662Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-27456",
+      "modified": "2026-05-20T16:24:53.388662Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-27456",
+      "modified": "2026-05-20T16:24:53.388662Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 5.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-3184",
+      "modified": "2026-05-20T16:25:16.399333Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 5.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-3184",
+      "modified": "2026-05-20T16:25:16.399333Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 5.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-3184",
+      "modified": "2026-05-20T16:25:16.399333Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-32776",
+      "modified": "2026-07-09T17:15:51.564538Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-32777",
+      "modified": "2026-07-09T17:15:56.546275Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-32778",
+      "modified": "2026-07-09T17:15:56.788655Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 7.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35341",
+      "modified": "2026-05-20T16:25:36.002383Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35344",
+      "modified": "2026-05-20T16:25:35.903676Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 5.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35345",
+      "modified": "2026-05-20T16:25:36.036891Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35348",
+      "modified": "2026-05-20T16:25:36.281927Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 6.6,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35350",
+      "modified": "2026-05-20T16:25:36.662577Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 4.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35351",
+      "modified": "2026-05-20T16:25:36.373842Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 7.0,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35352",
+      "modified": "2026-05-20T16:25:36.228876Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35354",
+      "modified": "2026-05-20T16:25:36.450577Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35357",
+      "modified": "2026-05-20T16:25:36.534517Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 4.7,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35359",
+      "modified": "2026-05-20T16:25:36.397438Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 6.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35360",
+      "modified": "2026-05-20T16:25:36.281711Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 5.6,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35363",
+      "modified": "2026-05-20T16:25:36.915119Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 6.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35364",
+      "modified": "2026-05-20T16:25:36.366764Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35367",
+      "modified": "2026-05-20T16:25:36.768857Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35368",
+      "modified": "2026-05-20T16:25:36.359031Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 4.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35370",
+      "modified": "2026-05-20T16:25:36.285871Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35371",
+      "modified": "2026-05-20T16:25:36.611528Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35373",
+      "modified": "2026-05-20T16:25:36.964797Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 6.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35374",
+      "modified": "2026-05-20T16:25:36.646668Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-35377",
+      "modified": "2026-05-20T16:25:36.958860Z",
+      "name": "rust-coreutils",
+      "purl": "pkg:deb/ubuntu/rust-coreutils@0.8.0-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "0.8.0-0ubuntu3"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-36849",
+      "modified": "2026-06-18T04:30:09.222923Z",
+      "name": "tiff",
+      "purl": "pkg:deb/ubuntu/tiff@4.7.0-3ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4.7.0-3ubuntu4"
+    },
+    {
+      "cvss_score": 3.3,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-40228",
+      "modified": "2026-06-08T18:55:49.290907Z",
+      "name": "systemd",
+      "purl": "pkg:deb/ubuntu/systemd@259.5-0ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "259.5-0ubuntu3"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-40355",
+      "modified": "2026-07-09T21:30:58.285031Z",
+      "name": "krb5",
+      "purl": "pkg:deb/ubuntu/krb5@1.22.1-2ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.22.1-2ubuntu4"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-40356",
+      "modified": "2026-07-09T21:30:58.537034Z",
+      "name": "krb5",
+      "purl": "pkg:deb/ubuntu/krb5@1.22.1-2ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.22.1-2ubuntu4"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-4046",
+      "modified": "2026-05-20T16:25:41.648329Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-41080",
+      "modified": "2026-07-09T21:30:58.855512Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 4.8,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-42250",
+      "modified": "2026-06-08T09:45:09.402356Z",
+      "name": "bzip2",
+      "purl": "pkg:deb/ubuntu/bzip2@1.0.8-6build2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.0.8-6build2"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-42497",
+      "modified": "2026-07-01T13:53:02.335741Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-4437",
+      "modified": "2026-05-29T19:15:06.847993Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-4438",
+      "modified": "2026-05-29T19:15:06.415047Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-45186",
+      "modified": "2026-07-09T17:17:18.001176Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 9.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-4739",
+      "modified": "2026-07-09T17:17:18.015290Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-4775",
+      "modified": "2026-05-29T10:45:30.324723Z",
+      "name": "tiff",
+      "purl": "pkg:deb/ubuntu/tiff@4.7.0-3ubuntu4",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4.7.0-3ubuntu4"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-48959",
+      "modified": "2026-07-01T13:53:12.524471Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 7.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-48961",
+      "modified": "2026-07-01T13:53:13.376190Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-48962",
+      "modified": "2026-07-01T13:53:13.252080Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 5.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-50219",
+      "modified": "2026-07-09T17:16:02.154197Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-50811",
+      "modified": "2026-07-11T00:15:09.142645Z",
+      "name": "freetype",
+      "purl": "pkg:deb/ubuntu/freetype@2.14.2%2Bdfsg-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.14.2+dfsg-1"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-50812",
+      "modified": "2026-07-09T21:31:21.641257Z",
+      "name": "sqlite3",
+      "purl": "pkg:deb/ubuntu/sqlite3@3.46.1-9ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.46.1-9ubuntu0.1"
+    },
+    {
+      "cvss_score": 6.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-50813",
+      "modified": "2026-07-09T21:31:22.490244Z",
+      "name": "sqlite3",
+      "purl": "pkg:deb/ubuntu/sqlite3@3.46.1-9ubuntu0.1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.46.1-9ubuntu0.1"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53612",
+      "modified": "2026-06-18T04:30:14.232470Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53612",
+      "modified": "2026-06-18T04:30:14.232470Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53612",
+      "modified": "2026-06-18T04:30:14.232470Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53613",
+      "modified": "2026-06-18T04:30:14.288067Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53613",
+      "modified": "2026-06-18T04:30:14.288067Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53613",
+      "modified": "2026-06-18T04:30:14.288067Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53614",
+      "modified": "2026-06-18T04:30:14.276833Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53614",
+      "modified": "2026-06-18T04:30:14.276833Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53614",
+      "modified": "2026-06-18T04:30:14.276833Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53615",
+      "modified": "2026-06-18T04:30:14.486442Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53615",
+      "modified": "2026-06-18T04:30:14.486442Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@1%3A4.16.0-2%2Breally2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:4.16.0-2+really2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": null,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-53615",
+      "modified": "2026-06-18T04:30:14.486442Z",
+      "name": "util-linux",
+      "purl": "pkg:deb/ubuntu/util-linux@2.41.3-3ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.41.3-3ubuntu2"
+    },
+    {
+      "cvss_score": 7.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-5435",
+      "modified": "2026-05-29T19:15:06.842719Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 8.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-54369",
+      "modified": "2026-07-01T21:27:56Z",
+      "name": "acl",
+      "purl": "pkg:deb/ubuntu/acl@2.3.2-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.3.2-2"
+    },
+    {
+      "cvss_score": 7.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-54370",
+      "modified": "2026-07-01T21:27:56Z",
+      "name": "acl",
+      "purl": "pkg:deb/ubuntu/acl@2.3.2-2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.3.2-2"
+    },
+    {
+      "cvss_score": 8.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-54371",
+      "modified": "2026-07-06T20:31:13.100309Z",
+      "name": "attr",
+      "purl": "pkg:deb/ubuntu/attr@1%3A2.5.2-4",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1:2.5.2-4"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-54411",
+      "modified": "2026-06-24T09:03:12Z",
+      "name": "pam",
+      "purl": "pkg:deb/ubuntu/pam@1.7.0-5ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.7.0-5ubuntu3"
+    },
+    {
+      "cvss_score": 9.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-5450",
+      "modified": "2026-05-29T19:15:06.879770Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 7.0,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56109",
+      "modified": "2026-06-24T11:02:01.998530Z",
+      "name": "alsa-lib",
+      "purl": "pkg:deb/ubuntu/alsa-lib@1.2.15.3-1ubuntu1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.2.15.3-1ubuntu1"
+    },
+    {
+      "cvss_score": 4.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56131",
+      "modified": "2026-07-09T17:15:32.954703Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56132",
+      "modified": "2026-07-09T17:17:25.396315Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56403",
+      "modified": "2026-07-09T17:17:25.958300Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56404",
+      "modified": "2026-07-09T17:17:26.162786Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56405",
+      "modified": "2026-07-09T17:17:26.646601Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56406",
+      "modified": "2026-07-09T17:17:27.022063Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56407",
+      "modified": "2026-07-09T17:17:27.076035Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56408",
+      "modified": "2026-07-09T17:17:27.120162Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56409",
+      "modified": "2026-07-09T17:16:37.416580Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56410",
+      "modified": "2026-07-09T17:16:48.553661Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 6.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56411",
+      "modified": "2026-07-09T17:16:48.588374Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 5.9,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-56412",
+      "modified": "2026-07-09T17:15:59.410040Z",
+      "name": "expat",
+      "purl": "pkg:deb/ubuntu/expat@2.7.4-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.7.4-1"
+    },
+    {
+      "cvss_score": 2.9,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-57062",
+      "modified": "2026-06-29T18:15:10.272222Z",
+      "name": "gnupg2",
+      "purl": "pkg:deb/ubuntu/gnupg2@2.4.8-4ubuntu3",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.4.8-4ubuntu3"
+    },
+    {
+      "cvss_score": 5.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-5745",
+      "modified": "2026-05-21T18:11:56.879511Z",
+      "name": "libarchive",
+      "purl": "pkg:deb/ubuntu/libarchive@3.8.5-1ubuntu2.1",
+      "sboms": [
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "3.8.5-1ubuntu2.1"
+    },
+    {
+      "cvss_score": 8.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58010",
+      "modified": "2026-07-06T20:31:23.697729Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58011",
+      "modified": "2026-07-06T20:31:23.829381Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 8.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58012",
+      "modified": "2026-07-06T20:31:24.556756Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 8.2,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58013",
+      "modified": "2026-07-06T20:31:25.233593Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 8.6,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58014",
+      "modified": "2026-07-06T20:30:34.876581Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58015",
+      "modified": "2026-07-06T20:31:17.643736Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 9.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58016",
+      "modified": "2026-07-06T20:31:18.501721Z",
+      "name": "glib2.0",
+      "purl": "pkg:deb/ubuntu/glib2.0@2.88.0-1",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.88.0-1"
+    },
+    {
+      "cvss_score": 8.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58050",
+      "modified": "2026-07-08T01:15:06.398512Z",
+      "name": "libssh2",
+      "purl": "pkg:deb/ubuntu/libssh2@1.11.1-1ubuntu0.26.04.2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.11.1-1ubuntu0.26.04.2"
+    },
+    {
+      "cvss_score": 8.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-58051",
+      "modified": "2026-07-08T01:15:07.827950Z",
+      "name": "libssh2",
+      "purl": "pkg:deb/ubuntu/libssh2@1.11.1-1ubuntu0.26.04.2",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "1.11.1-1ubuntu0.26.04.2"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-5928",
+      "modified": "2026-05-29T19:15:06.900572Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6039",
+      "modified": "2026-06-24T11:02:05.038092Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6039",
+      "modified": "2026-06-24T11:02:05.038092Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 7.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6040",
+      "modified": "2026-06-30T18:18:02.400863Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 7.3,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6040",
+      "modified": "2026-06-30T18:18:02.400863Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6045",
+      "modified": "2026-06-24T11:00:25.594334Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6045",
+      "modified": "2026-06-24T11:00:25.594334Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6047",
+      "modified": "2026-07-03T21:45:42.270853Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6047",
+      "modified": "2026-07-03T21:45:42.270853Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 6.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-6238",
+      "modified": "2026-06-24T11:00:25.318641Z",
+      "name": "glibc",
+      "purl": "pkg:deb/ubuntu/glibc@2.43-2ubuntu2",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "2.43-2ubuntu2"
+    },
+    {
+      "cvss_score": 7.1,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-7017",
+      "modified": "2026-07-09T17:15:52.841661Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8356",
+      "modified": "2026-06-24T11:00:38.303664Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8356",
+      "modified": "2026-06-24T11:00:38.303664Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8357",
+      "modified": "2026-06-30T18:18:15.580048Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 7.8,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8357",
+      "modified": "2026-06-30T18:18:15.580048Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8358",
+      "modified": "2026-06-24T11:00:55.969618Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A102.12%2BLibO26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:102.12+LibO26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 5.4,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8358",
+      "modified": "2026-06-24T11:00:55.969618Z",
+      "name": "libreoffice",
+      "purl": "pkg:deb/ubuntu/libreoffice@4%3A26.2.4.2-0ubuntu0.26.04.1",
+      "sboms": [
+        "sbom-documents.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "4:26.2.4.2-0ubuntu0.26.04.1"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "low",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-8932",
+      "modified": "2026-07-10T02:27:11.199088Z",
+      "name": "curl",
+      "purl": "pkg:deb/ubuntu/curl@8.18.0-1ubuntu2.3",
+      "sboms": [
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "low",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "8.18.0-1ubuntu2.3"
+    },
+    {
+      "cvss_score": 7.5,
+      "distribution_priority": "medium",
+      "ecosystem": "Ubuntu:26.04:LTS",
+      "id": "UBUNTU-CVE-2026-9538",
+      "modified": "2026-07-01T13:53:19.355510Z",
+      "name": "perl",
+      "purl": "pkg:deb/ubuntu/perl@5.40.1-7ubuntu0.1",
+      "sboms": [
+        "sbom-base.cdx.json",
+        "sbom-data-finance.cdx.json",
+        "sbom-documents.cdx.json",
+        "sbom-research.cdx.json"
+      ],
+      "severity": "medium",
+      "severity_basis": "ubuntu-priority",
+      "summary": null,
+      "version": "5.40.1-7ubuntu0.1"
+    }
+  ],
+  "gate": "no high/critical or unclassified findings in exact deployed-image SBOMs",
+  "limitations": [
+    "OSV coverage varies by ecosystem and package; this is not a substitute for continuous image scanning.",
+    "The scan covers the exact Python and Debian package versions captured from each deployed image.",
+    "Debian findings use Debian ecosystem urgency, Ubuntu findings use Canonical priority, and PyPI findings prefer advisory severity before CVSS.",
+    "Unclassified findings fail this one-time gate and require manual review; unimportant/low/medium findings remain visible."
+  ],
+  "manual_review_count": 0,
+  "passed": true,
+  "sboms": [
+    "..\\..\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-base.cdx.json",
+    "..\\..\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-documents.cdx.json",
+    "..\\..\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-research.cdx.json",
+    "..\\..\\fixtures\\phase4\\releases\\2026-07-11.4\\sbom-data-finance.cdx.json"
+  ],
+  "schema_version": 1,
+  "severity_counts": {
+    "critical": 0,
+    "high": 0,
+    "low": 20,
+    "medium": 128,
+    "unimportant": 3,
+    "unknown": 0
+  },
+  "source": "https://api.osv.dev/v1/querybatch",
+  "unique_versions_scanned": 248
+}

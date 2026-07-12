@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "trafficPercent": 0,
+  "productionRoutingAuthorized": false,
+  "runs": [
+    {
+      "scenario": "general-document",
+      "agent": "General",
+      "prompt": "Turn the supplied project notes into a concise decision memo.",
+      "requiredEvents": ["run.started", "output.created", "run.completed"],
+      "requiredOutput": {"mediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "citations": false}
+    },
+    {
+      "scenario": "research-brief",
+      "agent": "Research",
+      "prompt": "Produce a sourced competitor brief and distinguish evidence from inference.",
+      "requiredEvents": ["run.started", "tool.completed", "output.created", "run.completed"],
+      "requiredOutput": {"mediaType": "application/pdf", "citations": true}
+    },
+    {
+      "scenario": "finance-memo",
+      "agent": "Finance",
+      "prompt": "Analyze AAPL revenue and margins and produce an evidence-backed memo.",
+      "requiredEvents": ["run.started", "tool.completed", "output.created", "run.completed"],
+      "requiredOutput": {"mediaType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "citations": true}
+    }
+  ]
+}

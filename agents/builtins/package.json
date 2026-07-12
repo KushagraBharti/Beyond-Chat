@@ -1,0 +1,5 @@
+{
+  "name": "@beyond/builtins",
+  "private": true,
+  "type": "module"
+}

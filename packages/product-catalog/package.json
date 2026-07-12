@@ -1,0 +1,19 @@
+{
+  "name": "@beyond/product-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "eval": "node --experimental-strip-types ../../scripts/phase5/run-evals.ts"
+  },
+  "dependencies": {
+    "@beyond/contracts": "file:../contracts"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "engines": { "node": ">=24.0.0" }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "@beyond/runtime-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@beyond/contracts": "file:../contracts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/event-log.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "error_rate": 0.005,
+  "p95_accept_ms": 850,
+  "p95_replay_ms": 1600,
+  "duplicate_effects": 0,
+  "cross_tenant_reads": 0
+}

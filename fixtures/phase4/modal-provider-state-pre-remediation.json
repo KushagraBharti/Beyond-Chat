@@ -1,0 +1,89 @@
+{
+  "app_binding": {
+    "actual_object_id": "ap-FbZZRj50uSQRtGe2nwvlYH",
+    "expected_object_id": "ap-FbZZRj50uSQRtGe2nwvlYH",
+    "name": "beyond-chat-runtime",
+    "ok": true
+  },
+  "billing": {
+    "by_resource": {
+      "A10G": "0E-8",
+      "CPU": "0.03190538",
+      "L4": "0E-8",
+      "L40S": "0E-8",
+      "Memory": "0.00140735"
+    },
+    "currency": "USD",
+    "scope": "current UTC provider day; build, probe, and smoke activity for the deployed app",
+    "total": "0.03331273"
+  },
+  "captured_at": "2026-07-11T23:07:35.814910+00:00",
+  "deployed_app": {
+    "app_id": "ap-FbZZRj50uSQRtGe2nwvlYH",
+    "created_at": "2026-07-11 07:42:05-05:00",
+    "description": "beyond-chat-runtime",
+    "state": "deployed",
+    "stopped_at": null,
+    "tasks": "0"
+  },
+  "environment": "beyond-chat-production",
+  "image_bindings": {
+    "base": {
+      "actual_object_id": "im-D5dkQAFtfYmGYfWlYd2Fk3",
+      "expected_object_id": "im-D5dkQAFtfYmGYfWlYd2Fk3",
+      "name": "beyond-chat-runtime-base:2026-07-11.2",
+      "ok": true,
+      "release_fixture_object_id": "im-D5dkQAFtfYmGYfWlYd2Fk3"
+    },
+    "data-finance": {
+      "actual_object_id": "im-bau2LHUDl4L1XU7SPQKyQ7",
+      "expected_object_id": "im-bau2LHUDl4L1XU7SPQKyQ7",
+      "name": "beyond-chat-runtime-data-finance:2026-07-11.2",
+      "ok": true,
+      "release_fixture_object_id": "im-bau2LHUDl4L1XU7SPQKyQ7"
+    },
+    "documents": {
+      "actual_object_id": "im-IrwPQpqMUA8v6VoV6tIuLm",
+      "expected_object_id": "im-IrwPQpqMUA8v6VoV6tIuLm",
+      "name": "beyond-chat-runtime-documents:2026-07-11.2",
+      "ok": true,
+      "release_fixture_object_id": "im-IrwPQpqMUA8v6VoV6tIuLm"
+    },
+    "research": {
+      "actual_object_id": "im-SBLo5XHyKWBL7JHrVtW1y5",
+      "expected_object_id": "im-SBLo5XHyKWBL7JHrVtW1y5",
+      "name": "beyond-chat-runtime-research:2026-07-11.2",
+      "ok": true,
+      "release_fixture_object_id": "im-SBLo5XHyKWBL7JHrVtW1y5"
+    }
+  },
+  "legacy_volumes_observed_but_not_mutated": [
+    "beyond-chat-artifacts",
+    "beyond-chat-runtime-cache",
+    "beyond-chat-workspaces"
+  ],
+  "profile": "kushagrabharti",
+  "ready": true,
+  "running_phase4_sandboxes": [],
+  "schema_version": 1,
+  "volume_bindings": {
+    "artifacts": {
+      "actual_object_id": "vo-k3pPcHikaFcfChazNxkILK",
+      "expected_object_id": "vo-k3pPcHikaFcfChazNxkILK",
+      "name": "beyond-chat-runtime-artifacts-v1",
+      "ok": true
+    },
+    "cache": {
+      "actual_object_id": "vo-32ghh7cJPxUHAg54jwujdl",
+      "expected_object_id": "vo-32ghh7cJPxUHAg54jwujdl",
+      "name": "beyond-chat-runtime-cache-v1",
+      "ok": true
+    },
+    "workspaces": {
+      "actual_object_id": "vo-Vji1FReSJUHavoZX6WsIEL",
+      "expected_object_id": "vo-Vji1FReSJUHavoZX6WsIEL",
+      "name": "beyond-chat-runtime-workspaces-v1",
+      "ok": true
+    }
+  }
+}

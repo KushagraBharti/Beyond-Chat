@@ -1,0 +1,8 @@
+import assert from "node:assert/strict";
+import { AgentRegistryService, InMemoryAgentRegistry, type AgentCatalogPort, type AgentConfig, type EvalRunnerPort } from "../src/index.ts";
+import { MARKETING_AGENT_TEMPLATE_V1, FINANCE_AGENT_TEMPLATE_V1, RESEARCH_AGENT_TEMPLATE_V1, OPERATIONS_AGENT_TEMPLATE_V1 } from "../../../agents/templates/index.ts";
+const catalog: AgentCatalogPort = { async resolve(config) { return [{ domain: "model", refs: [config.model], unavailable: [], policy_errors: [] }, ...(["skills", "apps", "mcp", "knowledge", "memory", "runtime", "policy"] as const).map((domain) => ({ domain, refs: [], unavailable: [], policy_errors: [] }))]; } };
+const evals: EvalRunnerPort = { async run(config: AgentConfig) { return config.evals.map((e) => ({ eval_id: e.id, version: e.version, score: .9, passed: .9 >= e.threshold, evidence_ref: "fixture://phase9/template-smoke" })); } };
+const actor = { id: "eval.builder", organization_id: "org.eval", role: "builder" as const, team_ids: ["team.eval"], group_ids: [] };
+for (const template of [MARKETING_AGENT_TEMPLATE_V1, FINANCE_AGENT_TEMPLATE_V1, RESEARCH_AGENT_TEMPLATE_V1, OPERATIONS_AGENT_TEMPLATE_V1]) { const service = new AgentRegistryService(new InMemoryAgentRegistry(), catalog, evals, { require_organization_publication_approval: false }); const draft = await service.create(actor, template, "2026-07-11T00:00:00Z"); const report = await service.preview(actor, draft.id, "2026-07-11T00:01:00Z"); assert.equal(report.passed, true, `${template.category} template preflight`); }
+console.log("Phase 9 template evals passed: marketing, finance, research, operations");

@@ -1,0 +1,1 @@
+{ "scenario": "policy-and-revocation", "expected": { "read": "allow", "write": "ask", "destructive": "deny", "unknown": "deny", "revoked_connection": "removed" } }

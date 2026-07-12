@@ -1,0 +1,15 @@
+{
+  "fixture_version": "1.0.0",
+  "journeys": [
+    { "id": "general-chat-to-work-promotion", "input": "/work Turn these notes into a reviewable launch plan", "expect_intent_ids": ["command.work"] },
+    { "id": "cited-research-brief", "input": "/research /document Prepare a cited market brief", "expect_intent_ids": ["agent.research", "command.document"] },
+    { "id": "finance-dexter-parity-intent", "input": "/finance /spreadsheet Analyze AAPL revenue and margins", "expect_intent_ids": ["agent.finance", "command.spreadsheet"] },
+    { "id": "document-output-routing", "input": "/document Draft an executive brief", "expect_intent_ids": ["command.document"] },
+    { "id": "image-output-routing", "input": "/image Create a campaign visual", "expect_intent_ids": ["command.image"] },
+    { "id": "slash-discovery", "input": "/skills /apps /mcp /agent /project", "expect_intent_ids": ["command.skills", "command.apps", "command.mcp", "command.agent", "command.project"] },
+    { "id": "forbidden-research-financial-modeling", "expect_agent": "agent.research", "expect_capability": "capability.financial_modeling", "expected_allowed": false },
+    { "id": "disconnected-app-truthfulness", "disconnected_item": "app" },
+    { "id": "disconnected-mcp-truthfulness", "disconnected_item": "mcp_tool" },
+    { "id": "truthful-empty-state", "empty_query": "a capability that is not registered" }
+  ]
+}

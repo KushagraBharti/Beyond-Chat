@@ -1,0 +1,16 @@
+{
+  "name": "@beyond/knowledge-plane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "eval": "node --experimental-strip-types ../../scripts/phase7/run-evals.ts",
+    "secret-check": "node ../../scripts/phase7/scan-secrets.mjs",
+    "audit": "npm audit --omit=dev"
+  },
+  "devDependencies": { "typescript": "5.9.3" },
+  "engines": { "node": ">=24.0.0" }
+}

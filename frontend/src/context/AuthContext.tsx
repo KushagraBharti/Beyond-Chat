@@ -1,12 +1,20 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { bootstrapAuth } from "../lib/api";
-import { supabase } from "../lib/supabaseClient";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { ApiError, getAuthSession, logoutSession, sessionInvalidEvent, type WorkOSSession } from "../lib/sessionClient";
+
+export interface AuthUser {
+  id: string;
+  email?: string;
+  user_metadata: { role: WorkOSSession["role"]; name?: string; first_name?: string };
+}
 
 interface AuthContextValue {
-  session: Session | null;
-  user: User | null;
+  session: WorkOSSession | null;
+  user: AuthUser | null;
   loading: boolean;
+  available: boolean;
+  error: string | null;
+  refreshSession: () => Promise<WorkOSSession | null>;
+  signOut: () => Promise<void>;
   updateProfileName: (name: string) => Promise<void>;
 }
 
@@ -14,88 +22,75 @@ const AuthContext = createContext<AuthContextValue>({
   session: null,
   user: null,
   loading: true,
+  available: true,
+  error: null,
+  refreshSession: async () => null,
+  signOut: async () => undefined,
   updateProfileName: async () => undefined,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(() => Boolean(supabase));
+  const [session, setSession] = useState<WorkOSSession | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [available, setAvailable] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refreshSession = useCallback(async () => {
+    setLoading(true);
+    try {
+      const next = await getAuthSession();
+      setSession(next);
+      setAvailable(true);
+      setError(null);
+      return next;
+    } catch (cause) {
+      setSession(null);
+      if (cause instanceof ApiError && cause.status === 401) {
+        setAvailable(true);
+        setError(null);
+      } else {
+        setAvailable(false);
+        setError(cause instanceof Error ? cause.message : "WorkOS authentication is unavailable.");
+      }
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    if (!supabase) {
-      return;
-    }
+    void refreshSession();
+    const invalidate = () => { setSession(null); setError("Your session ended. Sign in again to continue."); };
+    window.addEventListener(sessionInvalidEvent, invalidate);
+    return () => window.removeEventListener(sessionInvalidEvent, invalidate);
+  }, [refreshSession]);
 
-    async function applySession(nextSession: Session | null) {
-      setLoading(true);
-      setSession(nextSession);
-      try {
-        if (nextSession) {
-          await bootstrapAuth(nextSession.access_token);
-        }
-      } catch (error) {
-        console.error("Auth bootstrap failed", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      void applySession(session).catch(() => {
-        setLoading(false);
-      });
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applySession(session).catch(() => {
-        setLoading(false);
-      });
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+  const signOut = useCallback(async () => {
+    await logoutSession();
+    setSession(null);
   }, []);
 
   const updateProfileName = async (name: string) => {
-    if (!supabase) {
-      throw new Error("Supabase is not configured.");
-    }
-
-    const trimmed = name.trim();
-    if (!trimmed) {
-      throw new Error("Name is required.");
-    }
-
-    const firstName = trimmed.split(/\s+/)[0] ?? trimmed;
-    const { data, error } = await supabase.auth.updateUser({
-      data: {
-        name: trimmed,
-        first_name: firstName,
-      },
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    if (data.session) {
-      setSession(data.session);
-      return;
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    setSession(sessionData.session);
+    if (!name.trim()) throw new Error("Name is required.");
+    throw new Error("Profile edits are managed by WorkOS and are not enabled in this build.");
   };
+
+  const user = useMemo<AuthUser | null>(() => session ? {
+    id: session.profileId,
+    email: session.email ?? undefined,
+    user_metadata: { role: session.role },
+  } : null, [session]);
 
   return (
     <AuthContext.Provider
       value={{
         session,
-        user: session?.user ?? null,
+        user,
         loading,
+        available,
+        error,
+        refreshSession,
+        signOut,
         updateProfileName,
       }}
     >

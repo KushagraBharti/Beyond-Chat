@@ -21,7 +21,7 @@ const c = {
   compare: "#8B5CF6",
 };
 
-const studioColors = {
+const capabilityColors = {
   writing: "#4F3FE8",
   research: "#0E7AE6",
   image: "#E5484D",
@@ -30,13 +30,13 @@ const studioColors = {
   compare: "#8B5CF6",
 };
 
-const studios = [
-  { name: "Writing Studio", desc: "Draft with constraints, refine with AI, export polished documents.", color: studioColors.writing, span: "wide" },
-  { name: "Research Studio", desc: "Multi-step investigations that produce organized, citation-rich reports.", color: studioColors.research, span: "col" },
-  { name: "Image Studio", desc: "Visual prompt engineering with variant grids and iterative refinement.", color: studioColors.image, span: "col" },
-  { name: "Data Studio", desc: "Upload tables, apply transformations, and surface statistical insights.", color: studioColors.data, span: "col" },
-  { name: "Finance Studio", desc: "Autonomous agent research with transparent step-by-step reasoning.", color: studioColors.finance, span: "col" },
-  { name: "Model Compare", desc: "Same prompt. GPT-4, Claude, Gemini side-by-side.", color: studioColors.compare, span: "wide" },
+const capabilities = [
+  { key: "draft", label: "Draft & edit", desc: "Turn notes into reviewable documents and polished outputs.", color: capabilityColors.writing, span: "wide" },
+  { key: "research", label: "Research with sources", desc: "Organize evidence and produce clear, traceable summaries.", color: capabilityColors.research, span: "col" },
+  { key: "visual", label: "Create visual outputs", desc: "Explore visual directions and keep the useful results with your work.", color: capabilityColors.image, span: "col" },
+  { key: "data", label: "Analyze data", desc: "Inspect tables, surface patterns, and turn analysis into deliverables.", color: capabilityColors.data, span: "col" },
+  { key: "finance", label: "Work with financial evidence", desc: "Combine financial research, assumptions, and outputs in one workflow.", color: capabilityColors.finance, span: "col" },
+  { key: "compare", label: "Compare approaches", desc: "Review alternatives and choose the direction that best fits the task.", color: capabilityColors.compare, span: "wide" },
 ];
 
 const stagger = {
@@ -237,7 +237,7 @@ const ResearchStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         <div style={{ fontSize: "0.5rem", color: c.muted, fontWeight: 700, textTransform: "uppercase" }}>Sources</div>
         {[0, 1].map((i) => (
-          <motion.div key={i} animate={{ borderColor: isHovered && i === 0 ? studioColors.research : c.border }} style={{ padding: "0.4rem", border: `1px solid ${c.border}`, borderRadius: "6px", display: "flex", alignItems: "center", gap: "0.4rem", background: c.canvas }}>
+          <motion.div key={i} animate={{ borderColor: isHovered && i === 0 ? capabilityColors.research : c.border }} style={{ padding: "0.4rem", border: `1px solid ${c.border}`, borderRadius: "6px", display: "flex", alignItems: "center", gap: "0.4rem", background: c.canvas }}>
             <div style={{ width: "12px", height: "12px", background: "#e0e0e0", borderRadius: "2px" }} />
             <div style={{ height: "3px", width: "40px", background: c.muted, borderRadius: "2px" }} />
           </motion.div>
@@ -248,10 +248,10 @@ const ResearchStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
         <AnimatePresence>
           {isHovered && (
             <motion.div style={{ position: "absolute", inset: "1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} style={{ background: c.surface, padding: "0.4rem", borderRadius: "4px", borderLeft: `2px solid ${studioColors.research}`, fontSize: "0.5rem", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
+              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} style={{ background: c.surface, padding: "0.4rem", borderRadius: "4px", borderLeft: `2px solid ${capabilityColors.research}`, fontSize: "0.5rem", boxShadow: "0 2px 5px rgba(0,0,0,0.05)" }}>
                 Extracted: Key methodology...
               </motion.div>
-              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} style={{ background: c.surface, padding: "0.4rem", borderRadius: "4px", borderLeft: `2px solid ${studioColors.research}`, fontSize: "0.5rem", boxShadow: "0 2px 5px rgba(0,0,0,0.05)", marginLeft: "10px" }}>
+              <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} style={{ background: c.surface, padding: "0.4rem", borderRadius: "4px", borderLeft: `2px solid ${capabilityColors.research}`, fontSize: "0.5rem", boxShadow: "0 2px 5px rgba(0,0,0,0.05)", marginLeft: "10px" }}>
                 Connecting to finding B...
               </motion.div>
             </motion.div>
@@ -266,12 +266,12 @@ const ImageStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
   <UIFrame isHovered={isHovered}>
     <div style={{ width: "30px", borderRight: `1px solid ${c.border}`, padding: "0.5rem", display: "flex", flexDirection: "column", gap: "0.4rem", alignItems: "center", background: "#fafafa" }}>
       {[0, 1, 2, 3].map(i => (
-        <div key={i} style={{ width: "16px", height: "16px", borderRadius: "4px", background: i === 1 && isHovered ? studioColors.image : c.border, transition: "background 0.3s" }} />
+        <div key={i} style={{ width: "16px", height: "16px", borderRadius: "4px", background: i === 1 && isHovered ? capabilityColors.image : c.border, transition: "background 0.3s" }} />
       ))}
     </div>
     <div style={{ flex: 1, padding: "0.75rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
       {[0, 1, 2, 3].map(i => (
-        <motion.div key={i} style={{ borderRadius: "6px", background: c.canvas, overflow: "hidden", position: "relative", border: isHovered && i === 0 ? `2px solid ${studioColors.image}` : `1px solid ${c.border}` }}>
+        <motion.div key={i} style={{ borderRadius: "6px", background: c.canvas, overflow: "hidden", position: "relative", border: isHovered && i === 0 ? `2px solid ${capabilityColors.image}` : `1px solid ${c.border}` }}>
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: isHovered ? 0 : 1, transition: "opacity 0.3s" }}>
              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c.muted} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
           </div>
@@ -357,7 +357,7 @@ const FinanceStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
                 initial={{ height: "20%" }}
                 animate={{ height: isHovered ? `${h * 100}%` : "20%" }}
                 transition={{ duration: 1, delay: i * 0.1, type: "spring", stiffness: 50 }}
-                style={{ width: "100%", background: i % 2 === 0 ? c.data : studioColors.image, position: "absolute", bottom: "5%", borderRadius: "2px" }}
+                style={{ width: "100%", background: i % 2 === 0 ? c.data : capabilityColors.image, position: "absolute", bottom: "5%", borderRadius: "2px" }}
               />
            </div>
          ))}
@@ -369,7 +369,7 @@ const FinanceStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
 const CompareStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
   <UIFrame isHovered={isHovered}>
     <div style={{ flex: 1, padding: "0.75rem", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
-      {["GPT-4o", "Claude 3.5", "Gemini 1.5"].map((model, i) => (
+      {["Approach A", "Approach B", "Approach C"].map((model, i) => (
         <motion.div 
           key={model} 
           animate={{ scale: isHovered && i === 1 ? 1.05 : 1, y: isHovered && i === 1 ? -2 : 0, opacity: isHovered && i !== 1 ? 0.7 : 1, borderColor: isHovered && i === 1 ? c.compare : c.border }}
@@ -397,9 +397,9 @@ const CompareStudioMockup = ({ isHovered }: { isHovered: boolean }) => (
   </UIFrame>
 );
 
-type StudioCard = (typeof studios)[number];
+type CapabilityCard = (typeof capabilities)[number];
 
-const BentoItem = ({ s, i }: { s: StudioCard; i: number }) => {
+const BentoItem = ({ s, i }: { s: CapabilityCard; i: number }) => {
   const [isHovered, setIsHovered] = useState(false);
   
   let gridColumn = "span 4";
@@ -451,19 +451,19 @@ const BentoItem = ({ s, i }: { s: StudioCard; i: number }) => {
              <div style={{ width: "16px", height: "16px", borderRadius: "4px", background: s.color }} />
           </div>
           <h3 style={{ fontFamily: heading, fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.02em", color: c.ink }}>
-            {s.name}
+            {s.label}
           </h3>
         </div>
         <p style={{ fontFamily: body, fontSize: "1.05rem", color: c.muted, lineHeight: 1.6, maxWidth: "80%" }}>
           {s.desc}
         </p>
 
-        {s.name === "Writing Studio" && <WritingStudioMockup isHovered={isHovered} />}
-        {s.name === "Research Studio" && <ResearchStudioMockup isHovered={isHovered} />}
-        {s.name === "Image Studio" && <ImageStudioMockup isHovered={isHovered} />}
-        {s.name === "Data Studio" && <DataStudioMockup isHovered={isHovered} />}
-        {s.name === "Finance Studio" && <FinanceStudioMockup isHovered={isHovered} />}
-        {s.name === "Model Compare" && <CompareStudioMockup isHovered={isHovered} />}
+        {s.key === "draft" && <WritingStudioMockup isHovered={isHovered} />}
+        {s.key === "research" && <ResearchStudioMockup isHovered={isHovered} />}
+        {s.key === "visual" && <ImageStudioMockup isHovered={isHovered} />}
+        {s.key === "data" && <DataStudioMockup isHovered={isHovered} />}
+        {s.key === "finance" && <FinanceStudioMockup isHovered={isHovered} />}
+        {s.key === "compare" && <CompareStudioMockup isHovered={isHovered} />}
       </div>
     </motion.div>
   );
@@ -523,7 +523,7 @@ const ManifestoScrollytelling = () => {
 }
 
 // --- MAIN COMPONENT ---
-export default function AtelierPlusLanding() {
+export default function LandingPage() {
   const [cursorVariant, setCursorVariant] = useState<"default" | "play" | "rotate">("default");
   const [sceneReady, setSceneReady] = useState(false);
   const [landingReady, setLandingReady] = useState(false);
@@ -619,7 +619,7 @@ export default function AtelierPlusLanding() {
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 14px rgba(0,0,0,0.1)"; }}
               style={{ fontFamily: body, fontSize: "0.85rem", fontWeight: 700, color: "#fff", textDecoration: "none", background: c.ink, padding: "0.6rem 1.4rem", borderRadius: "99px", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: "0 4px 14px rgba(0,0,0,0.1)", position: "relative", overflow: "hidden" }}
             >
-              Get Access
+              Create account
             </Link>
           </div>
         </div>
@@ -646,7 +646,7 @@ export default function AtelierPlusLanding() {
             <div style={{ height: "clamp(21.5rem, 48vh, 35rem)", display: "flex", alignItems: "center", justifyContent: "center" }} />
 
             <p style={{ fontFamily: body, fontSize: "clamp(0.95rem, 1.5vw, 1.08rem)", color: c.muted, lineHeight: 1.7, maxWidth: "620px", margin: "0.85rem auto 0", fontWeight: 400 }}>
-              Move beyond linear chat. Interact with specialized AI models in a structured environment designed for rigorous knowledge work.
+              Bring context, tasks, and durable outputs together in one workspace for rigorous knowledge work.
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.65rem", marginTop: "1.25rem", position: "relative", zIndex: 50 }}>
@@ -656,10 +656,10 @@ export default function AtelierPlusLanding() {
                 onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = `0 8px 30px ${c.primary}40`; }}
                 style={{ fontFamily: body, fontSize: "1rem", fontWeight: 700, color: "#fff", textDecoration: "none", background: c.primary, padding: "1rem 2.5rem", borderRadius: "12px", display: "inline-flex", alignItems: "center", gap: "0.5rem", transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: `0 8px 30px ${c.primary}40` }}
               >
-                Start building
+                Create an account
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </Link>
-              <span style={{ fontSize: "0.82rem", color: c.muted }}>Free 14-day trial. No credit card required.</span>
+              <span style={{ fontSize: "0.82rem", color: c.muted }}>Early access is limited while the product is being rebuilt.</span>
             </div>
           </motion.div>
         </div>
@@ -668,16 +668,16 @@ export default function AtelierPlusLanding() {
       {/* Manifesto Scrollytelling Section */}
       <ManifestoScrollytelling />
 
-      {/* Bento Grid Studios Section */}
+      {/* Bento Grid Capabilities Section */}
       <section style={{ padding: "8rem 2rem", position: "relative", zIndex: 10 }}>
         <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
           
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeUp} style={{ marginBottom: "4rem", textAlign: "center" }}>
             <h2 style={{ fontFamily: heading, fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 800, letterSpacing: "-0.04em", color: c.ink, marginBottom: "1rem" }}>
-              Modular Intelligence.
+              Work, not tool silos.
             </h2>
             <p style={{ fontFamily: body, fontSize: "1.2rem", color: c.muted, maxWidth: "600px", margin: "0 auto" }}>
-              Distinct environments crafted for specific workflows. Stop wrangling generic chats and start utilizing specialized studios.
+              Keep the task, context, evidence, and deliverable connected as the product evolves.
             </p>
           </motion.div>
 
@@ -689,44 +689,43 @@ export default function AtelierPlusLanding() {
             style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: "1.5rem", gridAutoRows: "minmax(280px, auto)" } satisfies CSSProperties}
             className="bento-grid"
           >
-            {studios.map((s, i) => (
-              <BentoItem key={s.name} s={s} i={i} />
+            {capabilities.map((s, i) => (
+              <BentoItem key={s.key} s={s} i={i} />
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Social Proof / Faux Testimonials */}
+      {/* Product status */}
       <section style={{ padding: "8rem 2rem", background: c.surface, borderTop: `1px solid ${c.border}`, position: "relative", zIndex: 10 }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           
           <div style={{ textAlign: "center", marginBottom: "4rem" }}>
-             <h2 style={{ fontFamily: heading, fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.03em", color: c.ink }}>Built for reality.</h2>
+             <h2 style={{ fontFamily: heading, fontSize: "clamp(2rem, 4vw, 3rem)", fontWeight: 800, letterSpacing: "-0.03em", color: c.ink }}>A work in progress, in public.</h2>
           </div>
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={stagger} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem" }}>
             
             <motion.div variants={fadeUp} style={{ background: c.canvas, padding: "2.5rem", borderRadius: "24px", border: `1px solid ${c.border}`, boxShadow: "0 10px 30px rgba(0,0,0,0.02)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#EAEAE8", overflow: "hidden" }}><img src="https://i.pravatar.cc/150?img=12" alt="Alex D" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(100%)" }}/></div>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${c.primary}15`, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: "16px", height: "16px", borderRadius: "4px", background: c.primary }} /></div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "1rem", color: c.ink }}>Alex D.</div>
-                  <div style={{ color: c.muted, fontSize: "0.85rem" }}>@alex_dev</div>
+                  <div style={{ fontWeight: 800, fontSize: "1rem", color: c.ink }}>Durable work</div>
+                  <div style={{ color: c.muted, fontSize: "0.85rem" }}>Current prototype capability</div>
                 </div>
               </div>
-              <p style={{ fontSize: "1.1rem", color: c.ink, lineHeight: 1.6 }}>ChatGPT is cool but I feel like I'm pasting the same context 10x a day. Why isn't there a real workspace for this? The linear thread is fundamentally broken for engineering.</p>
+              <p style={{ fontSize: "1.1rem", color: c.ink, lineHeight: 1.6 }}>The current app can stream work, preserve run steps, and save outputs as artifacts. Those flows are being carried forward while the product architecture is replaced.</p>
             </motion.div>
 
             <motion.div variants={fadeUp} style={{ background: c.ink, padding: "2.5rem", borderRadius: "24px", border: `1px solid rgba(255,255,255,0.1)`, boxShadow: `0 20px 40px ${c.primary}30`, position: "relative" }}>
-              <div style={{ position: "absolute", top: "-15px", right: "24px", background: `linear-gradient(135deg, ${c.primary}, ${c.accent})`, color: "#fff", padding: "0.3rem 1rem", borderRadius: "99px", fontSize: "0.75rem", fontWeight: 800, letterSpacing: "0.05em" }}>THE FIX</div>
               <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "#EAEAE8", overflow: "hidden" }}><img src="https://i.pravatar.cc/150?img=32" alt="Sarah J" style={{ width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(100%)" }}/></div>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: `${c.primary}40`, display: "flex", alignItems: "center", justifyContent: "center" }}><div style={{ width: "16px", height: "16px", borderRadius: "50%", background: c.primary }} /></div>
                 <div>
-                  <div style={{ fontWeight: 800, fontSize: "1rem", color: "#fff" }}>Sarah Jenkins</div>
-                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem" }}>@sarahj_product</div>
+                  <div style={{ fontWeight: 800, fontSize: "1rem", color: "#fff" }}>Target direction</div>
+                  <div style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem" }}>Canonical plan</div>
                 </div>
               </div>
-              <p style={{ fontSize: "1.1rem", color: "#fff", lineHeight: 1.6 }}>Switched my team to Atelier Plus. The Data Studio literally wrote our Q3 analysis report autonomously in 4 minutes. <span style={{ color: c.primary }}>It's not a wrapper, it's a colleague. 🤯</span></p>
+              <p style={{ fontSize: "1.1rem", color: "#fff", lineHeight: 1.6 }}>Beyond Chat is moving toward organization-ready agents, connected context, approvals, and durable deliverables. See the canonical plan for what is planned versus shipped.</p>
             </motion.div>
 
           </motion.div>
@@ -744,7 +743,7 @@ export default function AtelierPlusLanding() {
               Elevate your <br/><span style={{ color: c.surface, opacity: 0.5 }}>workflow today.</span>
             </h2>
             <p style={{ fontFamily: body, fontSize: "1.2rem", color: "rgba(255,255,255,0.7)", marginBottom: "3rem", lineHeight: 1.6, maxWidth: "500px", margin: "0 auto 3rem" }}>
-              Join forward-thinking professionals organizing their AI interactions into structured, powerful studios.
+              Explore the current prototype and follow the product as it moves toward a unified AI work environment.
             </p>
             <Link
               to="/signup"
@@ -752,8 +751,12 @@ export default function AtelierPlusLanding() {
               onMouseLeave={(e) => { setCursorVariant("default"); e.currentTarget.style.transform = "scale(1)"; }}
               style={{ fontFamily: body, fontSize: "1.1rem", fontWeight: 700, color: c.ink, textDecoration: "none", background: c.surface, padding: "1.2rem 3rem", borderRadius: "99px", display: "inline-flex", alignItems: "center", gap: "0.5rem", transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)" }}
             >
-              Get Started
+              Create an account
             </Link>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem", marginTop: "1.5rem", fontSize: "0.8rem" }}>
+              <Link to="/terms" style={{ color: "rgba(255,255,255,0.7)" }}>Terms draft</Link>
+              <Link to="/privacy" style={{ color: "rgba(255,255,255,0.7)" }}>Privacy draft</Link>
+            </div>
           </motion.div>
         </div>
       </section>

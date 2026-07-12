@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "id": "finance-analysis",
+  "kind": "dexter_compatible_finance",
+  "prompt": "Analyze AAPL fiscal 2024 revenue growth and operating-margin change versus fiscal 2023, show the calculation, and cite the source filings.",
+  "ticker": "AAPL",
+  "recorded_input": [
+    {
+      "report_period": "2023-09-30",
+      "revenue": 383285000000,
+      "operating_income": 114301000000,
+      "net_income": 96995000000,
+      "earnings_per_share": 6.13
+    },
+    {
+      "report_period": "2024-09-28",
+      "revenue": 391035000000,
+      "operating_income": 123216000000,
+      "net_income": 93736000000,
+      "earnings_per_share": 6.08
+    }
+  ],
+  "sources": [
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+    "https://www.sec.gov/Archives/edgar/data/320193/000032019323000106/aapl-20230930.htm"
+  ],
+  "expected": {
+    "output_name": "aapl-finance-analysis.md",
+    "required_headings": ["# AAPL Finance Analysis", "## Calculation", "## Sources"],
+    "revenue_growth_percent": 2.02,
+    "operating_margin_2023_percent": 29.82,
+    "operating_margin_2024_percent": 31.51,
+    "operating_margin_change_bps": 169,
+    "numeric_tolerance": 0.02
+  },
+  "trace": {
+    "required_tools": ["get_income_statements", "write_finance_memo"],
+    "maximum_tool_calls": 2,
+    "maximum_model_turns": 3
+  },
+  "budget": {
+    "maximum_latency_ms": 3000,
+    "maximum_cost_usd": 0
+  }
+}

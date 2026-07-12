@@ -1,0 +1,27 @@
+{
+  "captured_at": "2026-07-11T23:16:43.049776+00:00",
+  "environment": "beyond-chat-production",
+  "images": {
+    "base": {
+      "name": "beyond-chat-runtime-base:2026-07-11.4",
+      "object_id": "im-sM7PhCwKy46WBkVzcK23iM"
+    },
+    "data-finance": {
+      "name": "beyond-chat-runtime-data-finance:2026-07-11.4",
+      "object_id": "im-QDEEaGhyZNLNQ3JdR0PWwe"
+    },
+    "documents": {
+      "name": "beyond-chat-runtime-documents:2026-07-11.4",
+      "object_id": "im-kGV2kfZyxOSCnGQWnkHA7m"
+    },
+    "research": {
+      "name": "beyond-chat-runtime-research:2026-07-11.4",
+      "object_id": "im-HbHwCRRnHDWgjdoNTB0bx9"
+    }
+  },
+  "rollback": {
+    "automatic": false,
+    "strategy": "deploy previous pinned image-name mapping; never delete an image referenced by a checkpoint"
+  },
+  "schema_version": 1
+}

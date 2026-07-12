@@ -29,7 +29,15 @@ interface CacheEntry {
   cachedAt: string;
 }
 
-const CACHE_DIR = dexterPath('cache');
+/**
+ * Resolve the cache root at operation time so tests and sandboxed runtimes can
+ * provide an isolated directory without changing the process working tree.
+ * The default remains the existing `.dexter/cache` location.
+ */
+export function getCacheDir(): string {
+  const configured = process.env.DEXTER_CACHE_DIR?.trim();
+  return configured ? configured : dexterPath('cache');
+}
 
 // ============================================================================
 // Helpers
@@ -132,7 +140,7 @@ export function readCache(
   ttlMs?: number,
 ): { data: Record<string, unknown>; url: string } | null {
   const cacheKey = buildCacheKey(endpoint, params);
-  const filepath = join(CACHE_DIR, cacheKey);
+  const filepath = join(getCacheDir(), cacheKey);
   const label = describeRequest(endpoint, params);
 
   if (!existsSync(filepath)) {
@@ -178,7 +186,7 @@ export function writeCache(
   url: string
 ): void {
   const cacheKey = buildCacheKey(endpoint, params);
-  const filepath = join(CACHE_DIR, cacheKey);
+  const filepath = join(getCacheDir(), cacheKey);
   const label = describeRequest(endpoint, params);
 
   const entry: CacheEntry = {

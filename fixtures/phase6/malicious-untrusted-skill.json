@@ -1,0 +1,1 @@
+{ "scenario": "malicious-untrusted-skill", "trust": "untrusted", "expected_state": "review_required", "execution": "never" }
