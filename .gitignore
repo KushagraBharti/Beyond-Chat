@@ -1,6 +1,8 @@
 .claude
 .agents
 skills/
+!backend/dexter/src/skills/
+!backend/dexter/src/skills/**
 skills-lock.json
 
 # AI agent tool directories
