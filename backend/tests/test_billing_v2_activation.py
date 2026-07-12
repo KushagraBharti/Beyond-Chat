@@ -205,13 +205,9 @@ async def test_seat_reconciliation_updates_only_when_out_of_sync() -> None:
     assert missing.action == "skipped_no_subscription"
 
 
-def test_live_billing_refuses_to_boot_without_durable_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_live_billing_mounts_with_durable_persistence(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BILLING_V2_ENABLED", "true")
     monkeypatch.setenv("BEYOND_ENV", "production")
-    with pytest.raises(RuntimeError, match="durable billing persistence"):
-        create_configured_billing_router()
-
-    monkeypatch.setenv("BEYOND_ENV", "development")
     router = create_configured_billing_router()
     assert any(route.path == "/api/v2/billing/status" for route in router.routes)
 

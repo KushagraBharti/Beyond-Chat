@@ -17,6 +17,7 @@ Everything here is activation-ready but fail-closed by default:
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from os import environ
 from typing import Any, Literal
 
@@ -209,3 +210,58 @@ class InMemoryBillingRepository:
             portal_enabled=subscription is not None,
             externally_verified=entitlement is not None,
         )
+
+
+class SupabaseBillingRepository:
+    """Durable service-role billing ledger."""
+
+    def __init__(self, client: Any) -> None:
+        self.client = client
+
+    async def begin_event(self, event: VerifiedStripeEvent) -> Literal["accepted", "duplicate"]:
+        def call() -> Literal["accepted", "duplicate"]:
+            existing = self.client.table("billing_events").select("event_id").eq("event_id", event.id).limit(1).execute().data or []
+            if existing:
+                return "duplicate"
+            try:
+                self.client.table("billing_events").insert({"event_id": event.id, "event_type": event.type, "livemode": event.livemode, "payload": event.object, "state": "pending"}).execute()
+            except Exception:
+                existing = self.client.table("billing_events").select("event_id").eq("event_id", event.id).limit(1).execute().data or []
+                if existing:
+                    return "duplicate"
+                raise
+            return "accepted"
+        return await asyncio.to_thread(call)
+
+    async def complete_event(self, event_id: str) -> None:
+        await asyncio.to_thread(lambda: self.client.table("billing_events").update({"state": "processed", "processed_at": datetime.now(timezone.utc).isoformat(), "failure_reason": None}).eq("event_id", event_id).execute())
+
+    async def fail_event(self, event_id: str, reason: str) -> None:
+        await asyncio.to_thread(lambda: self.client.table("billing_events").update({"state": "failed", "failure_reason": reason[:4000]}).eq("event_id", event_id).execute())
+
+    async def get_subscription(self, organization_id: str) -> SubscriptionRecord | None:
+        def call() -> SubscriptionRecord | None:
+            rows = self.client.table("billing_subscriptions").select("*").eq("organization_id", organization_id).limit(1).execute().data or []
+            return self._subscription(rows[0]) if rows else None
+        return await asyncio.to_thread(call)
+
+    @staticmethod
+    def _subscription(row: dict[str, Any]) -> SubscriptionRecord:
+        return SubscriptionRecord(organization_id=str(row["organization_id"]), customer_id=str(row["customer_id"]), subscription_id=str(row["subscription_id"]), status=row["status"], quantity=int(row["quantity"]), provider_event_created=int(row["provider_event_created"]), current_period_end=row.get("current_period_end"))
+
+    async def save_subscription(self, value: SubscriptionRecord) -> None:
+        def call() -> None:
+            rows = self.client.table("billing_subscriptions").select("provider_event_created").eq("organization_id", value.organization_id).limit(1).execute().data or []
+            if rows and int(rows[0]["provider_event_created"]) > value.provider_event_created:
+                return
+            self.client.table("billing_subscriptions").upsert({"organization_id": value.organization_id, "customer_id": value.customer_id, "subscription_id": value.subscription_id, "status": value.status, "quantity": value.quantity, "provider_event_created": value.provider_event_created, "current_period_end": value.current_period_end}).execute()
+        await asyncio.to_thread(call)
+
+    async def save_entitlement(self, value: EntitlementDecision) -> None:
+        await asyncio.to_thread(lambda: self.client.table("billing_entitlements").upsert({"organization_id": value.organization_id, "state": value.state, "reason": value.reason, "source_subscription_id": value.source_subscription_id}).execute())
+
+    async def get_status(self, organization_id: str) -> BillingStatus:
+        subscription = await self.get_subscription(organization_id)
+        rows = await asyncio.to_thread(lambda: self.client.table("billing_entitlements").select("*").eq("organization_id", organization_id).limit(1).execute().data or [])
+        entitlement = rows[0] if rows else None
+        return BillingStatus(organization_id=organization_id, subscription_status=subscription.status if subscription else "none", entitlement_state=str(entitlement["state"]) if entitlement else "disabled", seat_quantity=subscription.quantity if subscription else 0, billable_members=0, checkout_enabled=subscription is None or subscription.status in {"canceled", "unpaid"}, portal_enabled=subscription is not None, externally_verified=entitlement is not None)
