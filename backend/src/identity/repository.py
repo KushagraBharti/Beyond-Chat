@@ -1621,7 +1621,7 @@ class SupabaseIdentityRepository:
             current = self._one(
                 client.table("invitations")
                 .select(
-                    "organization_id,email,role,state,expires_at,accepted_at,revoked_at,updated_at"
+                    "id,organization_id,email,role,state,expires_at,accepted_at,revoked_at,updated_at"
                 )
                 .eq("workos_invitation_id", workos_invitation_id)
                 .maybe_single()
@@ -1644,8 +1644,7 @@ class SupabaseIdentityRepository:
             role_value = data.get("role_slug")
             if isinstance(data.get("role"), dict):
                 role_value = data["role"].get("slug")
-            client.table("invitations").upsert(
-                {
+            invitation_payload = {
                     "organization_id": organization["id"],
                     "email": normalize_email(str(email_value)),
                     "role": normalize_role(role_value or (current or {}).get("role")).value,
@@ -1657,6 +1656,8 @@ class SupabaseIdentityRepository:
                     "revoked_at": data.get("revoked_at")
                     or (incoming_updated_at if state_value == "revoked" else (current or {}).get("revoked_at")),
                     "updated_at": incoming_updated_at,
-                },
-                on_conflict="workos_invitation_id",
-            ).execute()
+                }
+            if current:
+                client.table("invitations").update(invitation_payload).eq("id", current["id"]).execute()
+            else:
+                client.table("invitations").insert(invitation_payload).execute()
