@@ -80,7 +80,11 @@ class InternalGateway:
         try:
             claim = self.invocation_claims.claim_invocation(
                 organization_id=grant.organization_id,
+                project_id=grant.project_id,
                 run_id=grant.run_id,
+                subject=grant.subject,
+                attempt=grant.attempt,
+                lease_id=grant.lease_id,
                 idempotency_key=invocation.idempotency_key,
                 request_digest=request_digest,
                 jti=grant.jti,
@@ -88,7 +92,7 @@ class InternalGateway:
             )
         except Exception:
             self._deny("invocation_claim_unavailable", **scoped)
-        if claim not in {"claimed", "token_replayed", "idempotency_conflict"}:
+        if claim not in {"claimed", "token_replayed", "idempotency_conflict", "binding_stale"}:
             self._deny("invocation_claim_invalid", **scoped)
         if claim != "claimed":
             self._deny(claim, **scoped)

@@ -16,7 +16,7 @@ class MemoryInvocationClaims:
     def __init__(self):
         self.jtis, self.idempotency, self.lock = set(), {}, Lock()
 
-    def claim_invocation(self, *, organization_id, run_id, idempotency_key, request_digest, jti, expires_at):
+    def claim_invocation(self, *, organization_id, project_id, run_id, subject, attempt, lease_id, idempotency_key, request_digest, jti, expires_at):
         with self.lock:
             if jti in self.jtis: return "token_replayed"
             scope = (organization_id, run_id, idempotency_key)
@@ -50,7 +50,7 @@ def setup_gateway(*, state=None, keys=None, active="2026-07", claims=None):
 
 
 def grant(**changes):
-    base = CapabilityGrant("beyond-control-plane", "internal-model-gateway", "worker-1", "run-1", "org-1", "project-1", 3, "lease-1", "jti-1", NOW, NOW, NOW + timedelta(minutes=1), canonical_digest(CAPABILITY), canonical_digest(ARGS), "idem-1234", 2, 500)
+    base = CapabilityGrant("beyond-control-plane", "internal-model-gateway", "worker-1", "run-1", "org-1", "project-1", 3, "lease-1", "jti-0001", NOW, NOW, NOW + timedelta(minutes=1), canonical_digest(CAPABILITY), canonical_digest(ARGS), "idem-1234", 2, 500)
     return replace(base, **changes)
 
 
@@ -85,6 +85,8 @@ def test_denies_scope_argument_and_projection_changes(change, code):
     ({"revoked": True}, "run_revoked_or_terminal"),
     ({"state": "completed"}, "run_revoked_or_terminal"),
     ({"state": "canceled"}, "run_revoked_or_terminal"),
+    ({"project_id": "project-other"}, "authoritative_binding_mismatch"),
+    ({"subject": "worker-other"}, "authoritative_binding_mismatch"),
     ({"lease_id": "replacement-lease"}, "authoritative_binding_mismatch"),
     ({"lease_expires_at": NOW}, "lease_expired"),
     ({"calls_used": 2}, "budget_exhausted"),
@@ -104,7 +106,7 @@ def test_token_is_one_use_and_replay_is_audited():
     with pytest.raises(GatewayDenied) as exc:
         gateway.validate(invocation(token), now=NOW)
     assert exc.value.outcome.code == "token_replayed"
-    assert audit.items[-1].jti == "jti-1"
+    assert audit.items[-1].jti == "jti-0001"
 
 
 def test_distinct_idempotency_key_cannot_replay_same_token():
@@ -119,7 +121,7 @@ def test_distinct_idempotency_key_cannot_replay_same_token():
 def test_distinct_token_with_claimed_idempotency_key_is_conflict():
     codec, gateway, _ = setup_gateway()
     gateway.validate(invocation(codec.issue(grant())), now=NOW)
-    second = codec.issue(grant(jti="jti-2"))
+    second = codec.issue(grant(jti="jti-0002"))
     with pytest.raises(GatewayDenied) as exc:
         gateway.validate(invocation(second), now=NOW)
     assert exc.value.outcome.code == "idempotency_conflict"
@@ -153,6 +155,17 @@ def test_claim_store_failure_fails_closed_and_is_audited():
     assert audit.items[-1].code == "invocation_claim_unavailable"
 
 
+def test_atomic_claim_binding_race_fails_closed():
+    class StaleClaims:
+        def claim_invocation(self, **kwargs): return "binding_stale"
+
+    codec, gateway, audit = setup_gateway(claims=StaleClaims())
+    with pytest.raises(GatewayDenied) as exc:
+        gateway.validate(invocation(codec.issue(grant())), now=NOW)
+    assert exc.value.outcome.code == "binding_stale"
+    assert audit.items[-1].allowed is False
+
+
 def test_zero_attempt_token_is_rejected():
     codec, gateway, _ = setup_gateway()
     with pytest.raises(GatewayDenied) as exc:
@@ -164,9 +177,50 @@ def test_unknown_key_and_expiry_are_rejected_but_old_rotation_key_verifies():
     old_codec, _, _ = setup_gateway(keys={"old": b"old-key-at-least-32-bytes-long!!!!"}, active="old")
     token = old_codec.issue(grant())
     rotated = RunCapabilityTokenCodec(HmacKeyRing(active_key_id="new", keys={"old": b"old-key-at-least-32-bytes-long!!!!", "new": b"new-key-at-least-32-bytes-long!!!!"}), expected_issuer="beyond-control-plane")
-    assert rotated.validate(token, audience="internal-model-gateway", now=NOW).jti == "jti-1"
+    assert rotated.validate(token, audience="internal-model-gateway", now=NOW).jti == "jti-0001"
     with pytest.raises(TokenValidationError, match="token_expired"):
         rotated.validate(token, audience="internal-model-gateway", now=NOW + timedelta(minutes=2))
+
+
+def test_short_jti_is_rejected_by_issuer_policy():
+    codec, _, _ = setup_gateway()
+    with pytest.raises(ValueError, match="token_jti_invalid"):
+        codec.issue(grant(jti="short"))
+
+
+@pytest.mark.parametrize("jti", ["j" * 256])
+def test_jti_bounds_are_enforced_before_signing(jti):
+    codec, _, _ = setup_gateway()
+    with pytest.raises(ValueError, match="token_jti_invalid"):
+        codec.issue(grant(jti=jti))
+
+
+@pytest.mark.parametrize("idempotency_key", ["short", "i" * 256])
+def test_idempotency_key_bounds_are_enforced_before_signing(idempotency_key):
+    codec, _, _ = setup_gateway()
+    with pytest.raises(ValueError, match="token_idempotency_key_invalid"):
+        codec.issue(grant(idempotency_key=idempotency_key))
+
+
+@pytest.mark.parametrize("field,value", [
+    ("capability_digest", "sha256:" + "A" * 64),
+    ("argument_digest", "sha256:abc"),
+])
+def test_digest_format_is_enforced_before_signing(field, value):
+    codec, _, _ = setup_gateway()
+    with pytest.raises(ValueError, match="token_digest_invalid"):
+        codec.issue(grant(**{field: value}))
+
+
+@pytest.mark.parametrize("key_id", ["", "space key", "x" * 65])
+def test_key_ids_are_bounded_token_safe_values(key_id):
+    with pytest.raises(ValueError, match="key_id_invalid"):
+        HmacKeyRing(active_key_id=key_id, keys={key_id: b"k" * 32})
+
+
+def test_every_active_and_retained_hmac_key_is_at_least_32_bytes():
+    with pytest.raises(ValueError, match="signing_key_invalid"):
+        HmacKeyRing(active_key_id="active", keys={"active": b"a" * 32, "retained": b"short"})
 
 
 def test_credentials_are_never_projected():

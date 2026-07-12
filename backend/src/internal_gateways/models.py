@@ -83,7 +83,9 @@ class AuthoritativeRunResolver(Protocol):
     def resolve(self, run_id: str) -> AuthoritativeRunState | None: ...
 
 
-InvocationClaimStatus = Literal["claimed", "token_replayed", "idempotency_conflict"]
+InvocationClaimStatus = Literal[
+    "claimed", "token_replayed", "idempotency_conflict", "binding_stale"
+]
 
 
 class InvocationClaimStore(Protocol):
@@ -93,7 +95,11 @@ class InvocationClaimStore(Protocol):
         self,
         *,
         organization_id: str,
+        project_id: str,
         run_id: str,
+        subject: str,
+        attempt: int,
+        lease_id: str,
         idempotency_key: str,
         request_digest: str,
         jti: str,

@@ -9,6 +9,7 @@ from .models import (
     GatewayResult,
 )
 from .tokens import HmacKeyRing, RunCapabilityTokenCodec, TokenValidationError
+from .supabase import InvocationClaimStoreError, SupabaseInvocationClaimStore
 
 __all__ = [
     "AuditOutcome",
@@ -18,6 +19,8 @@ __all__ = [
     "GatewayResult",
     "HmacKeyRing",
     "InternalGateway",
+    "InvocationClaimStoreError",
     "RunCapabilityTokenCodec",
+    "SupabaseInvocationClaimStore",
     "TokenValidationError",
 ]

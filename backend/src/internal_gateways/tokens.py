@@ -4,11 +4,20 @@ import base64
 import hashlib
 import hmac
 import json
+import re
 from dataclasses import asdict
 from datetime import UTC, datetime
 from typing import Mapping, Protocol
 
 from .models import CapabilityGrant
+
+MIN_JTI_LENGTH = 8
+MAX_JTI_LENGTH = 255
+MIN_IDEMPOTENCY_KEY_LENGTH = 8
+MAX_IDEMPOTENCY_KEY_LENGTH = 255
+MIN_HMAC_KEY_BYTES = 32
+_KEY_ID_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+_SHA256_DIGEST_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 
 
 class TokenValidationError(ValueError):
@@ -28,8 +37,18 @@ class HmacKeyRing:
     """Rotation-ready key ring; callers may retain old verification-only keys."""
 
     def __init__(self, *, active_key_id: str, keys: Mapping[str, bytes]) -> None:
-        if active_key_id not in keys or not keys[active_key_id]:
+        if not isinstance(active_key_id, str) or _KEY_ID_RE.fullmatch(active_key_id) is None:
+            raise ValueError("active_signing_key_id_invalid")
+        if active_key_id not in keys:
             raise ValueError("active_signing_key_missing")
+        if any(
+            not isinstance(key_id, str)
+            or _KEY_ID_RE.fullmatch(key_id) is None
+            or not isinstance(material, bytes)
+            or len(material) < MIN_HMAC_KEY_BYTES
+            for key_id, material in keys.items()
+        ):
+            raise ValueError("signing_key_invalid")
         self._active_key_id = active_key_id
         self._keys = dict(keys)
 
@@ -67,6 +86,15 @@ class RunCapabilityTokenCodec:
         ttl = (grant.expires_at - grant.issued_at).total_seconds()
         if ttl <= 0 or ttl > self.max_ttl_seconds or grant.not_before > grant.expires_at:
             raise ValueError("token_lifetime_invalid")
+        if not MIN_JTI_LENGTH <= len(grant.jti) <= MAX_JTI_LENGTH:
+            raise ValueError("token_jti_invalid")
+        if not MIN_IDEMPOTENCY_KEY_LENGTH <= len(grant.idempotency_key) <= MAX_IDEMPOTENCY_KEY_LENGTH:
+            raise ValueError("token_idempotency_key_invalid")
+        if (
+            _SHA256_DIGEST_RE.fullmatch(grant.capability_digest) is None
+            or _SHA256_DIGEST_RE.fullmatch(grant.argument_digest) is None
+        ):
+            raise ValueError("token_digest_invalid")
         header = {"alg": "HS256", "kid": self.key_ring.active_key_id, "typ": "RCP+JWT"}
         payload = asdict(grant)
         for name in ("issued_at", "not_before", "expires_at"):
@@ -119,5 +147,14 @@ class RunCapabilityTokenCodec:
         if issued_at > now or expires_at <= issued_at or (expires_at - issued_at).total_seconds() > self.max_ttl_seconds:
             raise TokenValidationError("token_lifetime_invalid")
         if grant.attempt <= 0 or grant.max_calls < 1 or grant.max_cost_microusd < 0:
+            raise TokenValidationError("token_claims_invalid")
+        if not MIN_JTI_LENGTH <= len(grant.jti) <= MAX_JTI_LENGTH:
+            raise TokenValidationError("token_claims_invalid")
+        if not MIN_IDEMPOTENCY_KEY_LENGTH <= len(grant.idempotency_key) <= MAX_IDEMPOTENCY_KEY_LENGTH:
+            raise TokenValidationError("token_claims_invalid")
+        if (
+            _SHA256_DIGEST_RE.fullmatch(grant.capability_digest) is None
+            or _SHA256_DIGEST_RE.fullmatch(grant.argument_digest) is None
+        ):
             raise TokenValidationError("token_claims_invalid")
         return grant
