@@ -11,6 +11,12 @@ $workspaceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $migrationDirectory = Join-Path $workspaceRoot 'supabase\migrations'
 $securityTest = Join-Path $workspaceRoot 'supabase\tests\database\phase2_security.sql'
 $advisorPolicyTest = Join-Path $workspaceRoot 'supabase\tests\database\advisor_service_table_policies.sql'
+$runtimeTestDirectory = Join-Path $workspaceRoot 'supabase\tests\runtime'
+$runtimeTests = if (Test-Path -LiteralPath $runtimeTestDirectory) {
+  @(Get-ChildItem -LiteralPath $runtimeTestDirectory -Filter '*.sql' | Sort-Object Name)
+} else {
+  @()
+}
 $migrations = @(Get-ChildItem -LiteralPath $migrationDirectory -Filter '*.sql' | Sort-Object Name)
 if ($migrations.Count -eq 0) {
   throw 'No canonical migrations were found.'
@@ -143,6 +149,20 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Later canonical migration replay failed at $($migration.Name)." }
   }
 
+  if ($runtimeTests.Count -gt 0) {
+    & $psql -X -v ON_ERROR_STOP=1 -c 'create schema if not exists test_support; grant usage on schema test_support to anon, authenticated, service_role;' | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw 'Runtime database test support setup failed.' }
+  }
+
+  foreach ($pass in 1..2) {
+    foreach ($runtimeTest in $runtimeTests) {
+      & $psql -X -v ON_ERROR_STOP=1 -f $runtimeTest.FullName | Out-Null
+      if ($LASTEXITCODE -ne 0) {
+        throw "Runtime database test pass $pass failed at $($runtimeTest.Name)."
+      }
+    }
+  }
+
   if (Test-Path -LiteralPath $advisorPolicyTest) {
     foreach ($pass in 1..2) {
       & $psql -X -v ON_ERROR_STOP=1 -f $advisorPolicyTest | Out-Null
@@ -156,6 +176,13 @@ try {
   foreach ($migration in $migrations) {
     & $psql -X -v ON_ERROR_STOP=1 -f $migration.FullName | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Canonical idempotency replay failed at $($migration.Name)." }
+  }
+
+  foreach ($runtimeTest in $runtimeTests) {
+    & $psql -X -v ON_ERROR_STOP=1 -f $runtimeTest.FullName | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+      throw "Post-idempotency runtime database test failed at $($runtimeTest.Name)."
+    }
   }
 
   $inventory = & $psql -X -Atc @'
@@ -177,6 +204,8 @@ select json_build_object(
     MigrationFiles = @($migrations.Name)
     SecurityTestPasses = 2
     AdvisorPolicyTestPasses = if (Test-Path -LiteralPath $advisorPolicyTest) { 2 } else { 0 }
+    RuntimeTestFiles = @($runtimeTests.Name)
+    RuntimeTestPasses = if ($runtimeTests.Count -gt 0) { 3 } else { 0 }
     ValidationBoundary = $phase2BoundaryName
     Inventory = ($inventory | ConvertFrom-Json)
     ArtifactRoot = if ($KeepArtifacts) { $validationRoot } else { $null }

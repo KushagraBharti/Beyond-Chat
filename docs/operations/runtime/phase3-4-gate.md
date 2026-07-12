@@ -60,4 +60,6 @@ The contract added by this prerequisite is:
 
 All new tables and mutation functions are service-role only with RLS enabled. Stale workers receive a serialization failure and cannot mutate a later attempt. Existing unfenced RPCs remain for compatibility but are not acceptable worker mutation paths; worker/gateway wiring must move to the new methods before traffic can be authorized.
 
+Canonical validation now discovers every `supabase/tests/runtime/*.sql` file in deterministic filename order. Both the Phase 4C control-plane suite and the fencing suite run twice after the current-head migrations and once again after full-chain idempotency replay. PostgreSQL 17.10 validation passes all three runtime passes, both Phase 2 security passes, both advisor-policy passes, and two complete migration replays with 31/31 public tables under RLS.
+
 See `docs/operations/runtime/phase4b-evidence.md` for v4 immutable IDs, security remediation, remote smoke, mutation history, and exact remaining blockers.
