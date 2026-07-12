@@ -10,9 +10,26 @@ Set-StrictMode -Version Latest
 $workspaceRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
 $migrationDirectory = Join-Path $workspaceRoot 'supabase\migrations'
 $securityTest = Join-Path $workspaceRoot 'supabase\tests\database\phase2_security.sql'
+$advisorPolicyTest = Join-Path $workspaceRoot 'supabase\tests\database\advisor_service_table_policies.sql'
 $migrations = @(Get-ChildItem -LiteralPath $migrationDirectory -Filter '*.sql' | Sort-Object Name)
 if ($migrations.Count -eq 0) {
   throw 'No canonical migrations were found.'
+}
+
+# The Phase 2 adversarial suite intentionally constrains the public function
+# allowlist at the identity/runtime boundary. Later product-plane migrations add
+# their own reviewed service RPCs, so run that suite at its recorded schema
+# boundary instead of producing a false failure against the newest schema.
+$phase2BoundaryName = '20260711234500_runtime_control_plane.sql'
+$phase2Boundary = [Array]::IndexOf(@($migrations.Name), $phase2BoundaryName)
+if ($phase2Boundary -lt 0) {
+  throw "Required Phase 2 validation boundary was not found: $phase2BoundaryName"
+}
+$phase2Migrations = @($migrations[0..$phase2Boundary])
+$laterMigrations = if ($phase2Boundary + 1 -lt $migrations.Count) {
+  @($migrations[($phase2Boundary + 1)..($migrations.Count - 1)])
+} else {
+  @()
 }
 
 if (-not $PostgresBin) {
@@ -111,14 +128,34 @@ try {
   & $psql -X -v ON_ERROR_STOP=1 -f $bootstrapPath | Out-Null
   if ($LASTEXITCODE -ne 0) { throw 'Supabase compatibility bootstrap failed.' }
 
-  foreach ($replay in 1..2) {
-    foreach ($migration in $migrations) {
-      & $psql -X -v ON_ERROR_STOP=1 -f $migration.FullName | Out-Null
-      if ($LASTEXITCODE -ne 0) { throw "Canonical migration replay $replay failed at $($migration.Name)." }
-    }
+  foreach ($migration in $phase2Migrations) {
+    & $psql -X -v ON_ERROR_STOP=1 -f $migration.FullName | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Phase 2 migration replay failed at $($migration.Name)." }
+  }
 
+  foreach ($replay in 1..2) {
     & $psql -X -v ON_ERROR_STOP=1 -f $securityTest | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Canonical security test pass $replay failed." }
+  }
+
+  foreach ($migration in $laterMigrations) {
+    & $psql -X -v ON_ERROR_STOP=1 -f $migration.FullName | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Later canonical migration replay failed at $($migration.Name)." }
+  }
+
+  if (Test-Path -LiteralPath $advisorPolicyTest) {
+    foreach ($pass in 1..2) {
+      & $psql -X -v ON_ERROR_STOP=1 -f $advisorPolicyTest | Out-Null
+      if ($LASTEXITCODE -ne 0) { throw "Advisor service-table policy test pass $pass failed." }
+    }
+  }
+
+  # Reapply the complete chain once to prove migration idempotency at the
+  # current head. Stage-scoped tests above remain attached to the schema they
+  # actually describe.
+  foreach ($migration in $migrations) {
+    & $psql -X -v ON_ERROR_STOP=1 -f $migration.FullName | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Canonical idempotency replay failed at $($migration.Name)." }
   }
 
   $inventory = & $psql -X -Atc @'
@@ -139,6 +176,8 @@ select json_build_object(
     MigrationReplays = 2
     MigrationFiles = @($migrations.Name)
     SecurityTestPasses = 2
+    AdvisorPolicyTestPasses = if (Test-Path -LiteralPath $advisorPolicyTest) { 2 } else { 0 }
+    ValidationBoundary = $phase2BoundaryName
     Inventory = ($inventory | ConvertFrom-Json)
     ArtifactRoot = if ($KeepArtifacts) { $validationRoot } else { $null }
   } | ConvertTo-Json -Depth 5

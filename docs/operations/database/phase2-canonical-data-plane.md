@@ -88,14 +88,20 @@ evidence. Do not silently replace this runtime; record a new version and hashes.
 
 ## Canonical history
 
-Only these migrations are current:
+The Phase 2 foundation is the first three migrations. The linked project has
+this seven-version canonical history:
 
 1. `20260711130000_canonical_identity_and_multitenancy.sql`
 2. `20260711131500_advisor_hardening.sql`
+3. `20260711232043_reconcile_workos_rls_contract.sql`
+4. `20260711234500_runtime_control_plane.sql`
+5. `20260711235500_product_plane_phase5_12.sql`
+6. `20260712000208_deny_client_access_service_tables.sql`
+7. `20260712004658_cover_product_record_scope_foreign_keys.sql`
 
 The first migration deliberately drops and rebuilds `public` and `app_private`.
-It is safe only for a verified empty environment. The second captures advisor
-hardening discovered during the first production application.
+It is safe only for a verified empty environment. Later versions preserve the
+Phase 2 identity/tenancy contract while adding runtime and product-plane data.
 
 The canonical public tables are:
 
@@ -234,39 +240,47 @@ Coverage includes:
 - absence of public RPC helpers;
 - advisor-reported foreign-key indexes.
 
-Last verified result:
+Last verified result (2026-07-12):
 
 ```text
 PostgreSQL 17.10
-2 migration replays
+7 migration files + full-chain reapply
 2 adversarial test passes
-15 public tables / 15 RLS-enabled
-0 public functions
+2 service-table advisor-policy test passes
+26 public tables / 26 RLS-enabled
+14 service-only public functions
 4 Storage policies
 7 Realtime tables
 ```
+
+The Phase 2 adversarial suite is executed after the runtime-control-plane
+migration, before later product-plane RPCs expand the reviewed public function
+allowlist. The full chain is then applied and reapplied. This stage boundary
+prevents a false failure while keeping every migration in the replay.
 
 ## Production verification
 
 After apply:
 
-- migration history contains exactly the two canonical migrations;
-- all 15 public tables contain 0 rows;
-- `auth.users` contains 0 rows;
-- `storage.objects` contains 0 rows;
+- migration history contains the seven canonical migrations listed above;
+- all 26 public tables have RLS enabled;
+- the controlled production-auth foundation contains one profile, one
+  organization, and one Owner membership;
+- application data outside those controlled identity/tenancy records is
+  recounted before any destructive operation;
 - buckets are exactly `knowledge` and `outputs`;
 - security advisors report no findings;
 - performance advisors report no missing foreign-key indexes;
 - a live PostgREST request to `/rest/v1/profiles` with the publishable/anon key
   returns HTTP 401 with permission denied;
 - a live anonymous Storage upload to an unowned organization/project prefix is
-  rejected by RLS and leaves `storage.objects` at 0 rows;
-- performance advisors report only `unused_index` informational findings,
-  expected because the database has no traffic or rows;
-- normalized `pg_dump --schema-only` output for `public` + `app_private` matches
-  local replay exactly.
+  rejected by RLS and creates no object;
+- performance advisors report only reviewed informational findings;
+- normalized `pg_dump --schema-only` output for `public` + `app_private` must be
+  regenerated after the seven-migration head and compared with local replay.
 
-Normalized local and remote schema SHA-256:
+Historical two-migration normalized local and remote schema SHA-256 (not valid
+for the current seven-migration head):
 
 ```text
 D5732CE385057DE24978E064F379FE46065604083AED435F224E00BE4741A2E9
@@ -276,7 +290,8 @@ Normalization removes only `pg_dump`'s random `\\restrict` token and the server
 patch-version comment (`17.10` local versus `17.6` managed). No DDL difference
 remained.
 
-Generated TypeScript types were regenerated twice from the project and matched:
+Historical Phase 2 TypeScript type hash (regenerate at the current head before
+using it as drift evidence):
 
 ```text
 BA9BE65EDFA4A3BB1E88575C779CE975F59DDBD8EB7F6F06EDC9A14E4E30374E

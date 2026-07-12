@@ -7,7 +7,9 @@ Baseline captured: **2026-07-11 UTC**.
 ## Current decision summary
 
 - GitHub CLI, Vercel CLI/MCP, Supabase CLI/MCP, Modal CLI, WorkOS MCP, Stripe CLI, OpenRouter, Composio, Exa, and Financial Datasets were exercised with read-only or minimal verification calls.
-- Supabase CLI authentication was repaired and now agrees with the project-scoped MCP on project ref `vffndfwdykxqjlnntuuk`.
+- Supabase MCP is scoped to project ref `vffndfwdykxqjlnntuuk`, but the local
+  Supabase CLI session currently returns 401 Unauthorized. Prior reauthentication
+  evidence is historical and the Phase 0 CLI/MCP agreement gate is open.
 - The three Vercel projects are verified by immutable ID. The Vercel MCP is scoped only to the frontend project; use the CLI for backend and runner work.
 - Six backend-only variables were removed from the frontend Vercel project after proving the deployment is a pure Vite client and those names are not referenced by frontend code.
 - A fresh OpenRouter production key was created with a `$25` monthly cap and installed only in the backend and temporary legacy runner.
@@ -15,8 +17,12 @@ Baseline captured: **2026-07-11 UTC**.
 - `DEXTER_RUNNER_SHARED_SECRET` was rotated to a fresh 256-bit value and installed identically in backend and temporary runner scopes.
 - Backend and runner were redeployed from their previous production deployment sources, avoiding the shared dirty checkout. Health, provider-presence, and runner-denial checks passed.
 - WorkOS Production B is the selected canonical pair: environment `environment_01KX84DX4GA5XMSN4D4FK9DFND`, app `app_01KX84DXGTP1ZKASV4PBVSASM6`, client `client_01KX84DX9XT83ZSTCBM0T2XC8G`. Production A is explicitly unused/legacy and remains untouched.
-- WorkOS Production B is not enabled: the dashboard requires billing address and payment method. Per the product decision to defer WorkOS billing, URLs, branding, RBAC additions, and the production API key remain unconfigured. The backend already has the selected client ID and a fresh cookie password as Sensitive Production variables, but no `WORKOS_API_KEY`.
-- WorkOS global MCP OAuth was refreshed and verified from a fresh CLI process. The currently running desktop MCP transport still requires restart/reconnect before it can reuse that grant.
+- Production WorkOS authentication now succeeds with one controlled profile,
+  organization, and Owner membership. This supersedes the earlier zero-org and
+  wholly-unconfigured-auth snapshot, but does not by itself prove invitation,
+  switch, revocation, custom-role, or all-protected-route gates.
+- WorkOS MCP OAuth is active in the current process; `whoami` and canonical
+  environment queries succeeded during the 2026-07-12 audit.
 - Stripe CLI targets account `acct_1TrlgVQ1UUFrv64i`, but the existing local `STRIPE_SECRET_KEY` belongs to a different account. It was not propagated. The intended account cannot charge yet.
 
 ## Files
@@ -35,9 +41,12 @@ Baseline captured: **2026-07-11 UTC**.
 
 Phase 0 provider/security work is **partially complete**. Provider identities and most authentication paths are verified, secret scope is materially improved, and cost tooling exists. Phase 0 cannot close until:
 
-1. WorkOS Production B is enabled with billing, then its exact URL/origin/branding/session/RBAC contract is applied and verified; the production API key is created and installed backend-only;
-2. the correct Stripe account is activated and a matching backend key is installed during Phase 12;
-3. Supabase is backed up immediately before the authorized clean reset, then advisors are clean after the new schema;
+1. Supabase CLI is reauthenticated and independently agrees with the project-scoped MCP and seven-version migration history;
+2. WorkOS Production B's exact URL/origin/branding/session/RBAC contract is applied and verified, and the backend credential names are proven to reference that environment without revealing values;
+3. the correct Stripe account is activated and a matching backend key is installed during Phase 12;
 4. the old Composio full-access key is revoked after the scoped key is exercised by shipped runtime code;
 5. GitHub authorization is replaced with a narrower token or GitHub App installation;
 6. GitHub MCP availability is restored or explicitly removed from the claimed tool inventory.
+
+The detailed current gate assessment is
+[`../configuration/phase0-2-gate-audit.md`](../configuration/phase0-2-gate-audit.md).

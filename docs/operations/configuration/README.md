@@ -2,6 +2,10 @@
 
 `scripts/config/environment-manifest.json` is the canonical inventory for configuration names. It records each variable's type, owner, provider, sensitivity, allowed surface, environment requirement, compatibility alias, and feature gate. Environment templates are human-friendly projections of that manifest; they are not a second source of truth.
 
+Current Phase 0–2 pass/fail evidence is recorded in
+[phase0-2-gate-audit.md](phase0-2-gate-audit.md). Configuration-name presence is
+never a substitute for the live provider evidence in that audit.
+
 Beyond uses three environments: local development, ephemeral Vercel previews, and production. There is no standing staging product. Preview and production must use different provider applications, webhook endpoints, databases, and credentials wherever a provider supports isolation. A preview deployment must never receive a production database service role, WorkOS cookie password, webhook secret, Stripe secret, or provider API key.
 
 ## Validate names without exposing values

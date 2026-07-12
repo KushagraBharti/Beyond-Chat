@@ -1,4 +1,12 @@
-# Phase 2 migration-integrity repair
+# Phase 2 migration-integrity repair (historical preparation record)
+
+Current status: the prepared reconciliation and four subsequent canonical
+migrations are applied. Project-scoped MCP reported seven remote versions
+through `20260712004658_cover_product_record_scope_foreign_keys` on 2026-07-12,
+26 RLS-enabled public tables, and no security-advisor findings. Production auth
+has since created one controlled profile, organization, and Owner membership.
+The pre-apply details below are retained as historical evidence and must not be
+read as current remote state.
 
 ## Scope and target proof
 

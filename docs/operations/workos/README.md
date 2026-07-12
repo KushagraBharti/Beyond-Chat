@@ -9,27 +9,33 @@ This directory is the operational source of truth for the Beyond Chat WorkOS env
 | Resource | Immutable ID | Posture |
 |---|---|---|
 | WorkOS team | `Kushagra` | Caller verified as `Kushagra Bharti <kushagrabharti@gmail.com>`, role `ADMIN` |
-| Canonical production environment | `environment_01KX84DX4GA5XMSN4D4FK9DFND` | Selected, but dashboard Production activation is blocked on billing details |
-| Canonical AuthKit application | `app_01KX84DXGTP1ZKASV4PBVSASM6` | Default state; not yet configured |
+| Canonical production environment | `environment_01KX84DX4GA5XMSN4D4FK9DFND` | Selected; production auth is working |
+| Canonical AuthKit application | `app_01KX84DXGTP1ZKASV4PBVSASM6` | Production auth is working; complete configuration inventory still requires capture |
 | Canonical client | `client_01KX84DX9XT83ZSTCBM0T2XC8G` | Installed backend-only in Vercel Production |
 | Unused legacy production environment | `environment_01KX6XSE77SSHVD4SVM8ZY0QZJ` | Read-only legacy; do not mutate or delete automatically |
 | Unused legacy AuthKit application | `app_01KX6XSERQW6QCG30ZE2KTD410` | Read-only legacy; do not mutate or delete automatically |
 
 ## Current truthful state
 
-- Both production environments have zero organizations.
-- The canonical application is still named `Kushagra's Application`.
-- Redirect URIs, logout URIs, web origins, and application/homepage URLs are empty.
+- The canonical production path has one controlled profile, organization, and
+  Owner membership created by a successful authentication flow.
+- Earlier metadata showing a default application name and empty URL/origin
+  lists is superseded; the effective production settings still need to be
+  captured without changing the provider.
 - Access-token expiry is 300 seconds, maximum session time is 31,536,000 seconds, and inactivity timeout is 172,800 seconds.
 - Canonical roles are the default `admin` and `member`; requested Owner/Builder/Viewer roles do not yet exist.
-- No canonical production API key exists.
+- Production auth proves a usable backend identity path. The exact provider-key
+  identity and environment ownership still must be recorded without revealing
+  the credential value.
 - A signature-verifying, replay-safe backend endpoint now exists at `POST /api/webhooks/workos`, but no provider webhook is configured or deployed yet.
 - `WORKOS_CLIENT_ID` and `WORKOS_COOKIE_PASSWORD` exist only in Vercel backend Production as Sensitive values.
 - `WORKOS_API_KEY` is absent from Vercel.
 
 ## Authentication posture
 
-The global WorkOS MCP OAuth grant was refreshed successfully. A fresh Codex CLI MCP process verified identity and provider state. The already-running Codex desktop MCP transport still holds stale OAuth state and must be restarted or explicitly reconnected before WorkOS MCP calls will work in that process.
+The WorkOS MCP OAuth grant is active in the current process. On 2026-07-12,
+`whoami` and explicit canonical-environment application, role, organization, and
+API-key metadata queries succeeded.
 
 ## Documents
 
@@ -38,7 +44,10 @@ The global WorkOS MCP OAuth grant was refreshed successfully. A fresh Codex CLI 
 - [validation.md](validation.md) defines evidence required before the provider is called ready.
 - [rollback-runbook.md](rollback-runbook.md) defines a non-destructive rollback.
 
-WorkOS is **selected but not production-ready**. Do not claim otherwise until every validation item passes.
+WorkOS authentication is **working but the Phase 2 production gate is not
+closed**. One controlled profile/organization/Owner proves login and bootstrap;
+it does not prove invitation, switching, revocation, custom roles, two-tenant
+isolation, or migration of every protected route.
 
 ## Implemented application boundary
 

@@ -16,10 +16,11 @@ privileges and RLS-bypass behavior.
 
 ## Review and apply
 
-The manager must verify the linked project ref is `vffndfwdykxqjlnntuuk`,
-review the migration, apply it through the normal migration workflow, run
-`supabase/tests/database/advisor_service_table_policies.sql`, and rerun the
-security advisor. This change was prepared locally and was not applied remotely.
+The migration is applied remotely as version `20260712000208`. Read-only MCP
+evidence on 2026-07-12 found all seven migrations through `20260712004658` and
+an empty security-advisor result. Local PostgreSQL 17 validation runs
+`supabase/tests/database/advisor_service_table_policies.sql` twice at the
+current migration head.
 
 ## Rollback
 

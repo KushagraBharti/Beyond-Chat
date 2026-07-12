@@ -16,7 +16,9 @@ WorkOS is ready only when all checks below have authoritative evidence.
 - Session values are 300-second access tokens, seven-day maximum, and 48-hour inactivity timeout.
 - Branding says Beyond Chat and references only authoritative assets/URLs.
 - Owner/Admin/Builder/Member/Viewer and their exact permission assignments match [roles-and-permissions.md](roles-and-permissions.md).
-- Organization count remains zero until an explicit onboarding test creates controlled fixtures.
+- The controlled production-auth exercise has created one profile,
+  organization, and Owner membership. Additional organizations require an
+  explicit isolation-test plan.
 
 ## Credentials
 
@@ -32,7 +34,15 @@ WorkOS is ready only when all checks below have authoritative evidence.
 - Protected WorkOS routes re-read canonical membership and ignore provider role claims for authorization.
 - Role ordering and cross-organization project denial are covered for Owner/Admin/Builder/Member/Viewer.
 - The database adversarial script covers two organizations, guessed IDs, write attempts, Storage rows, Realtime publication scope, invitation visibility, wrong issuer, missing `org_id`, and revoked membership.
-- `uv run --isolated pytest -q` passes. Local database replay could not be executed in this session because the Windows Docker engine was unavailable. No remote Supabase mutation was attempted because CLI authentication is expired.
+- `uv run --isolated pytest -q` passed in the recorded application-validation session.
+- Local PostgreSQL 17.10 replay now passes all seven migrations, two Phase 2 adversarial suites, and two service-table policy suites without Docker.
+- Project-scoped MCP reported seven remote migration versions, 26 RLS-enabled
+  public tables, and a clean security advisor. Its earlier empty-table count is
+  historical. Supabase CLI authentication is expired, so CLI/MCP agreement
+  remains open.
+- Production authentication now succeeds for one controlled
+  profile/organization/Owner foundation; the earlier all-empty public-table
+  snapshot is therefore historical.
 
 ## Production application evidence required later
 
@@ -41,4 +51,8 @@ WorkOS is ready only when all checks below have authoritative evidence.
 - Two controlled test organizations cannot cross-read or cross-write through API, PostgREST, Storage, Realtime, or guessed identifiers.
 - Rollback removes WorkOS routing without locking operators out or deleting provider resources.
 
-The current baseline passes the local backend identity/authorization contract and deterministic adversarial tests. Production activation, provider configuration, API-key placement, frontend migration, live callback/session exercise, local/remote database replay, and live PostgREST/Storage/Realtime tenant evidence remain open.
+The current baseline passes the local backend identity/authorization contract,
+deterministic adversarial tests, and one controlled production login/bootstrap.
+Complete provider-configuration capture, credential ownership proof, frontend
+migration, production invitation/switch/revocation, CLI-backed local/remote
+comparison, and live two-tenant PostgREST/Storage/Realtime evidence remain open.
