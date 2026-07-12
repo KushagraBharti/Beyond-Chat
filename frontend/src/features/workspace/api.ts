@@ -128,6 +128,21 @@ export function cancelGeneralAgentRun(runId: string) {
   );
 }
 
+export function saveGeneratedOutput(projectId: string, name: string, content: string, runId?: string) {
+  return sessionRequest<ProductRecordSummary>(
+    `${BASE}/projects/${encodeURIComponent(projectId)}/outputs`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": crypto.randomUUID() },
+      body: JSON.stringify({
+        name,
+        description: content,
+        configuration: { kind: "document", source: "general-agent", runtime_run_id: runId ?? null },
+      }),
+    },
+  );
+}
+
 export function listProjectRecords(projectId: string, surface: "outputs" | "automations" | "memory") {
   return sessionRequest<{ items?: ProductRecordSummary[] } | ProductRecordSummary[]>(
     `${BASE}/projects/${encodeURIComponent(projectId)}/${surface}`,

@@ -4,7 +4,7 @@ import { useScopedDiscovery } from "../../features/discovery/useScopedDiscovery"
 import { savePromotionDraft, type PromotionDraft } from "../../features/workspace/adapter";
 import { PageHeader, WorkspaceState } from "../../components/workspace/WorkspacePrimitives";
 import { WorkspaceComposer } from "../../components/workspace/WorkspaceComposer";
-import { cancelGeneralAgentRun, executeGeneralAgent, replayGeneralAgentRun } from "../../features/workspace/api";
+import { cancelGeneralAgentRun, executeGeneralAgent, replayGeneralAgentRun, saveGeneratedOutput } from "../../features/workspace/api";
 import { useProjects } from "../../features/workspace/ProjectContext";
 
 interface ChatMessage { role: "user" | "agent" | "error"; text: string }
@@ -16,7 +16,9 @@ export function ChatWorkspacePage() {
   const { currentProject } = useProjects();
   const [running, setRunning] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [savingOutput, setSavingOutput] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const latestAgentText = [...messages].reverse().find((message) => message.role === "agent")?.text ?? "";
   const reconnect = async () => {
     if (!currentProject) return;
     const key = `beyond.last-chat-run.${currentProject.id}`;
@@ -74,6 +76,14 @@ export function ChatWorkspacePage() {
     <PageHeader eyebrow="Chat" title="Ask, explore, then make it durable.">{running && activeRunId ? <button className="workspace-button is-quiet" type="button" onClick={() => { void cancelGeneralAgentRun(activeRunId).finally(() => { setRunning(false); setActiveRunId(null); void reconnect(); }); }}>Cancel run</button> : <button className="workspace-button is-quiet" type="button" disabled={!currentProject} onClick={() => { void reconnect(); }}>Reconnect last run</button>}</PageHeader>
     {!currentProject ? <WorkspaceState state="empty">Select or create a project before running General.</WorkspaceState> : null}
     <div className="workspace-chat-thread"><div className="workspace-message is-agent"><b>General</b><p>I run through the production Pi agent on Modal and return reviewable work here.</p></div>{messages.map((message, index) => <div key={`${message.role}-${index}`} className={`workspace-message ${message.role === "user" ? "is-user" : "is-agent"}`}><b>{message.role === "user" ? "You" : message.role === "error" ? "Run failed" : "General"}</b><p>{message.text}</p></div>)}{running ? <div className="workspace-message is-agent"><b>General</b><p>Working in Modal…</p></div> : null}</div>
+    {latestAgentText && currentProject ? <div className="workspace-composer-actions"><span>Keep this result as a versioned, collaborative output.</span><button type="button" className="workspace-button is-quiet" disabled={savingOutput} onClick={() => {
+      setSavingOutput(true);
+      const prompt = [...messages].reverse().find((message) => message.role === "user")?.text ?? "General Agent result";
+      const storedRunId = sessionStorage.getItem(`beyond.last-chat-run.${currentProject.id}`) ?? undefined;
+      void saveGeneratedOutput(currentProject.id, prompt.slice(0, 80), latestAgentText, storedRunId)
+        .then((record) => navigate(`/outputs/${record.id}`))
+        .finally(() => setSavingOutput(false));
+    }}>{savingOutput ? "Saving…" : "Save result to Work"}</button></div> : null}
     <WorkspaceComposer ref={composer} items={discovery} disabled={running || !currentProject} onSend={(draft) => { void runGeneral(draft); }} onBrowse={navigate} onPromote={(draft) => { savePromotionDraft(draft); navigate("/work/new"); }} />
     <p className="workspace-footnote">General runs on the production Pi runtime in Modal. Promotion keeps a draft for a longer task.</p>
   </section>;
