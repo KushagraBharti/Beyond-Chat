@@ -82,7 +82,7 @@ export function getOrganizationCatalog() {
   return sessionRequest<OrganizationCatalog>(`${BASE}/catalog`);
 }
 
-export async function executeGeneralAgent(input: { prompt: string; projectId: string }) {
+export async function executeGeneralAgent(input: { prompt: string; projectId: string; agentVersionId?: string; instructions?: string }) {
   const [knowledge, memory] = await Promise.all([
     sessionRequest<{ items: ProductRecordSummary[] }>(
       `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
@@ -105,7 +105,7 @@ export async function executeGeneralAgent(input: { prompt: string; projectId: st
   const groundedPrompt = `${input.prompt}${knowledgeContext}${memoryContext}\n\nDo not claim unsupported facts.`;
   return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
     "/api/runtime/agents/general:execute",
-    { method: "POST", body: JSON.stringify({ prompt: groundedPrompt, project_id: input.projectId }) },
+    { method: "POST", body: JSON.stringify({ prompt: groundedPrompt, project_id: input.projectId, agent_version_id: input.agentVersionId ?? "general:v1", instructions: input.instructions }) },
   );
 }
 

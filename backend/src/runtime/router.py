@@ -38,6 +38,8 @@ class ExecuteGeneralAgentRequest(BaseModel):
     project_id: str = Field(min_length=3, max_length=128)
     run_id: str | None = Field(default=None, min_length=3, max_length=128)
     model: str | None = Field(default=None, min_length=3, max_length=200)
+    agent_version_id: str = Field(default="general:v1", min_length=3, max_length=128)
+    instructions: str | None = Field(default=None, min_length=1, max_length=32_000)
 
 
 Authenticator = Callable[[], RuntimePrincipal | Awaitable[RuntimePrincipal]]
@@ -77,16 +79,17 @@ def create_runtime_router(
         _mutation: None = Depends(guard),
     ) -> dict:
         run_id = body.run_id or str(uuid4())
+        effective_prompt = f"Agent instructions:\n{body.instructions}\n\nUser request:\n{body.prompt}" if body.instructions else body.prompt
         coordinator.accept(RuntimeRun(
             run_id=run_id,
             organization_id=principal.organization_id,
             project_id=body.project_id,
             actor_id=principal.actor_id,
-            agent_version_id="general:v1",
+            agent_version_id=body.agent_version_id,
         ), idempotency_key=f"general:{run_id}")
         coordinator.append_event(DurableEvent(
             run_id=run_id, sequence=None, event_type="input.accepted",
-            payload={"prompt": body.prompt, "agent": "general"},
+            payload={"prompt": effective_prompt, "agent": body.agent_version_id},
             idempotency_key=f"general:{run_id}:input",
         ))
         url = os.getenv("MODAL_RUNTIME_URL", "").strip()
@@ -94,7 +97,7 @@ def create_runtime_router(
         if not url or not secret:
             raise HTTPException(status_code=503, detail="Modal General Agent is not configured")
         payload = {
-            "prompt": body.prompt,
+            "prompt": effective_prompt,
             "organization_id": principal.organization_id,
             "project_id": body.project_id,
             "run_id": run_id,
@@ -120,7 +123,7 @@ def create_runtime_router(
             raise HTTPException(status_code=502, detail="Modal General Agent returned no output")
         coordinator.append_event(DurableEvent(
             run_id=run_id, sequence=None, event_type="output.generated",
-            payload={"text": str(result["text"]), "agent": "general"},
+            payload={"text": str(result["text"]), "agent": body.agent_version_id},
             idempotency_key=f"general:{run_id}:output",
         ))
         return {**result, "run_id": run_id}

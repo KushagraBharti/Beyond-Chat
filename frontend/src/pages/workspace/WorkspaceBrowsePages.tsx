@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { builtInAgents, canAccessAdmin, workspaceRole, type CapabilityView } from "../../features/workspace/adapter";
 import {
   createProject,
+  executeGeneralAgent,
   getOrganizationCatalog,
   getWorkspaceCapabilities,
   listOrganizationRecent,
@@ -383,7 +384,32 @@ export function ProjectsPage() {
 export function AgentsPage() {
   const capabilities = useSection(getWorkspaceCapabilities, "agents");
   const published = useSection(() => listOrganizationRecent("agents"), "agents");
+  const { currentProject } = useProjects();
+  const [agentPrompts, setAgentPrompts] = useState<Record<string, string>>({});
+  const [agentResults, setAgentResults] = useState<Record<string, string>>({});
+  const [runningAgent, setRunningAgent] = useState<string | null>(null);
   const runtimeEnabled = capabilities.status === "ready" && capabilities.data?.runtime_execution === true;
+  async function runPublishedAgent(record: ProductRecordSummary) {
+    if (!currentProject) return;
+    const prompt = agentPrompts[record.id]?.trim();
+    if (!prompt) return;
+    const manifest = (record.payload["manifest"] ?? {}) as Record<string, unknown>;
+    const configuration = (manifest["configuration"] ?? {}) as Record<string, unknown>;
+    setRunningAgent(record.id);
+    try {
+      const result = await executeGeneralAgent({
+        projectId: currentProject.id,
+        prompt,
+        agentVersionId: record.id,
+        instructions: String(configuration["instructions"] ?? "Follow the published agent configuration."),
+      });
+      setAgentResults((current) => ({ ...current, [record.id]: result.text }));
+    } catch (cause) {
+      setAgentResults((current) => ({ ...current, [record.id]: cause instanceof Error ? cause.message : "The agent run failed." }));
+    } finally {
+      setRunningAgent(null);
+    }
+  }
   return (
     <section className="workspace-page">
       <PageHeader eyebrow="agents" title="Agents">
@@ -422,10 +448,12 @@ export function AgentsPage() {
           <p className="workspace-muted">No organization agents have been published yet.</p>
         ) : (
           published.data!.items.map((record) => (
-            <div key={record.id} className="workspace-row-link">
-              <span><b>{recordTitle(record)}</b><small>published version · v{record.version}</small></span>
-              <i>{runtimeEnabled ? "Available" : "Runtime unavailable"}</i>
-            </div>
+            <article key={record.id} className="workspace-form">
+              <span><b>{recordTitle(record)}</b><small>published immutable version · v{record.version}</small></span>
+              <label><span>Run this agent</span><textarea rows={2} value={agentPrompts[record.id] ?? ""} onChange={(event) => setAgentPrompts((current) => ({ ...current, [record.id]: event.target.value }))} placeholder="Give the published agent a task" /></label>
+              <button type="button" className="workspace-button" disabled={!runtimeEnabled || !currentProject || runningAgent !== null || !agentPrompts[record.id]?.trim()} onClick={() => void runPublishedAgent(record)}>{runningAgent === record.id ? "Running on Modal…" : "Run published version"}</button>
+              {agentResults[record.id] ? <WorkspaceState state="ready">{agentResults[record.id]}</WorkspaceState> : null}
+            </article>
           ))
         )}
       </section>
