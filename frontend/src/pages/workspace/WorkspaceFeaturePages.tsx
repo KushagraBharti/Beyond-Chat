@@ -23,6 +23,7 @@ import { useSection } from "../../features/workspace/hooks";
 import { useProjects } from "../../features/workspace/ProjectContext";
 import { sessionRequest } from "../../lib/sessionClient";
 import type { ProductRecordSummary } from "../../features/workspace/api";
+import { useAuth } from "../../context/AuthContext";
 
 export function AgentBuilderPage() {
   const { currentProject } = useProjects();
@@ -131,8 +132,10 @@ const outputFixture: OutputView = {
 export function OutputWorkspacePage() {
   const { outputId } = useParams();
   const { currentProject } = useProjects();
+  const { user } = useAuth();
   const [notice, setNotice] = useState("");
   const [commentReload, setCommentReload] = useState(0);
+  const [reviewReload, setReviewReload] = useState(0);
   const output = useSection(
     () => currentProject && outputId ? sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}`) : Promise.reject(new Error("Choose the output's project first.")),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}`,
@@ -140,6 +143,10 @@ export function OutputWorkspacePage() {
   const comments = useSection(
     () => currentProject && outputId ? sessionRequest<{ items: ProductRecordSummary[] }>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`) : Promise.resolve({ items: [] }),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}:comments:${commentReload}`,
+  );
+  const reviews = useSection(
+    () => currentProject && outputId ? sessionRequest<{ items: ProductRecordSummary[] }>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`) : Promise.resolve({ items: [] }),
+    `${currentProject?.id ?? "none"}:${outputId ?? "none"}:reviews:${reviewReload}`,
   );
   const notSent = (action: string) => setNotice(`${action} was not sent. ${integrationAvailability.deferred.collaboration}`);
   const actions = { onSelectVersion: () => undefined, onCheckpoint: () => notSent("Checkpoint"), onRestore: () => notSent("Restore"), onCompare: () => notSent("Compare"), onBranch: () => notSent("Branch"), onPromote: () => notSent("Promote") };
@@ -150,7 +157,8 @@ export function OutputWorkspacePage() {
   const body = typeof record.payload["description"] === "string" ? record.payload["description"] : "";
   const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId: `v${record.version}`, versions: [{ id: `v${record.version}`, ordinal: record.version, label: `Version ${record.version}`, author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }], preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] } };
   const commentViews = (comments.data?.items ?? []).map((item) => ({ id: item.id, author: item.created_by ?? "Organization member", body: String(item.payload["body"] ?? ""), createdAt: item.created_at, anchorLabel: "Output", resolved: item.state === "resolved", replies: [] }));
-  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={[]} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: () => notSent("Resolve"), onRequestReview: () => notSent("Review request") }} /></div></section>;
+  const reviewViews = (reviews.data?.items ?? []).map((item) => ({ id: item.id, reviewer: String(item.payload["reviewer_ids"] instanceof Array ? item.payload["reviewer_ids"][0] : "Organization reviewer"), status: item.state as "pending" | "approved" | "changes_requested", note: typeof item.payload["instructions"] === "string" ? item.payload["instructions"] : null }));
+  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={reviewViews} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: async (commentId) => { if (!currentProject) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/comments/${encodeURIComponent(commentId)}/resolve`, { method: "POST" }); setCommentReload((value) => value + 1); }, onRequestReview: async () => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ reviewer_ids: [user?.email ?? user?.id ?? "organization-reviewer"], instructions: "Review this output and leave specific feedback." }) }); setReviewReload((value) => value + 1); } }} /></div></section>;
 }
 
 export function AutomationsWorkspacePage() {

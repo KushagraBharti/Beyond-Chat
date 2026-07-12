@@ -618,13 +618,29 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return {"items": [item for item in service.list("comment", target)
                           if item["payload"].get("output_id") == output_id]}
 
+    @router.post("/projects/{project_id}/comments/{comment_id}/resolve")
+    async def resolve_comment(project_id: str, comment_id: str,
+                              principal: Principal = Depends(deps.principal),
+                              _guard: None = Depends(mutation)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        comment = run(lambda: service.get("comment", comment_id, target))
+        return run(lambda: service.update(kind="comment", record_id=comment_id, scope=target,
+            principal=principal, expected_version=comment["version"], payload=comment["payload"], state="resolved"))
+
     @router.post("/projects/{project_id}/outputs/{output_id}/reviews", status_code=201)
     async def create_review(project_id: str, output_id: str, body: ReviewCreate,
                             idempotency_key: IdempotencyKey, principal: Principal = Depends(deps.principal),
                             _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.EDIT)
         return run(lambda: service.append(kind="review", parent_kind="output", parent_id=output_id,
-            scope=target, principal=principal, idempotency_key=idempotency_key, payload=body.model_dump(), state="pending"))
+            scope=target, principal=principal, idempotency_key=idempotency_key,
+            payload={**body.model_dump(), "output_id": output_id}, state="pending"))
+
+    @router.get("/projects/{project_id}/outputs/{output_id}/reviews")
+    async def list_reviews(project_id: str, output_id: str, principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": [item for item in service.list("review", target)
+                          if item["payload"].get("output_id") == output_id]}
 
     @router.post("/projects/{project_id}/reviews/{review_id}/decisions", status_code=201)
     async def review_decision(project_id: str, review_id: str, body: StateTransition,
