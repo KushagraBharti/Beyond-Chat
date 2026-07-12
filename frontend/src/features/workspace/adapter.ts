@@ -24,7 +24,7 @@ export interface PromotionDraft {
   readonly source: "chat";
 }
 
-export type CapabilityView = "apps" | "skills" | "mcp" | "sources" | "policy";
+export type CapabilityView = "apps" | "skills" | "tools" | "mcp" | "sources" | "policy";
 
 export function workspaceRole(metadata: unknown): PlannedWorkspaceRole {
   if (!metadata || typeof metadata !== "object" || !("role" in metadata)) return "member";

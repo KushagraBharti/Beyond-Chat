@@ -23,7 +23,7 @@ function CapabilityState({ state }: { state: string }) {
 }
 
 const capabilityViews: readonly { readonly id: CapabilityView; readonly label: string }[] = [
-  { id: "apps", label: "Apps" }, { id: "skills", label: "Skills" }, { id: "mcp", label: "MCP" }, { id: "sources", label: "Sources" }, { id: "policy", label: "Readiness" },
+  { id: "apps", label: "Apps" }, { id: "skills", label: "Skills" }, { id: "tools", label: "Tools" }, { id: "mcp", label: "MCP" }, { id: "sources", label: "Sources" }, { id: "policy", label: "Readiness" },
 ];
 
 function CatalogRows({ records, kindLabel }: { records: ProductRecordSummary[]; kindLabel: string }) {
@@ -266,7 +266,7 @@ function KnowledgeAppsBrowser() {
     setSearchParams({ view: nextView });
     tabs.current.get(nextView)?.focus();
   };
-  const catalogRecords = (key: "apps" | "skills" | "mcp_servers"): ProductRecordSummary[] =>
+  const catalogRecords = (key: "apps" | "skills" | "tools" | "mcp_servers"): ProductRecordSummary[] =>
     catalog.status === "ready" || catalog.status === "empty" ? (catalog.data?.[key] ?? []) : [];
   return <>
     <div className="workspace-section-tabs" role="tablist" aria-label="Knowledge and capability views">
@@ -283,6 +283,7 @@ function KnowledgeAppsBrowser() {
       {catalog.status === "error" && view !== "sources" && view !== "policy" ? <WorkspaceState state="error">{catalog.message ?? "The catalog could not be loaded."}</WorkspaceState> : null}
       {view === "apps" ? <AppConnections /> : null}
       {view === "skills" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("skills")} kindLabel="skills" /> : null}
+      {view === "tools" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("tools")} kindLabel="tools" /> : null}
       {view === "mcp" && catalog.status !== "loading" && catalog.status !== "error" ? <CatalogRows records={catalogRecords("mcp_servers")} kindLabel="MCP servers" /> : null}
       {view === "sources" ? <KnowledgeSources /> : null}
       {view === "policy" ? <ReadinessView /> : null}
