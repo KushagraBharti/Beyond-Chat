@@ -83,17 +83,26 @@ export function getOrganizationCatalog() {
 }
 
 export async function executeGeneralAgent(input: { prompt: string; projectId: string }) {
-  const knowledge = await sessionRequest<{ items: ProductRecordSummary[] }>(
-    `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
-  ).catch(() => ({ items: [] }));
+  const [knowledge, memory] = await Promise.all([
+    sessionRequest<{ items: ProductRecordSummary[] }>(
+      `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
+    ).catch(() => ({ items: [] })),
+    sessionRequest<{ items: ProductRecordSummary[] }>(
+      `${BASE}/projects/${encodeURIComponent(input.projectId)}/memory`,
+    ).catch(() => ({ items: [] })),
+  ]);
   const sources = knowledge.items.slice(0, 8).map((record) => ({
     id: record.id,
     name: recordTitle(record),
     content: String(record.payload["description"] ?? "").slice(0, 2_000),
   })).filter((source) => source.content.trim());
-  const groundedPrompt = sources.length ? `${input.prompt}\n\nApproved project knowledge:\n${sources
+  const memories = memory.items.filter((record) => record.state === "active" && record.payload["sensitivity"] !== "sensitive")
+    .slice(0, 8).map((record) => String(record.payload["content"] ?? "").slice(0, 1_000)).filter(Boolean);
+  const knowledgeContext = sources.length ? `\n\nApproved project knowledge:\n${sources
     .map((source) => `- [Source: ${source.name} | ${source.id}] ${source.content}`)
-    .join("\n")}\n\nUse this knowledge when relevant and cite it with [Source: name]. Do not claim unsupported facts.` : input.prompt;
+    .join("\n")}\nUse this knowledge when relevant and cite it with [Source: name].` : "";
+  const memoryContext = memories.length ? `\n\nApproved project memory:\n${memories.map((content) => `- ${content}`).join("\n")}` : "";
+  const groundedPrompt = `${input.prompt}${knowledgeContext}${memoryContext}\n\nDo not claim unsupported facts.`;
   return sessionRequest<{ run_id: string; text: string; events: Array<Record<string, unknown>> }>(
     "/api/runtime/agents/general:execute",
     { method: "POST", body: JSON.stringify({ prompt: groundedPrompt, project_id: input.projectId }) },
