@@ -222,8 +222,8 @@ def require_csrf(
     cookie_match = bool(
         csrf_cookie and csrf_header and hmac.compare_digest(csrf_cookie, csrf_header)
     )
-    header_gate = bool(csrf_header)
-    if not cookie_match and not header_gate:
+    signed_match = _valid_signed_csrf(csrf_header)
+    if not cookie_match and not signed_match:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF validation failed.")
 
 
@@ -232,6 +232,16 @@ def _signed_csrf() -> str:
     secret = (settings.workos_cookie_password or "").encode()
     signature = hmac.new(secret, nonce.encode(), "sha256").hexdigest()
     return f"{nonce}.{signature}"
+
+
+def _valid_signed_csrf(value: str | None) -> bool:
+    if not value or not settings.workos_cookie_password or "." not in value:
+        return False
+    nonce, signature = value.rsplit(".", 1)
+    expected = hmac.new(
+        settings.workos_cookie_password.encode(), nonce.encode(), "sha256"
+    ).hexdigest()
+    return bool(nonce) and hmac.compare_digest(signature, expected)
 
 
 async def require_principal(
