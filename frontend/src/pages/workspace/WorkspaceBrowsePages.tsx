@@ -109,7 +109,7 @@ function KnowledgeSources() {
 function AppConnections() {
   const { currentProject } = useProjects();
   const [reloadKey, setReloadKey] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const connections = useSection(
     () => currentProject
@@ -120,9 +120,9 @@ function AppConnections() {
     `${currentProject?.id ?? "none"}:${reloadKey}`,
   );
 
-  async function connectGmail() {
+  async function connectApp(app: { name: string; toolkit: string; description: string }) {
     if (!currentProject) return;
-    setBusy(true);
+    setBusy(app.toolkit);
     setError(null);
     try {
       const record = await sessionRequest<ProductRecordSummary & { oauth?: { redirect_url?: string } }>(
@@ -131,19 +131,19 @@ function AppConnections() {
           method: "POST",
           headers: { "Idempotency-Key": crypto.randomUUID() },
           body: JSON.stringify({
-            name: "Gmail",
-            description: "Read-only Gmail connection",
-            configuration: { toolkit: "GMAIL" },
+            name: app.name,
+            description: app.description,
+            configuration: { toolkit: app.toolkit },
           }),
         },
       );
       const redirectUrl = record.oauth?.redirect_url;
-      if (!redirectUrl) throw new Error("Gmail authorization is not available yet.");
+      if (!redirectUrl) throw new Error(`${app.name} authorization is not available yet.`);
       window.location.assign(redirectUrl);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Gmail could not be connected.");
+      setError(cause instanceof Error ? cause.message : `${app.name} could not be connected.`);
       setReloadKey((value) => value + 1);
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -155,20 +155,26 @@ function AppConnections() {
     return <WorkspaceState state="error">{connections.message ?? "Connections could not be loaded."}</WorkspaceState>;
   }
   const items = connections.data?.items ?? [];
-  const gmail = items.find((record) => recordTitle(record).toLowerCase() === "gmail" && record.state !== "disconnected");
+  const apps = [
+    { name: "GitHub", toolkit: "GITHUB", description: "Read repositories and profile information", action: "Opening GitHub…" },
+    { name: "Gmail", toolkit: "GMAIL", description: "Search and read email messages", action: "Opening Google…" },
+  ];
   return <div className="workspace-stack">
     {error ? <WorkspaceState state="error">{error}</WorkspaceState> : null}
-    {gmail ? (
-      <article className="workspace-capability-row">
-        <div><span className="workspace-capability-meta">Project app · read-only</span><h2>Gmail</h2><p>Gmail is {gmail.state.replaceAll("_", " ")} for {currentProject.name}.</p></div>
-        <CapabilityState state={gmail.state} />
-      </article>
-    ) : (
-      <article className="workspace-capability-row">
-        <div><span className="workspace-capability-meta">Composio · read-only access</span><h2>Gmail</h2><p>Connect Gmail so agents can search and read messages in this project.</p></div>
-        <button type="button" className="workspace-button" disabled={busy} onClick={() => void connectGmail()}>{busy ? "Opening Google…" : "Connect Gmail"}</button>
-      </article>
-    )}
+    {apps.map((app) => {
+      const connection = items.find((record) => recordTitle(record).toLowerCase() === app.name.toLowerCase() && record.state !== "disconnected");
+      return connection ? (
+        <article key={app.toolkit} className="workspace-capability-row">
+          <div><span className="workspace-capability-meta">Project app · read-only</span><h2>{app.name}</h2><p>{app.name} is {connection.state.replaceAll("_", " ")} for {currentProject.name}.</p></div>
+          <CapabilityState state={connection.state} />
+        </article>
+      ) : (
+        <article key={app.toolkit} className="workspace-capability-row">
+          <div><span className="workspace-capability-meta">Composio · read-only access</span><h2>{app.name}</h2><p>Connect {app.name} so agents can {app.description.toLowerCase()} in this project.</p></div>
+          <button type="button" className="workspace-button" disabled={busy !== null} onClick={() => void connectApp(app)}>{busy === app.toolkit ? app.action : `Connect ${app.name}`}</button>
+        </article>
+      );
+    })}
   </div>;
 }
 
