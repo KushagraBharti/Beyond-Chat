@@ -15,6 +15,8 @@ import {
   loadProjectMemory,
   rememberInProject,
   resolveMemoryProposal,
+  setMemoryEntryEnabled,
+  updateMemoryEntry,
   type MemoryRecords,
 } from "../../features/memory/apiClient";
 import type { OutputView } from "../../features/outputs/model";
@@ -37,7 +39,7 @@ export function MemoryWorkspacePage() {
   const { currentProject } = useProjects();
   const projectId = currentProject?.id ?? null;
   const memory = useSection<MemoryRecords>(
-    () => (projectId ? loadProjectMemory(projectId) : Promise.resolve({ entries: [], proposals: [], versions: new Map() })),
+    () => (projectId ? loadProjectMemory(projectId) : Promise.resolve({ entries: [], proposals: [], disabledSpaceIds: [], versions: new Map() })),
     projectId ?? "no-project",
   );
 
@@ -52,7 +54,7 @@ export function MemoryWorkspacePage() {
     );
   }
 
-  const records = memory.data ?? { entries: [], proposals: [], versions: new Map<string, number>() };
+  const records = memory.data ?? { entries: [], proposals: [], disabledSpaceIds: [], versions: new Map<string, number>() };
   const say = (text: string) => setNotice(text);
   const act = async (action: () => Promise<unknown>, success: string) => {
     setNotice("");
@@ -84,6 +86,7 @@ export function MemoryWorkspacePage() {
       <MemoryInspector
         entries={records.entries}
         proposals={records.proposals}
+        disabledSpaceIds={records.disabledSpaceIds}
         state={memory.status === "loading" ? "loading" : memory.status === "error" ? "error" : "ready"}
         errorMessage={memory.message ?? undefined}
         onAcceptProposal={(proposalId) => {
@@ -96,13 +99,21 @@ export function MemoryWorkspacePage() {
           if (version === undefined) return say("This proposal is no longer current; reload and retry.");
           void act(() => resolveMemoryProposal(projectId, proposalId, version, "rejected"), "Proposal rejected.");
         }}
-        onEditEntry={() => say("Editing memory content is not yet supported by the canonical API; delete and re-add instead.")}
+        onEditEntry={(entryId, content) => {
+          const version = versionOf(entryId);
+          const entry = records.entries.find((item) => item.id === entryId);
+          if (version === undefined || !entry) return say("This memory is no longer current; reload and retry.");
+          return act(() => updateMemoryEntry(projectId, entryId, version, content, entry.sensitivity, entry.expiresAt), "Memory revision saved.");
+        }}
         onDeleteEntry={(entryId) => {
           const version = versionOf(entryId);
           if (version === undefined) return say("This memory is no longer current; reload and retry.");
           void act(() => deleteMemoryEntry(projectId, entryId, version), "Memory deleted. Derived-index cleanup follows.");
         }}
-        onSetSpaceEnabled={() => say("Per-space recall controls are not yet supported by the canonical API.")}
+        onSetSpaceEnabled={(_spaceId, enabled) => {
+          const entries = records.entries.filter((entry) => versionOf(entry.id) !== undefined);
+          void act(() => Promise.all(entries.map((entry) => setMemoryEntryEnabled(projectId, entry.id, versionOf(entry.id)!, enabled))), enabled ? "Project memory enabled for recall." : "Project memory disabled for recall.");
+        }}
         onExport={() => {
           void act(async () => {
             const value = await exportProjectMemory(projectId);

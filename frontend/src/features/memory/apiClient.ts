@@ -19,6 +19,7 @@ function path(projectId: string, suffix: string) {
 export interface MemoryRecords {
   entries: MemoryEntryView[];
   proposals: MemoryProposalView[];
+  disabledSpaceIds: string[];
   /** record id → current version, required for If-Match mutations */
   versions: Map<string, number>;
 }
@@ -69,8 +70,9 @@ export async function loadProjectMemory(projectId: string): Promise<MemoryRecord
   const versions = new Map<string, number>();
   for (const record of [...entries.items, ...proposals.items]) versions.set(record.id, record.version);
   return {
-    entries: entries.items.filter((record) => record.state === "active").map(entryView),
+    entries: entries.items.filter((record) => record.state === "active" || record.state === "disabled").map(entryView),
     proposals: proposals.items.map(proposalView),
+    disabledSpaceIds: entries.items.some((record) => record.state === "disabled") ? [projectId] : [],
     versions,
   };
 }
@@ -93,6 +95,21 @@ export function rememberInProject(projectId: string, content: string, sensitivit
 
 export function deleteMemoryEntry(projectId: string, memoryId: string, version: number) {
   return sessionRequest<ProductRecordSummary>(path(projectId, `/memory/${encodeURIComponent(memoryId)}/delete`), {
+    method: "POST",
+    headers: { "If-Match": String(version) },
+  });
+}
+
+export function updateMemoryEntry(projectId: string, memoryId: string, version: number, content: string, sensitivityValue: MemorySensitivity = "normal", expiresAt: string | null = null) {
+  return sessionRequest<ProductRecordSummary>(path(projectId, `/memory/${encodeURIComponent(memoryId)}`), {
+    method: "PATCH",
+    headers: { "If-Match": String(version) },
+    body: JSON.stringify({ content, sensitivity: sensitivityValue === "restricted" ? "sensitive" : sensitivityValue, expires_at: expiresAt }),
+  });
+}
+
+export function setMemoryEntryEnabled(projectId: string, memoryId: string, version: number, enabled: boolean) {
+  return sessionRequest<ProductRecordSummary>(path(projectId, `/memory/${encodeURIComponent(memoryId)}/${enabled ? "restore" : "disable"}`), {
     method: "POST",
     headers: { "If-Match": String(version) },
   });

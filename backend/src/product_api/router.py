@@ -521,7 +521,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
             principal=principal, expected_version=expected_version, state=body.state, payload={"reason": body.reason}))
 
     @router.patch("/projects/{project_id}/memory/{memory_id}")
-    async def update_memory(project_id: str, memory_id: str, body: ResourcePatch,
+    async def update_memory(project_id: str, memory_id: str, body: MemoryProposal,
                             expected_version: ExpectedVersion, principal: Principal = Depends(deps.principal),
                             _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.EDIT)
