@@ -207,12 +207,37 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     @router.get("/catalog")
     async def catalog(principal: Principal = Depends(deps.principal)):
         org_scope = await scope(principal, None, None, ResourcePermission.VIEW)
+        def built_in(kind: str, stable_id: str, name: str, description: str) -> dict[str, Any]:
+            return {
+                "id": stable_id,
+                "kind": kind,
+                "state": "ready",
+                "version": 1,
+                "scope": {"organization_id": principal.organization_id, "project_id": None, "team_id": None},
+                "payload": {"name": name, "description": description, "built_in": True, "version": "1.0.0"},
+                "created_by": None,
+                "created_at": "2026-07-12T00:00:00Z",
+                "updated_at": "2026-07-12T00:00:00Z",
+            }
+        skills = service.list("skill", org_scope) or [
+            built_in("skill", "skill.web-research", "Web Research", "Search, compare, synthesize, and cite current sources."),
+            built_in("skill", "skill.document-creation", "Document Creation", "Create structured briefs, reports, and editable Markdown outputs."),
+            built_in("skill", "skill.data-analysis", "Data Analysis", "Inspect data, calculate results, and produce tables and charts."),
+        ]
+        tools = service.list("tool", org_scope) or [
+            built_in("tool", "tool.sandbox", "Modal Sandbox", "Run isolated code and file operations for agent work."),
+        ]
+        apps = service.list("app", org_scope) or [
+            built_in("app", "app.composio", "Composio Apps", "Connect approved organization apps and invoke their tools."),
+        ]
+        mcp_servers = service.list("mcp_server", org_scope) or [
+            built_in("mcp_server", "mcp.custom", "Custom MCP Server", "Register organization MCP servers and expose approved tools to agents."),
+        ]
         return {"built_in_agents": [
                     {"id": "general", "name": "General Agent", "state": "catalog_only"},
                     {"id": "research", "name": "Research Agent", "state": "catalog_only"},
                     {"id": "finance", "name": "Finance Agent", "state": "catalog_only"}],
-                "skills": service.list("skill", org_scope), "tools": service.list("tool", org_scope),
-                "apps": service.list("app", org_scope), "mcp_servers": service.list("mcp_server", org_scope)}
+                "skills": skills, "tools": tools, "apps": apps, "mcp_servers": mcp_servers}
 
     @router.get("/models")
     async def models(principal: Principal = Depends(deps.principal)):
