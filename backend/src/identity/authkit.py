@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import logging
 import secrets
 from typing import Annotated, Any, Literal
 from urllib.parse import quote, unquote
@@ -22,6 +23,7 @@ from .workos_service import WorkOSProvider, WorkOSSession, configured_workos_ser
 
 
 router = APIRouter(prefix="/api", tags=["identity"])
+LOGGER = logging.getLogger("beyond_chat.identity")
 
 _WORKOS_EVENT_TYPES = frozenset(
     f"{resource}.{action}"
@@ -284,18 +286,26 @@ def callback(
             detail="Account setup failed.",
         )
     workos_organization_id = session.organization_id
-    organization = provider.organization(workos_organization_id)
+    try:
+        organization = provider.organization(workos_organization_id)
+    except Exception:
+        LOGGER.exception("Auth callback failed during WorkOS organization lookup.")
+        raise
     user_fields = _user_fields(session)
-    repository.sync_authenticated_identity(
-        issuer=session.issuer,
-        subject=session.subject,
-        workos_organization_id=workos_organization_id,
-        workos_membership_id=None,
-        role=normalize_role(session.role),
-        organization_name=organization.get("name"),
-        organization_slug=organization.get("slug"),
-        **user_fields,
-    )
+    try:
+        repository.sync_authenticated_identity(
+            issuer=session.issuer,
+            subject=session.subject,
+            workos_organization_id=workos_organization_id,
+            workos_membership_id=None,
+            role=normalize_role(session.role),
+            organization_name=organization.get("name"),
+            organization_slug=organization.get("slug"),
+            **user_fields,
+        )
+    except Exception:
+        LOGGER.exception("Auth callback failed during canonical identity sync.")
+        raise
     response = RedirectResponse(packed[1], status_code=status.HTTP_303_SEE_OTHER)
     response.delete_cookie(settings.workos_state_cookie_name, path="/api/auth/callback")
     _set_session_cookie(response, request, session.sealed_session)
