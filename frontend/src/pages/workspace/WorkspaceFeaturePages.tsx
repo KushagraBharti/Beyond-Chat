@@ -185,11 +185,19 @@ export function AutomationsWorkspacePage() {
       <form className="workspace-form" onSubmit={(event) => {
         event.preventDefault();
         setAutomationNotice("");
-        void sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations`, {
+        void sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations`, {
           method: "POST",
           headers: { "Idempotency-Key": crypto.randomUUID() },
-          body: JSON.stringify({ name: automationName, description: "General Agent scheduled work", agent_version_id: "general", trigger: { kind: "schedule", interval_minutes: 1440 }, max_cost_cents: 500, max_actions: 10, configuration: {} }),
-        }).then(() => { setAutomationName(""); setAutomationNotice("Automation created. Resume it when ready to run."); setAutomationReload((value) => value + 1); }).catch((error) => setAutomationNotice(error instanceof Error ? error.message : "Automation could not be created."));
+          body: JSON.stringify({ name: automationName, description: "General Agent scheduled work", agent_version_id: "general:v1", trigger: { kind: "schedule", interval_minutes: 1440 }, max_cost_cents: 500, max_actions: 10, configuration: { overlap: "skip", max_attempts: 3 } }),
+        }).then(async (created) => {
+          await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations/${encodeURIComponent(created.id)}/versions`, {
+            method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() },
+          });
+          await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations/${encodeURIComponent(created.id)}/state/resume`, {
+            method: "POST", headers: { "If-Match": String(created.version) },
+          });
+          setAutomationName(""); setAutomationNotice("Automation published and scheduled."); setAutomationReload((value) => value + 1);
+        }).catch((error) => setAutomationNotice(error instanceof Error ? error.message : "Automation could not be created."));
       }}>
         <label><span>New daily automation</span><input value={automationName} onChange={(event) => setAutomationName(event.target.value)} placeholder="Daily market brief" required /></label>
         <button className="workspace-button" disabled={!automationName.trim()}>Create automation</button>

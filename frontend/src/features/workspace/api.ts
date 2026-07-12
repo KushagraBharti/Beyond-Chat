@@ -41,6 +41,7 @@ export interface ProviderReadiness {
 
 export interface WorkspaceCapabilities {
   runtime_execution: boolean;
+  automation_scheduler?: boolean;
   providers: Record<"models" | "retrieval" | "actions" | "billing", ProviderReadiness>;
 }
 

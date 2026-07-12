@@ -201,6 +201,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return {
             "runtime_execution": os.getenv(
                 "BEYOND_RUNTIME_CONTROL_PLANE_ENABLED", "false").strip().lower() == "true",
+            "automation_scheduler": bool(os.getenv("AUTOMATION_SCHEDULER_SECRET", "").strip()),
             "providers": {capability: provider_state(capability)
                           for capability in ("models", "retrieval", "actions", "billing")},
         }
@@ -823,10 +824,13 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return await _ingest_signed_trigger(organization_id, automation_id, request,
                                             "composio", secret, "id")
 
-    @router.post("/automations/scheduler/tick", include_in_schema=False)
+    @router.api_route("/automations/scheduler/tick", methods=["GET", "POST"], include_in_schema=False)
     async def scheduler_tick(request: Request):
         expected = os.getenv("AUTOMATION_SCHEDULER_SECRET", "")
         provided = request.headers.get("x-scheduler-secret", "")
+        authorization = request.headers.get("authorization", "")
+        if not provided and authorization.lower().startswith("bearer "):
+            provided = authorization[7:].strip()
         if not expected:
             raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
                                 "AUTOMATION_SCHEDULER_SECRET is not configured.")
