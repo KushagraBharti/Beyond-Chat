@@ -108,6 +108,7 @@ _product_authorizer = WorkOSScopeAuthorizer(_product_identity_repository, _produ
 app.include_router(create_product_router(ProductApiDependencies(
     repository=_product_repository,
     authorize_scope=_product_authorizer,
+    mutation_guard=lambda: None,
     providers=create_live_provider_registry(),
 )))
 
