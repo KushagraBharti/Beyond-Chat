@@ -5,7 +5,16 @@ from hashlib import sha256
 from typing import Any
 from uuid import uuid4
 
-from .models import ActualCost, DurableEvent, GatewayDecision, GatewayRequest, Lease, RuntimeRun, StoredOutput
+from .models import (
+    ActualCost,
+    DurableEvent,
+    GatewayDecision,
+    GatewayRequest,
+    Lease,
+    RuntimeCheckpoint,
+    RuntimeRun,
+    StoredOutput,
+)
 
 
 def _iso(value: datetime) -> str:
@@ -20,23 +29,34 @@ class SupabasePostgresRuntimeRepository:
     LOCKED and enforce organization concurrency inside the same transaction.
     """
 
-    REQUIRED_RPCS = frozenset({
-        "admit_runtime_run",
-        "claim_runtime_run",
-        "append_runtime_event",
-        "commit_runtime_output",
-        "finalize_runtime_cost",
-        "reconcile_expired_runtime_leases",
-        "recheck_runtime_gateway_policy",
-        "notify_runtime_run",
-        "transition_runtime_run",
-        "request_runtime_approval",
-        "complete_runtime_cancellation",
-        "reserve_runtime_usage",
-        "adjust_runtime_usage_reservation",
-        "release_runtime_usage_reservation",
-        "record_runtime_attempt_failure",
-    })
+    REQUIRED_RPCS = frozenset(
+        {
+            "admit_runtime_run",
+            "claim_runtime_run",
+            "append_runtime_event",
+            "commit_runtime_output",
+            "finalize_runtime_cost",
+            "reconcile_expired_runtime_leases",
+            "recheck_runtime_gateway_policy",
+            "notify_runtime_run",
+            "transition_runtime_run",
+            "request_runtime_approval",
+            "request_runtime_cancel",
+            "resolve_runtime_approval",
+            "complete_runtime_cancellation",
+            "reserve_runtime_usage",
+            "adjust_runtime_usage_reservation",
+            "release_runtime_usage_reservation",
+            "record_runtime_attempt_failure",
+            "heartbeat_runtime_lease",
+            "release_runtime_lease",
+            "append_runtime_event_fenced",
+            "write_runtime_checkpoint",
+            "suspend_runtime_for_approval",
+            "complete_runtime_success",
+            "reserve_runtime_usage_window",
+        }
+    )
 
     def __init__(self, client: Any) -> None:
         if client is None:
@@ -44,151 +64,504 @@ class SupabasePostgresRuntimeRepository:
         self.client = client
 
     def create_run(self, run: RuntimeRun, idempotency_key: str) -> RuntimeRun:
-        data = self.client.rpc("admit_runtime_run", {
-            "p_run_id": run.run_id,
-            "p_organization_id": run.organization_id,
-            "p_project_id": run.project_id,
-            "p_actor_id": run.actor_id,
-            "p_agent_version_id": run.agent_version_id,
-            "p_idempotency_key": idempotency_key,
-            "p_correlation_id": run.run_id,
-        }).execute().data
+        data = (
+            self.client.rpc(
+                "admit_runtime_run",
+                {
+                    "p_run_id": run.run_id,
+                    "p_organization_id": run.organization_id,
+                    "p_project_id": run.project_id,
+                    "p_actor_id": run.actor_id,
+                    "p_agent_version_id": run.agent_version_id,
+                    "p_idempotency_key": idempotency_key,
+                    "p_correlation_id": run.run_id,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime admission returned no run")
         return self._run(row)
 
     def get_run(self, run_id: str) -> RuntimeRun | None:
-        rows = self.client.table("runtime_runs").select("*").eq("id", run_id).limit(1).execute().data or []
+        rows = (
+            self.client.table("runtime_runs")
+            .select("*")
+            .eq("id", run_id)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
         return self._run(rows[0]) if rows else None
 
-    def claim_next(self, *, worker_id: str, lease_expires_at: datetime, organization_limit: int) -> Lease | None:
-        data = self.client.rpc("claim_runtime_run", {
-            "p_worker_id": worker_id,
-            "p_lease_expires_at": _iso(lease_expires_at),
-            "p_organization_limit": organization_limit,
-        }).execute().data
+    def claim_next(
+        self, *, worker_id: str, lease_expires_at: datetime, organization_limit: int
+    ) -> Lease | None:
+        data = (
+            self.client.rpc(
+                "claim_runtime_run",
+                {
+                    "p_worker_id": worker_id,
+                    "p_lease_expires_at": _iso(lease_expires_at),
+                    "p_organization_limit": organization_limit,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             return None
         return Lease(self._run(row), row["lease_id"], worker_id, lease_expires_at)
 
-    def heartbeat(self, lease_id: str, lease_expires_at: datetime) -> bool:
-        rows = self.client.table("runtime_leases").update({"expires_at": _iso(lease_expires_at), "heartbeat_at": _iso(datetime.now(lease_expires_at.tzinfo))}).eq("id", lease_id).is_("released_at", "null").execute().data or []
-        return bool(rows)
+    def heartbeat(
+        self,
+        *,
+        run_id: str,
+        attempt: int,
+        lease_id: str,
+        worker_id: str,
+        lease_expires_at: datetime,
+    ) -> bool:
+        data = (
+            self.client.rpc(
+                "heartbeat_runtime_lease",
+                {
+                    "p_run_id": run_id,
+                    "p_attempt": attempt,
+                    "p_lease_id": lease_id,
+                    "p_worker_id": worker_id,
+                    "p_lease_expires_at": _iso(lease_expires_at),
+                },
+            )
+            .execute()
+            .data
+        )
+        return bool(data)
 
-    def transition(self, run_id: str, *, expected_version: int, state: str) -> RuntimeRun:
-        data = self.client.rpc("transition_runtime_run", {
-            "p_run_id": run_id, "p_expected_version": expected_version, "p_state": state,
-        }).execute().data
+    def transition(
+        self, run_id: str, *, expected_version: int, state: str
+    ) -> RuntimeRun:
+        data = (
+            self.client.rpc(
+                "transition_runtime_run",
+                {
+                    "p_run_id": run_id,
+                    "p_expected_version": expected_version,
+                    "p_state": state,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime run version conflict")
         return self._run(row)
 
     def append_event(self, event: DurableEvent) -> DurableEvent:
-        self.client.rpc("append_runtime_event", {"p_run_id": event.run_id, "p_sequence": event.sequence, "p_event_type": event.event_type, "p_payload": event.payload, "p_occurred_at": _iso(event.occurred_at)}).execute()
-        return event
+        raise ValueError(
+            "worker event append requires run/attempt/lease fencing; use append_worker_event"
+        )
+
+    def append_worker_event(
+        self, event: DurableEvent, *, attempt: int, lease_id: str, worker_id: str
+    ) -> DurableEvent:
+        if not event.idempotency_key:
+            raise ValueError("worker event idempotency key is required")
+        data = (
+            self.client.rpc(
+                "append_runtime_event_fenced",
+                {
+                    "p_run_id": event.run_id,
+                    "p_attempt": attempt,
+                    "p_lease_id": lease_id,
+                    "p_worker_id": worker_id,
+                    "p_idempotency_key": event.idempotency_key,
+                    "p_event_type": event.event_type,
+                    "p_payload": event.payload,
+                    "p_occurred_at": _iso(event.occurred_at),
+                },
+            )
+            .execute()
+            .data
+        )
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError("runtime event append returned no allocation")
+        return DurableEvent(
+            event.run_id,
+            int(row["sequence"]),
+            event.event_type,
+            event.payload,
+            event.occurred_at,
+            event.idempotency_key,
+        )
 
     def events_after(self, run_id: str, sequence: int) -> list[DurableEvent]:
-        rows = self.client.table("runtime_events").select("*").eq("run_id", run_id).gt("sequence", sequence).order("sequence").execute().data or []
-        return [DurableEvent(row["run_id"], row["sequence"], row["event_type"], row.get("payload") or {}, datetime.fromisoformat(row["occurred_at"].replace("Z", "+00:00"))) for row in rows]
+        rows = (
+            self.client.table("runtime_events")
+            .select("*")
+            .eq("run_id", run_id)
+            .gt("sequence", sequence)
+            .order("sequence")
+            .execute()
+            .data
+            or []
+        )
+        return [
+            DurableEvent(
+                row["run_id"],
+                row["sequence"],
+                row["event_type"],
+                row.get("payload") or {},
+                datetime.fromisoformat(row["occurred_at"].replace("Z", "+00:00")),
+            )
+            for row in rows
+        ]
 
     def record_output(self, output: StoredOutput, event: DurableEvent) -> None:
-        self.client.rpc("commit_runtime_output", {"p_output": output.__dict__, "p_event": {**event.__dict__, "occurred_at": _iso(event.occurred_at)}}).execute()
+        self.client.rpc(
+            "commit_runtime_output",
+            {
+                "p_output": output.__dict__,
+                "p_event": {**event.__dict__, "occurred_at": _iso(event.occurred_at)},
+            },
+        ).execute()
 
     def record_actual_cost(self, cost: ActualCost) -> None:
-        self.client.rpc("finalize_runtime_cost", {"p_cost": {**cost.__dict__, "amount_usd": str(cost.amount_usd)}}).execute()
+        self.client.rpc(
+            "finalize_runtime_cost",
+            {"p_cost": {**cost.__dict__, "amount_usd": str(cost.amount_usd)}},
+        ).execute()
 
     def request_cancel(self, run_id: str, actor_id: str) -> RuntimeRun:
-        data = self.client.rpc("request_runtime_cancel", {"p_run_id": run_id, "p_actor_id": actor_id}).execute().data
+        data = (
+            self.client.rpc(
+                "request_runtime_cancel", {"p_run_id": run_id, "p_actor_id": actor_id}
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime cancellation returned no run")
         return self._run(row)
 
-    def complete_cancellation(self, run_id: str, *, attempt: int, lease_id: str, propagation: dict[str, Any]) -> RuntimeRun:
-        data = self.client.rpc("complete_runtime_cancellation", {
-            "p_run_id": run_id, "p_attempt": attempt, "p_lease_id": lease_id,
-            "p_propagation": propagation,
-        }).execute().data
-        return self._required_run(data, "runtime cancellation completion returned no run")
+    def complete_cancellation(
+        self, run_id: str, *, attempt: int, lease_id: str, propagation: dict[str, Any]
+    ) -> RuntimeRun:
+        data = (
+            self.client.rpc(
+                "complete_runtime_cancellation",
+                {
+                    "p_run_id": run_id,
+                    "p_attempt": attempt,
+                    "p_lease_id": lease_id,
+                    "p_propagation": propagation,
+                },
+            )
+            .execute()
+            .data
+        )
+        return self._required_run(
+            data, "runtime cancellation completion returned no run"
+        )
 
     def reserve_usage(
-        self, *, reservation_id: str, run_id: str, attempt: int, amount_usd: str,
-        hard_limit_usd: str, expires_at: datetime, idempotency_key: str,
+        self,
+        *,
+        reservation_id: str,
+        run_id: str,
+        attempt: int,
+        amount_usd: str,
+        hard_limit_usd: str,
+        expires_at: datetime,
+        idempotency_key: str,
     ) -> dict[str, Any]:
-        data = self.client.rpc("reserve_runtime_usage", {
-            "p_reservation_id": reservation_id, "p_run_id": run_id, "p_attempt": attempt,
-            "p_amount_usd": amount_usd, "p_hard_limit_usd": hard_limit_usd,
-            "p_expires_at": _iso(expires_at), "p_idempotency_key": idempotency_key,
-        }).execute().data
+        data = (
+            self.client.rpc(
+                "reserve_runtime_usage",
+                {
+                    "p_reservation_id": reservation_id,
+                    "p_run_id": run_id,
+                    "p_attempt": attempt,
+                    "p_amount_usd": amount_usd,
+                    "p_hard_limit_usd": hard_limit_usd,
+                    "p_expires_at": _iso(expires_at),
+                    "p_idempotency_key": idempotency_key,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime usage reservation returned no row")
         return row
 
-    def release_usage_reservation(self, reservation_id: str, *, reason: str) -> dict[str, Any]:
-        data = self.client.rpc("release_runtime_usage_reservation", {
-            "p_reservation_id": reservation_id, "p_reason": reason,
-        }).execute().data
+    def release_usage_reservation(
+        self, reservation_id: str, *, reason: str
+    ) -> dict[str, Any]:
+        data = (
+            self.client.rpc(
+                "release_runtime_usage_reservation",
+                {
+                    "p_reservation_id": reservation_id,
+                    "p_reason": reason,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime usage release returned no row")
         return row
 
     def adjust_usage_reservation(
-        self, reservation_id: str, *, amount_usd: str, hard_limit_usd: str,
+        self,
+        reservation_id: str,
+        *,
+        amount_usd: str,
+        hard_limit_usd: str,
     ) -> dict[str, Any]:
-        data = self.client.rpc("adjust_runtime_usage_reservation", {
-            "p_reservation_id": reservation_id, "p_amount_usd": amount_usd,
-            "p_hard_limit_usd": hard_limit_usd,
-        }).execute().data
+        data = (
+            self.client.rpc(
+                "adjust_runtime_usage_reservation",
+                {
+                    "p_reservation_id": reservation_id,
+                    "p_amount_usd": amount_usd,
+                    "p_hard_limit_usd": hard_limit_usd,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime usage adjustment returned no row")
         return row
 
     def record_attempt_failure(
-        self, run_id: str, *, attempt: int, lease_id: str, failure_class: str,
-        failure_detail: dict[str, Any], retryable: bool, max_attempts: int,
+        self,
+        run_id: str,
+        *,
+        attempt: int,
+        lease_id: str,
+        failure_class: str,
+        failure_detail: dict[str, Any],
+        retryable: bool,
+        max_attempts: int,
         retry_delay_seconds: int,
     ) -> RuntimeRun:
-        data = self.client.rpc("record_runtime_attempt_failure", {
-            "p_run_id": run_id, "p_attempt": attempt, "p_lease_id": lease_id,
-            "p_failure_class": failure_class, "p_failure_detail": failure_detail,
-            "p_retryable": retryable, "p_max_attempts": max_attempts,
-            "p_retry_delay_seconds": retry_delay_seconds,
-        }).execute().data
+        data = (
+            self.client.rpc(
+                "record_runtime_attempt_failure",
+                {
+                    "p_run_id": run_id,
+                    "p_attempt": attempt,
+                    "p_lease_id": lease_id,
+                    "p_failure_class": failure_class,
+                    "p_failure_detail": failure_detail,
+                    "p_retryable": retryable,
+                    "p_max_attempts": max_attempts,
+                    "p_retry_delay_seconds": retry_delay_seconds,
+                },
+            )
+            .execute()
+            .data
+        )
         return self._required_run(data, "runtime attempt failure returned no run")
 
-    def request_approval(self, approval_id: str, run_id: str, sequence: int, operation: str, argument_summary: dict, expires_at: datetime | None) -> RuntimeRun:
-        data = self.client.rpc("request_runtime_approval", {
-            "p_approval_id": approval_id, "p_run_id": run_id, "p_sequence": sequence,
-            "p_operation": operation, "p_argument_summary": argument_summary,
-            "p_expires_at": _iso(expires_at) if expires_at else None,
-        }).execute().data
+    def request_approval(
+        self,
+        approval_id: str,
+        run_id: str,
+        sequence: int,
+        operation: str,
+        argument_summary: dict,
+        expires_at: datetime | None,
+    ) -> RuntimeRun:
+        data = (
+            self.client.rpc(
+                "request_runtime_approval",
+                {
+                    "p_approval_id": approval_id,
+                    "p_run_id": run_id,
+                    "p_sequence": sequence,
+                    "p_operation": operation,
+                    "p_argument_summary": argument_summary,
+                    "p_expires_at": _iso(expires_at) if expires_at else None,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime approval request returned no run")
         return self._run(row)
 
-    def resolve_approval(self, approval_id: str, organization_id: str, actor_id: str, decision: str, reason: str | None) -> RuntimeRun:
-        data = self.client.rpc("resolve_runtime_approval", {
-            "p_approval_id": approval_id, "p_organization_id": organization_id, "p_actor_id": actor_id,
-            "p_decision": decision, "p_reason": reason,
-        }).execute().data
+    def resolve_approval(
+        self,
+        approval_id: str,
+        organization_id: str,
+        actor_id: str,
+        decision: str,
+        reason: str | None,
+    ) -> RuntimeRun:
+        data = (
+            self.client.rpc(
+                "resolve_runtime_approval",
+                {
+                    "p_approval_id": approval_id,
+                    "p_organization_id": organization_id,
+                    "p_actor_id": actor_id,
+                    "p_decision": decision,
+                    "p_reason": reason,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
             raise RuntimeError("runtime approval resolution returned no run")
         return self._run(row)
 
-    def release_lease(self, lease_id: str) -> None:
-        self.client.table("runtime_leases").update({"released_at": _iso(datetime.now().astimezone())}).eq("id", lease_id).execute()
+    def release_lease(
+        self, *, run_id: str, attempt: int, lease_id: str, worker_id: str, reason: str
+    ) -> None:
+        self.client.rpc(
+            "release_runtime_lease",
+            {
+                "p_run_id": run_id,
+                "p_attempt": attempt,
+                "p_lease_id": lease_id,
+                "p_worker_id": worker_id,
+                "p_reason": reason,
+            },
+        ).execute()
+
+    def write_checkpoint(
+        self, checkpoint: RuntimeCheckpoint, *, worker_id: str
+    ) -> RuntimeCheckpoint:
+        data = (
+            self.client.rpc(
+                "write_runtime_checkpoint",
+                {
+                    "p_checkpoint_id": checkpoint.checkpoint_id,
+                    "p_run_id": checkpoint.run_id,
+                    "p_attempt": checkpoint.attempt,
+                    "p_lease_id": checkpoint.lease_id,
+                    "p_worker_id": worker_id,
+                    "p_logical_state": checkpoint.logical_state,
+                    "p_working_set": checkpoint.working_set,
+                    "p_runtime_image_digest": checkpoint.runtime_image_digest,
+                    "p_state_digest": checkpoint.state_digest,
+                    "p_byte_size": checkpoint.byte_size,
+                },
+            )
+            .execute()
+            .data
+        )
+        row = data[0] if isinstance(data, list) and data else data
+        if not isinstance(row, dict):
+            raise RuntimeError("runtime checkpoint returned no row")
+        return RuntimeCheckpoint(
+            str(row["id"]),
+            str(row["run_id"]),
+            int(row["attempt"]),
+            str(row["lease_id"]),
+            int(row["event_sequence"]),
+            row["logical_state"],
+            row["working_set"],
+            str(row["runtime_image_digest"]),
+            str(row["state_digest"]),
+            int(row["byte_size"]),
+        )
+
+    def suspend_for_approval(
+        self,
+        checkpoint: RuntimeCheckpoint,
+        *,
+        worker_id: str,
+        approval_id: str,
+        operation: str,
+        argument_summary: dict,
+        expires_at: datetime | None,
+    ) -> RuntimeRun:
+        data = (
+            self.client.rpc(
+                "suspend_runtime_for_approval",
+                {
+                    "p_approval_id": approval_id,
+                    "p_checkpoint_id": checkpoint.checkpoint_id,
+                    "p_run_id": checkpoint.run_id,
+                    "p_attempt": checkpoint.attempt,
+                    "p_lease_id": checkpoint.lease_id,
+                    "p_worker_id": worker_id,
+                    "p_operation": operation,
+                    "p_argument_summary": argument_summary,
+                    "p_expires_at": _iso(expires_at) if expires_at else None,
+                    "p_logical_state": checkpoint.logical_state,
+                    "p_working_set": checkpoint.working_set,
+                    "p_runtime_image_digest": checkpoint.runtime_image_digest,
+                    "p_state_digest": checkpoint.state_digest,
+                    "p_byte_size": checkpoint.byte_size,
+                },
+            )
+            .execute()
+            .data
+        )
+        return self._required_run(data, "runtime approval suspension returned no run")
+
+    def complete_success(
+        self,
+        *,
+        run_id: str,
+        attempt: int,
+        lease_id: str,
+        worker_id: str,
+        output: StoredOutput,
+        costs: list[ActualCost],
+        reservation_id: str | None,
+    ) -> RuntimeRun:
+        serialized_costs = [
+            {**cost.__dict__, "amount_usd": str(cost.amount_usd)} for cost in costs
+        ]
+        data = (
+            self.client.rpc(
+                "complete_runtime_success",
+                {
+                    "p_run_id": run_id,
+                    "p_attempt": attempt,
+                    "p_lease_id": lease_id,
+                    "p_worker_id": worker_id,
+                    "p_output": output.__dict__,
+                    "p_costs": serialized_costs,
+                    "p_reservation_id": reservation_id,
+                },
+            )
+            .execute()
+            .data
+        )
+        return self._required_run(data, "runtime success completion returned no run")
 
     def reconcile_expired(self, now: datetime) -> list[str]:
-        data = self.client.rpc("reconcile_expired_runtime_leases", {"p_now": _iso(now)}).execute().data or []
-        return [str(item["run_id"] if isinstance(item, dict) else item) for item in data]
+        data = (
+            self.client.rpc("reconcile_expired_runtime_leases", {"p_now": _iso(now)})
+            .execute()
+            .data
+            or []
+        )
+        return [
+            str(item["run_id"] if isinstance(item, dict) else item) for item in data
+        ]
 
     @staticmethod
     def _required_run(data: Any, message: str) -> RuntimeRun:
@@ -199,7 +572,16 @@ class SupabasePostgresRuntimeRepository:
 
     @staticmethod
     def _run(row: dict[str, Any]) -> RuntimeRun:
-        return RuntimeRun(str(row["id"]), str(row["organization_id"]), str(row["project_id"]), str(row["actor_id"]), str(row["agent_version_id"]), str(row["state"]), int(row.get("attempt", 0)), int(row.get("version", 1)))
+        return RuntimeRun(
+            str(row["id"]),
+            str(row["organization_id"]),
+            str(row["project_id"]),
+            str(row["actor_id"]),
+            str(row["agent_version_id"]),
+            str(row["state"]),
+            int(row.get("attempt", 0)),
+            int(row.get("version", 1)),
+        )
 
 
 class SupabaseRuntimeQueue:
@@ -216,29 +598,55 @@ class SupabaseGatewayPolicyResolver:
         self.client = client
 
     def authorize(self, request: GatewayRequest) -> GatewayDecision:
-        data = self.client.rpc("recheck_runtime_gateway_policy", {
-            "p_run_id": request.identity.run_id,
-            "p_organization_id": request.identity.organization_id,
-            "p_project_id": request.identity.project_id,
-            "p_actor_id": request.identity.actor_id,
-            "p_agent_version_id": request.identity.agent_version_id,
-            "p_operation": request.operation,
-            "p_connection_id": request.connection_id,
-            "p_approval_id": request.approval_id,
-            "p_idempotency_key": request.idempotency_key,
-        }).execute().data
+        data = (
+            self.client.rpc(
+                "recheck_runtime_gateway_policy",
+                {
+                    "p_run_id": request.identity.run_id,
+                    "p_organization_id": request.identity.organization_id,
+                    "p_project_id": request.identity.project_id,
+                    "p_actor_id": request.identity.actor_id,
+                    "p_agent_version_id": request.identity.agent_version_id,
+                    "p_operation": request.operation,
+                    "p_connection_id": request.connection_id,
+                    "p_approval_id": request.approval_id,
+                    "p_idempotency_key": request.idempotency_key,
+                },
+            )
+            .execute()
+            .data
+        )
         row = data[0] if isinstance(data, list) and data else data
         if not isinstance(row, dict):
-            return GatewayDecision(False, "unknown", "policy resolver returned no decision")
-        return GatewayDecision(bool(row.get("allowed")), str(row.get("policy_version") or "unknown"), str(row.get("reason") or "denied"))
+            return GatewayDecision(
+                False, "unknown", "policy resolver returned no decision"
+            )
+        return GatewayDecision(
+            bool(row.get("allowed")),
+            str(row.get("policy_version") or "unknown"),
+            str(row.get("reason") or "denied"),
+        )
 
 
 class SupabaseConnectionOwnershipResolver:
     def __init__(self, client: Any) -> None:
         self.client = client
 
-    def is_owned(self, *, connection_id: str, organization_id: str, actor_id: str) -> bool:
-        rows = self.client.table("app_connections").select("id").eq("id", connection_id).eq("organization_id", organization_id).eq("owner_profile_id", actor_id).eq("state", "active").limit(1).execute().data or []
+    def is_owned(
+        self, *, connection_id: str, organization_id: str, actor_id: str
+    ) -> bool:
+        rows = (
+            self.client.table("app_connections")
+            .select("id")
+            .eq("id", connection_id)
+            .eq("organization_id", organization_id)
+            .eq("owner_profile_id", actor_id)
+            .eq("state", "active")
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
         return bool(rows)
 
 
@@ -249,15 +657,37 @@ class SupabaseOutputStore:
         self.client = client
         self.bucket = bucket
 
-    def put(self, *, run: RuntimeRun, name: str, media_type: str, content: bytes) -> StoredOutput:
+    def put(
+        self, *, run: RuntimeRun, name: str, media_type: str, content: bytes
+    ) -> StoredOutput:
         digest = sha256(content).hexdigest()
-        safe_name = "".join(character for character in name if character.isalnum() or character in {"-", "_", "."})[:120] or "output.bin"
+        safe_name = (
+            "".join(
+                character
+                for character in name
+                if character.isalnum() or character in {"-", "_", "."}
+            )[:120]
+            or "output.bin"
+        )
         path = f"{run.organization_id}/{run.project_id}/runs/{run.run_id}/{digest}/{safe_name}"
         try:
-            self.client.storage.from_(self.bucket).upload(path=path, file=content, file_options={"content-type": media_type, "upsert": "false"})
+            self.client.storage.from_(self.bucket).upload(
+                path=path,
+                file=content,
+                file_options={"content-type": media_type, "upsert": "false"},
+            )
         except Exception as exc:
             # A duplicate content-addressed path is safe only when the stored bytes are identical.
             existing = self.client.storage.from_(self.bucket).download(path)
             if bytes(existing) != content:
-                raise RuntimeError("authoritative output upload failed integrity verification") from exc
-        return StoredOutput(f"out_{uuid4().hex}", run.run_id, f"supabase://{self.bucket}/{path}", f"sha256:{digest}", media_type, len(content))
+                raise RuntimeError(
+                    "authoritative output upload failed integrity verification"
+                ) from exc
+        return StoredOutput(
+            f"out_{uuid4().hex}",
+            run.run_id,
+            f"supabase://{self.bucket}/{path}",
+            f"sha256:{digest}",
+            media_type,
+            len(content),
+        )

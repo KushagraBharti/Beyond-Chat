@@ -46,10 +46,25 @@ class Lease:
 @dataclass(frozen=True)
 class DurableEvent:
     run_id: str
-    sequence: int
+    sequence: int | None
     event_type: str
     payload: dict[str, Any]
     occurred_at: datetime = field(default_factory=utc_now)
+    idempotency_key: str | None = None
+
+
+@dataclass(frozen=True)
+class RuntimeCheckpoint:
+    checkpoint_id: str
+    run_id: str
+    attempt: int
+    lease_id: str
+    event_sequence: int
+    logical_state: dict[str, Any]
+    working_set: dict[str, Any]
+    runtime_image_digest: str
+    state_digest: str
+    byte_size: int
 
 
 @dataclass(frozen=True)

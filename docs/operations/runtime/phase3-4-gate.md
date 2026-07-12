@@ -44,4 +44,20 @@ The recapture uses the release in `infra/modal/rollout.json` and resolves `fixtu
 3. After manager review, apply the migration remotely with a verified backup/rollback point and service-role configuration; then run API/worker/provider failure injection through that path, including 429/500, timeout, partial upload, expired snapshot, cancellation propagation, approval suspension, and usage reserve/adjust/release assertions. No remote migration was applied during this audit.
 4. Complete real General/Research/Finance gateway parity, controlled canary, immediate rollback proof, and the observation window before separately authorizing any legacy-runner decommission or nonzero traffic.
 
+## Phase 3 fencing prerequisite (2026-07-12)
+
+Migration `20260712013200_runtime_fencing_checkpoints_and_budget_windows.sql` is the ordered successor to `20260712013100`. The mandatory `supabase migration new runtime_fencing_checkpoints_and_budget_windows` attempt was made first with CLI 2.109.0; OneDrive returned `LegacyMigrationNewWriteError` / `AlreadyExists` for `supabase/migrations`. The repository owner then explicitly authorized the fixed `013200` filename. It remains local-only and requires the preceding runtime-control-plane, atomic-persistence, and client-deny migrations.
+
+The contract added by this prerequisite is:
+
+- admission remains the sole owner of dispatch insertion, so idempotent API retries do not issue a second queue notification;
+- `append_runtime_event_fenced` allocates the next sequence under the run lock and deduplicates by `(run_id, idempotency_key)` while binding the mutation to the active run, attempt, lease, worker, and unexpired lease;
+- lease heartbeat and release are service-only fenced RPCs rather than direct table updates;
+- durable checkpoints bind logical state, working-set manifest, image digest, byte integrity, event cursor, run, attempt, and lease;
+- `suspend_runtime_for_approval` atomically saves a checkpoint, creates the approval/event, closes the attempt, releases the lease and active attempt reservations, and moves the run to `awaiting_approval`;
+- `complete_runtime_success` atomically records the output and actual costs, releases the named reservation, closes the attempt and lease, emits completion, and terminalizes the run;
+- budget enforcement has explicit organization account/window rows, and `reserve_runtime_usage_window` counts actual costs only inside that window plus its active holds rather than the lifetime ledger.
+
+All new tables and mutation functions are service-role only with RLS enabled. Stale workers receive a serialization failure and cannot mutate a later attempt. Existing unfenced RPCs remain for compatibility but are not acceptable worker mutation paths; worker/gateway wiring must move to the new methods before traffic can be authorized.
+
 See `docs/operations/runtime/phase4b-evidence.md` for v4 immutable IDs, security remediation, remote smoke, mutation history, and exact remaining blockers.

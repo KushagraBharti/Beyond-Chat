@@ -121,8 +121,13 @@ def test_supabase_get_artifact_applies_profile_scope_filter():
     assert artifact["id"] == "artifact-1"
     assert artifact["ownerProfileId"] == "user-1"
     artifact_query = client.queries[0]
-    assert artifact_query.filters == [("workspace_id", "workspace-1"), ("id", "artifact-1")]
-    assert artifact_query.or_filters == ["owner_profile_id.eq.user-1,created_by.eq.user-1"]
+    assert artifact_query.filters == [
+        ("workspace_id", "workspace-1"),
+        ("id", "artifact-1"),
+    ]
+    assert artifact_query.or_filters == [
+        "owner_profile_id.eq.user-1,created_by.eq.user-1"
+    ]
     assert artifact_query.single is True
 
 
@@ -179,87 +184,273 @@ def test_supabase_get_run_applies_profile_scope_filter_and_loads_steps():
 
 def _runtime_row(state: str = "running") -> dict[str, Any]:
     return {
-        "id": "run_1", "organization_id": "org_1", "project_id": "project_1",
-        "actor_id": "actor_1", "agent_version_id": "agent_v1", "state": state,
-        "attempt": 2, "version": 4,
+        "id": "run_1",
+        "organization_id": "org_1",
+        "project_id": "project_1",
+        "actor_id": "actor_1",
+        "agent_version_id": "agent_v1",
+        "state": state,
+        "attempt": 2,
+        "version": 4,
     }
 
 
 def test_runtime_repository_exposes_atomic_persistence_rpcs() -> None:
     assert {
-        "complete_runtime_cancellation", "reserve_runtime_usage",
-        "adjust_runtime_usage_reservation", "release_runtime_usage_reservation",
+        "complete_runtime_cancellation",
+        "reserve_runtime_usage",
+        "adjust_runtime_usage_reservation",
+        "release_runtime_usage_reservation",
         "record_runtime_attempt_failure",
+    } <= SupabasePostgresRuntimeRepository.REQUIRED_RPCS
+    assert {
+        "heartbeat_runtime_lease",
+        "release_runtime_lease",
+        "append_runtime_event_fenced",
+        "write_runtime_checkpoint",
+        "suspend_runtime_for_approval",
+        "complete_runtime_success",
+        "reserve_runtime_usage_window",
+        "request_runtime_cancel",
+        "resolve_runtime_approval",
     } <= SupabasePostgresRuntimeRepository.REQUIRED_RPCS
 
 
+def test_runtime_repository_uses_fenced_lease_and_db_allocated_event_rpcs() -> None:
+    expires_at = datetime.fromisoformat("2026-07-12T02:00:00+00:00")
+    client = FakeRuntimeClient(
+        {
+            "heartbeat_runtime_lease": True,
+            "release_runtime_lease": True,
+            "append_runtime_event_fenced": {"event_id": 9, "sequence": 7},
+        }
+    )
+    repository = SupabasePostgresRuntimeRepository(client)
+    assert repository.heartbeat(
+        run_id="run_1",
+        attempt=2,
+        lease_id="lease_1",
+        worker_id="worker_1",
+        lease_expires_at=expires_at,
+    )
+    repository.release_lease(
+        run_id="run_1",
+        attempt=2,
+        lease_id="lease_1",
+        worker_id="worker_1",
+        reason="shutdown",
+    )
+    from src.runtime.models import DurableEvent
+
+    event = repository.append_worker_event(
+        DurableEvent("run_1", None, "tool.completed", {}, expires_at, "event-key-1"),
+        attempt=2,
+        lease_id="lease_1",
+        worker_id="worker_1",
+    )
+    assert event.sequence == 7
+    assert [name for name, _ in client.calls] == [
+        "heartbeat_runtime_lease",
+        "release_runtime_lease",
+        "append_runtime_event_fenced",
+    ]
+
+
+def test_runtime_repository_parses_atomic_terminal_run_shapes() -> None:
+    from decimal import Decimal
+    from src.runtime.models import ActualCost, RuntimeCheckpoint, StoredOutput
+
+    checkpoint = RuntimeCheckpoint(
+        "checkpoint_1",
+        "run_1",
+        2,
+        "lease_1",
+        6,
+        {"messages": []},
+        {"files": []},
+        "sha256:image",
+        "sha256:" + "a" * 64,
+        12,
+    )
+    client = FakeRuntimeClient(
+        {
+            "suspend_runtime_for_approval": _runtime_row("awaiting_approval"),
+            "complete_runtime_success": _runtime_row("completed"),
+        }
+    )
+    repository = SupabasePostgresRuntimeRepository(client)
+    assert (
+        repository.suspend_for_approval(
+            checkpoint,
+            worker_id="worker_1",
+            approval_id="approval_1",
+            operation="tool.write",
+            argument_summary={},
+            expires_at=None,
+        ).state
+        == "awaiting_approval"
+    )
+    output = StoredOutput(
+        "output_1",
+        "run_1",
+        "supabase://outputs/path",
+        "sha256:" + "b" * 64,
+        "text/plain",
+        6,
+    )
+    cost = ActualCost(
+        "run_1",
+        2,
+        "modal",
+        "sandbox",
+        Decimal("0.01"),
+        "usage_1",
+        "rate-v1",
+        "completed",
+    )
+    assert (
+        repository.complete_success(
+            run_id="run_1",
+            attempt=2,
+            lease_id="lease_1",
+            worker_id="worker_1",
+            output=output,
+            costs=[cost],
+            reservation_id="reservation_1",
+        ).state
+        == "completed"
+    )
+
+
 def test_runtime_repository_calls_atomic_cancellation_and_failure_rpcs() -> None:
-    client = FakeRuntimeClient({
-        "complete_runtime_cancellation": _runtime_row("canceled"),
-        "record_runtime_attempt_failure": _runtime_row("retrying"),
-    })
+    client = FakeRuntimeClient(
+        {
+            "complete_runtime_cancellation": _runtime_row("canceled"),
+            "record_runtime_attempt_failure": _runtime_row("retrying"),
+        }
+    )
     repository = SupabasePostgresRuntimeRepository(client)
 
     canceled = repository.complete_cancellation(
-        "run_1", attempt=2, lease_id="lease_1", propagation={"provider": "confirmed"},
+        "run_1",
+        attempt=2,
+        lease_id="lease_1",
+        propagation={"provider": "confirmed"},
     )
     failed = repository.record_attempt_failure(
-        "run_1", attempt=2, lease_id="lease_1", failure_class="provider_timeout",
-        failure_detail={"status": 504}, retryable=True, max_attempts=3,
+        "run_1",
+        attempt=2,
+        lease_id="lease_1",
+        failure_class="provider_timeout",
+        failure_detail={"status": 504},
+        retryable=True,
+        max_attempts=3,
         retry_delay_seconds=30,
     )
 
     assert canceled.state == "canceled"
     assert failed.state == "retrying"
     assert client.calls == [
-        ("complete_runtime_cancellation", {
-            "p_run_id": "run_1", "p_attempt": 2, "p_lease_id": "lease_1",
-            "p_propagation": {"provider": "confirmed"},
-        }),
-        ("record_runtime_attempt_failure", {
-            "p_run_id": "run_1", "p_attempt": 2, "p_lease_id": "lease_1",
-            "p_failure_class": "provider_timeout", "p_failure_detail": {"status": 504},
-            "p_retryable": True, "p_max_attempts": 3, "p_retry_delay_seconds": 30,
-        }),
+        (
+            "complete_runtime_cancellation",
+            {
+                "p_run_id": "run_1",
+                "p_attempt": 2,
+                "p_lease_id": "lease_1",
+                "p_propagation": {"provider": "confirmed"},
+            },
+        ),
+        (
+            "record_runtime_attempt_failure",
+            {
+                "p_run_id": "run_1",
+                "p_attempt": 2,
+                "p_lease_id": "lease_1",
+                "p_failure_class": "provider_timeout",
+                "p_failure_detail": {"status": 504},
+                "p_retryable": True,
+                "p_max_attempts": 3,
+                "p_retry_delay_seconds": 30,
+            },
+        ),
     ]
 
 
 def test_runtime_repository_calls_usage_reservation_rpcs() -> None:
     expires_at = datetime.fromisoformat("2026-07-12T02:00:00+00:00")
     reservation = {
-        "id": "reservation_1", "run_id": "run_1", "state": "reserved",
+        "id": "reservation_1",
+        "run_id": "run_1",
+        "state": "reserved",
         "amount_usd": "1.2500000000",
     }
     released = {**reservation, "state": "released", "release_reason": "completed"}
-    client = FakeRuntimeClient({
-        "reserve_runtime_usage": reservation,
-        "adjust_runtime_usage_reservation": {**reservation, "amount_usd": "2.0000000000"},
-        "release_runtime_usage_reservation": released,
-    })
+    client = FakeRuntimeClient(
+        {
+            "reserve_runtime_usage": reservation,
+            "adjust_runtime_usage_reservation": {
+                **reservation,
+                "amount_usd": "2.0000000000",
+            },
+            "release_runtime_usage_reservation": released,
+        }
+    )
     repository = SupabasePostgresRuntimeRepository(client)
 
-    assert repository.reserve_usage(
-        reservation_id="reservation_1", run_id="run_1", attempt=2,
-        amount_usd="1.25", hard_limit_usd="10.00", expires_at=expires_at,
-        idempotency_key="usage-key-1",
-    )["state"] == "reserved"
-    assert repository.adjust_usage_reservation(
-        "reservation_1", amount_usd="2.00", hard_limit_usd="10.00",
-    )["amount_usd"] == "2.0000000000"
-    assert repository.release_usage_reservation("reservation_1", reason="completed")["state"] == "released"
+    assert (
+        repository.reserve_usage(
+            reservation_id="reservation_1",
+            run_id="run_1",
+            attempt=2,
+            amount_usd="1.25",
+            hard_limit_usd="10.00",
+            expires_at=expires_at,
+            idempotency_key="usage-key-1",
+        )["state"]
+        == "reserved"
+    )
+    assert (
+        repository.adjust_usage_reservation(
+            "reservation_1",
+            amount_usd="2.00",
+            hard_limit_usd="10.00",
+        )["amount_usd"]
+        == "2.0000000000"
+    )
+    assert (
+        repository.release_usage_reservation("reservation_1", reason="completed")[
+            "state"
+        ]
+        == "released"
+    )
     assert client.calls == [
-        ("reserve_runtime_usage", {
-            "p_reservation_id": "reservation_1", "p_run_id": "run_1", "p_attempt": 2,
-            "p_amount_usd": "1.25", "p_hard_limit_usd": "10.00",
-            "p_expires_at": "2026-07-12T02:00:00Z", "p_idempotency_key": "usage-key-1",
-        }),
-        ("adjust_runtime_usage_reservation", {
-            "p_reservation_id": "reservation_1", "p_amount_usd": "2.00",
-            "p_hard_limit_usd": "10.00",
-        }),
-        ("release_runtime_usage_reservation", {
-            "p_reservation_id": "reservation_1", "p_reason": "completed",
-        }),
+        (
+            "reserve_runtime_usage",
+            {
+                "p_reservation_id": "reservation_1",
+                "p_run_id": "run_1",
+                "p_attempt": 2,
+                "p_amount_usd": "1.25",
+                "p_hard_limit_usd": "10.00",
+                "p_expires_at": "2026-07-12T02:00:00Z",
+                "p_idempotency_key": "usage-key-1",
+            },
+        ),
+        (
+            "adjust_runtime_usage_reservation",
+            {
+                "p_reservation_id": "reservation_1",
+                "p_amount_usd": "2.00",
+                "p_hard_limit_usd": "10.00",
+            },
+        ),
+        (
+            "release_runtime_usage_reservation",
+            {
+                "p_reservation_id": "reservation_1",
+                "p_reason": "completed",
+            },
+        ),
     ]
 
 
@@ -269,8 +460,14 @@ def test_phase3_atomic_persistence_sql_is_service_only_and_atomic() -> None:
         / "supabase/migrations/20260712013000_phase3_runtime_atomic_persistence.sql"
     ).read_text(encoding="utf-8")
 
-    assert "alter table public.runtime_usage_reservations enable row level security" in migration
-    assert "revoke all on public.runtime_usage_reservations from public, anon, authenticated" in migration
+    assert (
+        "alter table public.runtime_usage_reservations enable row level security"
+        in migration
+    )
+    assert (
+        "revoke all on public.runtime_usage_reservations from public, anon, authenticated"
+        in migration
+    )
     for signature in (
         "public.complete_runtime_cancellation(text, integer, uuid, jsonb)",
         "public.reserve_runtime_usage(text, text, integer, numeric, numeric, timestamptz, text)",
@@ -278,11 +475,16 @@ def test_phase3_atomic_persistence_sql_is_service_only_and_atomic() -> None:
         "public.release_runtime_usage_reservation(text, text)",
         "public.record_runtime_attempt_failure(text, integer, uuid, text, jsonb, boolean, integer, integer)",
     ):
-        assert f"revoke all on function {signature} from public, anon, authenticated" in migration
+        assert (
+            f"revoke all on function {signature} from public, anon, authenticated"
+            in migration
+        )
     assert migration.count("security definer") == 5
     assert migration.count("set search_path = pg_catalog, public") == 5
     assert "pg_advisory_xact_lock" in migration
-    assert "actual_total + reserved_total + p_amount_usd > p_hard_limit_usd" in migration
+    assert (
+        "actual_total + reserved_total + p_amount_usd > p_hard_limit_usd" in migration
+    )
     assert "p_max_attempts not between 1 and 100" in migration
     assert "p_retry_delay_seconds not between 0 and 3600" in migration
     assert "'run.canceled'" in migration
