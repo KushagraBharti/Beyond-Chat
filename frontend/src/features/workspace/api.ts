@@ -113,6 +113,13 @@ export async function executeGeneralAgent(input: { prompt: string; projectId: st
   );
 }
 
+export function replayGeneralAgentRun(runId: string) {
+  return sessionRequest<{
+    events: Array<{ sequence: number; event_type: string; payload: Record<string, unknown> }>;
+    cursor: number;
+  }>(`/api/runtime/runs/${encodeURIComponent(runId)}/events?after=0`);
+}
+
 export function listProjectRecords(projectId: string, surface: "outputs" | "automations" | "memory") {
   return sessionRequest<{ items?: ProductRecordSummary[] } | ProductRecordSummary[]>(
     `${BASE}/projects/${encodeURIComponent(projectId)}/${surface}`,

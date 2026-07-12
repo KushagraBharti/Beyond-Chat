@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useScopedDiscovery } from "../../features/discovery/useScopedDiscovery";
 import { savePromotionDraft, type PromotionDraft } from "../../features/workspace/adapter";
 import { PageHeader, WorkspaceState } from "../../components/workspace/WorkspacePrimitives";
 import { WorkspaceComposer } from "../../components/workspace/WorkspaceComposer";
-import { executeGeneralAgent } from "../../features/workspace/api";
+import { executeGeneralAgent, replayGeneralAgentRun } from "../../features/workspace/api";
 import { useProjects } from "../../features/workspace/ProjectContext";
 
 interface ChatMessage { role: "user" | "agent" | "error"; text: string }
@@ -17,6 +17,24 @@ export function ChatWorkspacePage() {
   const { currentProject } = useProjects();
   const [running, setRunning] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  useEffect(() => {
+    if (!currentProject) return;
+    const key = `beyond.last-chat-run.${currentProject.id}`;
+    const runId = sessionStorage.getItem(key);
+    if (!runId) return;
+    let cancelled = false;
+    replayGeneralAgentRun(runId).then(({ events }) => {
+      if (cancelled) return;
+      const savedPrompt = sessionStorage.getItem(`${key}.prompt`);
+      const output = [...events].reverse().find((event) => event.event_type === "output.generated");
+      const text = typeof output?.payload.text === "string" ? output.payload.text : "";
+      if (text) setMessages([
+        ...(savedPrompt ? [{ role: "user" as const, text: savedPrompt }] : []),
+        { role: "agent", text },
+      ]);
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [currentProject]);
   const runGeneral = async (draft: PromotionDraft) => {
     if (!currentProject || running) return;
     const referenceContext = draft.references.length ? `\n\nAttached context: ${draft.references.map((item) => item.label).join(", ")}` : "";
@@ -25,6 +43,9 @@ export function ChatWorkspacePage() {
     try {
       const result = await executeGeneralAgent({ prompt: `${draft.prompt}${referenceContext}`, projectId: currentProject.id });
       setMessages((current) => [...current, { role: "agent", text: result.text }]);
+      const key = `beyond.last-chat-run.${currentProject.id}`;
+      sessionStorage.setItem(key, result.run_id);
+      sessionStorage.setItem(`${key}.prompt`, draft.prompt);
     } catch (error) {
       setMessages((current) => [...current, { role: "error", text: error instanceof Error ? error.message : "The General Agent could not complete this run." }]);
     } finally {
