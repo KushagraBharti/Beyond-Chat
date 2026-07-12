@@ -395,13 +395,14 @@ export function AgentsPage() {
     if (!prompt) return;
     const manifest = (record.payload["manifest"] ?? {}) as Record<string, unknown>;
     const configuration = (manifest["configuration"] ?? {}) as Record<string, unknown>;
+    const publishedInstructions = String(configuration["instructions"] ?? "").trim();
     setRunningAgent(record.id);
     try {
       const result = await executeGeneralAgent({
         projectId: currentProject.id,
         prompt,
         agentVersionId: record.id,
-        instructions: String(configuration["instructions"] ?? "Follow the published agent configuration."),
+        instructions: publishedInstructions || "Follow the published agent configuration.",
       });
       setAgentResults((current) => ({ ...current, [record.id]: result.text }));
     } catch (cause) {
