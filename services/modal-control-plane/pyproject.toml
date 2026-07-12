@@ -7,6 +7,7 @@ dependencies = [
   "beyond-modal-runtime",
   "cryptography==49.0.0",
   "cvss==3.6",
+  "fastapi==0.116.1",
   "modal==1.5.2",
 ]
 

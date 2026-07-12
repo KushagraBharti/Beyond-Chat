@@ -7,6 +7,7 @@ from pathlib import Path
 import modal
 
 _MODULE_PATH = Path(__file__).resolve()
+REPO_ROOT = _MODULE_PATH.parents[4] if len(_MODULE_PATH.parents) > 4 else Path("/opt/beyond")
 RUNTIME_SOURCE = (
     _MODULE_PATH.parents[3] / "modal-runtime" / "src"
     if len(_MODULE_PATH.parents) > 3
@@ -163,9 +164,35 @@ data_finance_image = _remove_build_tools(
     )
 )
 
+pi_agent_image = (
+    base_image
+    .add_local_dir(REPO_ROOT / "packages" / "contracts", "/opt/beyond/packages/contracts", copy=True,
+                   ignore=["node_modules", ".pytest_cache", "tests"])
+    .add_local_dir(REPO_ROOT / "packages" / "pi-runtime-adapter", "/opt/beyond/packages/pi-runtime-adapter", copy=True,
+                   ignore=["node_modules", ".pytest_cache", "tests"])
+    .add_local_dir(REPO_ROOT / "vendor" / "pi" / "upstream" / "packages" / "agent",
+                   "/opt/beyond/vendor/pi/upstream/packages/agent", copy=True,
+                   ignore=["node_modules", ".pytest_cache", "test", "tests"])
+    .add_local_dir(REPO_ROOT / "vendor" / "pi" / "upstream" / "packages" / "ai",
+                   "/opt/beyond/vendor/pi/upstream/packages/ai", copy=True,
+                   ignore=["node_modules", ".pytest_cache", "test", "tests"])
+    .add_local_file(
+        _MODULE_PATH.parent / "pi_runner.ts",
+        "/opt/beyond/packages/pi-runtime-adapter/pi_runner.ts",
+        copy=True,
+    )
+    .run_commands(
+        "cd /opt/beyond/vendor/pi/upstream/packages/ai && npm install --omit=dev --ignore-scripts",
+        "cd /opt/beyond/vendor/pi/upstream/packages/agent && npm install --omit=dev --ignore-scripts",
+        "cd /opt/beyond/packages/pi-runtime-adapter && npm ci --omit=dev",
+    )
+    .uv_pip_install("fastapi==0.116.1", uv_version="0.11.28")
+)
+
 IMAGES = {
     "base": base_image,
     "documents": documents_image,
     "research": research_image,
     "data-finance": data_finance_image,
+    "pi-agent": pi_agent_image,
 }

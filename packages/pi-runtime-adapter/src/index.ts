@@ -28,6 +28,7 @@ import {
   type AssistantMessage,
   type Model,
 } from "@earendil-works/pi-ai";
+import { getModel } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 
 export const PI_REVISION = "19fe0e01c5eca791c9da0372b49256845555a783";
@@ -439,4 +440,24 @@ export function createOfflinePiRuntime(
     return stream;
   };
   return new PiRuntimeAdapter(new Agent({ initialState: { model, tools }, streamFn }), scope, options);
+}
+
+/** Live OpenRouter-backed Pi runtime used by the production Modal entrypoint. */
+export function createOpenRouterPiRuntime(
+  scope: AdapterScope,
+  options: PiRuntimeAdapterOptions,
+  apiKey: string,
+  modelId = "openai/gpt-4.1-mini",
+): PiRuntimeAdapter {
+  if (!apiKey.trim()) throw new ContractError("provider.unavailable", "OpenRouter is not configured");
+  const model = (getModel as (provider: string, id: string) => Model<any> | undefined)("openrouter", modelId);
+  if (!model) throw new ContractError("provider.unavailable", `OpenRouter model is unavailable: ${modelId}`);
+  return new PiRuntimeAdapter(new Agent({
+    initialState: {
+      model,
+      tools: [],
+      systemPrompt: "You are Beyond's General Agent. Produce clear, useful, reviewable work. Return the requested deliverable directly.",
+    },
+    getApiKey: (provider) => provider === "openrouter" ? apiKey : undefined,
+  }), scope, options);
 }

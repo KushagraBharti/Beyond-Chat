@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
+import os
 from typing import Annotated
 
+import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -27,6 +29,14 @@ class ResolveApprovalRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     decision: str = Field(pattern="^(approved|denied)$")
     reason: str | None = Field(default=None, max_length=1000)
+
+
+class ExecuteGeneralAgentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prompt: str = Field(min_length=1, max_length=100_000)
+    project_id: str = Field(min_length=3, max_length=128)
+    run_id: str | None = Field(default=None, min_length=3, max_length=128)
+    model: str | None = Field(default=None, min_length=3, max_length=200)
 
 
 Authenticator = Callable[[], RuntimePrincipal | Awaitable[RuntimePrincipal]]
@@ -58,6 +68,38 @@ def create_runtime_router(
             agent_version_id=body.agent_version_id,
         ), idempotency_key=idempotency_key)
         return {"run_id": run.run_id, "state": run.state, "version": run.version}
+
+    @router.post("/agents/general:execute")
+    async def execute_general_agent(
+        body: ExecuteGeneralAgentRequest,
+        principal: RuntimePrincipal = Depends(authenticate),
+        _mutation: None = Depends(guard),
+    ) -> dict:
+        url = os.getenv("MODAL_RUNTIME_URL", "").strip()
+        secret = os.getenv("MODAL_RUNTIME_SHARED_SECRET", "").strip()
+        if not url or not secret:
+            raise HTTPException(status_code=503, detail="Modal General Agent is not configured")
+        payload = {
+            "prompt": body.prompt,
+            "organization_id": principal.organization_id,
+            "project_id": body.project_id,
+            **({"run_id": body.run_id} if body.run_id else {}),
+            **({"model": body.model} if body.model else {}),
+        }
+        try:
+            async with httpx.AsyncClient(timeout=900) as client:
+                response = await client.post(
+                    url,
+                    json=payload,
+                    headers={"Authorization": f"Bearer {secret}"},
+                )
+                response.raise_for_status()
+                result = response.json()
+        except (httpx.HTTPError, ValueError) as exc:
+            raise HTTPException(status_code=502, detail="Modal General Agent execution failed") from exc
+        if not isinstance(result, dict) or not str(result.get("text", "")).strip():
+            raise HTTPException(status_code=502, detail="Modal General Agent returned no output")
+        return result
 
     @router.post("/runs/{run_id}/cancel", status_code=status.HTTP_202_ACCEPTED)
     async def cancel_run(
