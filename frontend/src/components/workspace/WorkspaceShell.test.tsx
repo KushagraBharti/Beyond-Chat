@@ -11,6 +11,14 @@ let userMetadata: Record<string, unknown> = {};
 vi.mock("../../context/AuthContext", () => ({
   useAuth: () => ({ user: { email: "member@example.com", user_metadata: userMetadata } }),
 }));
+vi.mock("../../features/workspace/ProjectContext", () => ({
+  useProjects: () => ({
+    projects: [{ id: "proj-1", organizationId: "org-1", name: "Launch", slug: "launch", description: null, visibility: "organization", createdBy: null, createdAt: null, updatedAt: null }],
+    status: "ready", message: null,
+    currentProject: { id: "proj-1", organizationId: "org-1", name: "Launch", slug: "launch", description: null, visibility: "organization", createdBy: null, createdAt: null, updatedAt: null },
+    selectProject: vi.fn(), reload: vi.fn(),
+  }),
+}));
 
 function LocationProbe() { return <output data-testid="location">{useLocation().pathname}</output>; }
 

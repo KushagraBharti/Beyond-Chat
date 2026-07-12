@@ -78,7 +78,7 @@ describe("MemoryWorkspacePage", () => {
     await waitFor(() => {
       expect(
         screen.queryByText(/not yet supported by the canonical API/i) ??
-          screen.queryByRole("textbox"),
+          (screen.queryAllByRole("textbox").length > 0 ? true : null),
       ).toBeTruthy();
     });
   });
