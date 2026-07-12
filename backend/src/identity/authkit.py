@@ -125,7 +125,19 @@ def _set_session_cookie(response: Response, request: Request, value: str) -> Non
         secrets.token_urlsafe(32),
         httponly=False,
         secure=_is_secure_cookie(request),
-        samesite="strict",
+        samesite="lax",
+        max_age=604_800,
+        path="/",
+    )
+
+
+def _set_csrf_cookie(response: Response, request: Request) -> None:
+    response.set_cookie(
+        settings.workos_csrf_cookie_name,
+        secrets.token_urlsafe(32),
+        httponly=False,
+        secure=_is_secure_cookie(request),
+        samesite="lax",
         max_age=604_800,
         path="/",
     )
@@ -219,6 +231,7 @@ async def require_principal(
     request: Request,
     response: Response,
     sealed_session: Annotated[str | None, Cookie(alias=settings.workos_session_cookie_name)] = None,
+    csrf_cookie: Annotated[str | None, Cookie(alias=settings.workos_csrf_cookie_name)] = None,
     provider: WorkOSProvider = Depends(get_workos_provider),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> Principal:
@@ -248,6 +261,8 @@ async def require_principal(
         )
     if session.sealed_session != sealed_session:
         _set_session_cookie(response, request, session.sealed_session)
+    elif not csrf_cookie:
+        _set_csrf_cookie(response, request)
     return _principal(snapshot, session)
 
 
