@@ -64,9 +64,15 @@ export const outputTemplates = PRODUCT_CATALOG.output_templates;
 
 export function discoveryBrowsePath(itemId: string): string | null {
   if (itemId === "command.skills" || itemId === "command.skill") return "/knowledge-apps?view=skills";
+  if (itemId === "command.tools" || itemId === "command.tool") return "/knowledge-apps?view=tools";
   if (itemId === "command.apps" || itemId === "command.app") return "/knowledge-apps?view=apps";
   if (itemId === "command.mcp") return "/knowledge-apps?view=mcp";
   if (itemId === "command.agent") return "/agents";
+  if (itemId === "command.project") return "/projects";
+  if (itemId === "command.file" || itemId === "command.source") return "/knowledge-apps?view=sources";
+  if (itemId === "command.model") return "/settings";
+  if (itemId === "command.work") return "/work";
+  if (itemId === "command.schedule") return "/automations";
   return null;
 }
 

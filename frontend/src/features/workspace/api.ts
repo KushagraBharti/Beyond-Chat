@@ -128,7 +128,7 @@ export function cancelGeneralAgentRun(runId: string) {
   );
 }
 
-export function saveGeneratedOutput(projectId: string, name: string, content: string, runId?: string) {
+export function saveGeneratedOutput(projectId: string, name: string, content: string, runId?: string, kind = "document") {
   return sessionRequest<ProductRecordSummary>(
     `${BASE}/projects/${encodeURIComponent(projectId)}/outputs`,
     {
@@ -137,7 +137,7 @@ export function saveGeneratedOutput(projectId: string, name: string, content: st
       body: JSON.stringify({
         name,
         description: content,
-        configuration: { kind: "document", source: "general-agent", runtime_run_id: runId ?? null },
+        configuration: { kind, source: "general-agent", runtime_run_id: runId ?? null },
       }),
     },
   );

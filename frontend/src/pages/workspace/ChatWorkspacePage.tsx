@@ -28,6 +28,7 @@ export function ChatWorkspacePage() {
   const [running, setRunning] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [savingOutput, setSavingOutput] = useState(false);
+  const [lastOutputKind, setLastOutputKind] = useState("document");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const latestAgentText = [...messages].reverse().find((message) => message.role === "agent")?.text ?? "";
   const reconnect = async () => {
@@ -67,6 +68,9 @@ export function ChatWorkspacePage() {
     if (!currentProject || running) return;
     const referenceContext = draft.references.length ? `\n\nAttached context: ${draft.references.map((item) => item.label).join(", ")}` : "";
     const selectedAgent = draft.references.find((item) => item.kind === "agent");
+    const requestedOutput = draft.references.find((item) => item.kind === "output_type");
+    const outputKind = requestedOutput?.label.toLowerCase() ?? "document";
+    setLastOutputKind(outputKind);
     const agentVersionId = selectedAgent?.id ?? "agent.general";
     const selectedAgentName = agentLabel(agentVersionId);
     setMessages((current) => [...current, { role: "user", text: draft.prompt }]);
@@ -77,7 +81,7 @@ export function ChatWorkspacePage() {
     sessionStorage.setItem(`${key}.prompt`, draft.prompt);
     setActiveRunId(runId);
     try {
-      const result = await executeGeneralAgent({ prompt: `${draft.prompt}${referenceContext}`, projectId: currentProject.id, runId, agentVersionId, instructions: agentInstructions[agentVersionId] });
+      const result = await executeGeneralAgent({ prompt: `${draft.prompt}${referenceContext}\n\nRequested output type: ${outputKind}.`, projectId: currentProject.id, runId, agentVersionId, instructions: agentInstructions[agentVersionId] });
       setMessages((current) => [...current, { role: "agent", text: result.text, name: selectedAgentName }]);
     } catch (error) {
       setMessages((current) => [...current, { role: "error", text: error instanceof Error ? error.message : "The General Agent could not complete this run." }]);
@@ -94,10 +98,10 @@ export function ChatWorkspacePage() {
       setSavingOutput(true);
       const prompt = [...messages].reverse().find((message) => message.role === "user")?.text ?? "General Agent result";
       const storedRunId = sessionStorage.getItem(`beyond.last-chat-run.${currentProject.id}`) ?? undefined;
-      void saveGeneratedOutput(currentProject.id, prompt.slice(0, 80), latestAgentText, storedRunId)
+      void saveGeneratedOutput(currentProject.id, prompt.slice(0, 80), latestAgentText, storedRunId, lastOutputKind)
         .then((record) => navigate(`/outputs/${record.id}`))
         .finally(() => setSavingOutput(false));
-    }}>{savingOutput ? "Saving…" : "Save result to Work"}</button></div> : null}
+    }}>{savingOutput ? "Saving…" : `Save ${lastOutputKind} to Work`}</button></div> : null}
     <WorkspaceComposer ref={composer} items={discovery} disabled={running || !currentProject} onSend={(draft) => { void runGeneral(draft); }} onBrowse={navigate} onPromote={(draft) => { savePromotionDraft(draft); navigate("/work/new"); }} />
     <p className="workspace-footnote">General runs on the production Pi runtime in Modal. Promotion keeps a draft for a longer task.</p>
   </section>;

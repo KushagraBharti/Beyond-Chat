@@ -55,6 +55,8 @@ export function builtInDiscoveryItems(): readonly DiscoveryItem[] {
     { id: "command.apps", version: "1.0.0", kind: "command", label: "apps", aliases: Object.freeze([]), intent: "browse", state: "ready" },
     { id: "command.app", version: "1.0.0", kind: "command", label: "app", aliases: Object.freeze([]), intent: "browse", state: "ready" },
     { id: "command.mcp", version: "1.0.0", kind: "command", label: "mcp", aliases: Object.freeze([]), intent: "browse", state: "ready" },
+    { id: "command.tools", version: "1.0.0", kind: "command", label: "tools", aliases: Object.freeze([]), intent: "browse", state: "ready" },
+    { id: "command.tool", version: "1.0.0", kind: "command", label: "tool", aliases: Object.freeze([]), intent: "browse", state: "ready" },
     { id: "command.project", version: "1.0.0", kind: "command", label: "project", aliases: Object.freeze([]), intent: "select_project", state: "ready" },
     { id: "command.file", version: "1.0.0", kind: "command", label: "file", aliases: Object.freeze([]), intent: "attach", state: "ready" },
     { id: "command.source", version: "1.0.0", kind: "command", label: "source", aliases: Object.freeze([]), intent: "attach", state: "ready" },
