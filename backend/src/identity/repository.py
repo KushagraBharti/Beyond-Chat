@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 from copy import deepcopy
@@ -11,6 +12,7 @@ from uuid import UUID, uuid4
 from ..authorization.policy import OrganizationRole, ProjectRole, ResourcePermission
 from ..supabase_service import supabase_service
 
+LOGGER = logging.getLogger("beyond_chat.identity.repository")
 
 _ALLOWED_ORGANIZATION_ROLES = {role.value for role in OrganizationRole}
 _ALLOWED_PROJECT_ROLES = {role.value for role in ProjectRole}
@@ -43,11 +45,52 @@ def normalize_email(value: str) -> str:
     return normalized
 
 
-def normalize_role(value: object, *, default: str = "member") -> OrganizationRole:
+def normalize_role(value: object, *, default: str = "viewer") -> OrganizationRole:
+    """Map provider role data to the least-privileged canonical role.
+
+    Provider/webhook payloads are an authentication input, not an
+    authorization policy.  A new or malformed custom-role slug must therefore
+    never widen into ``member`` merely because the SDK changed shape.
+    Administrative request models use the stricter enum validator instead.
+    """
+
     candidate = str(value or default).strip().lower()
     if candidate not in _ALLOWED_ORGANIZATION_ROLES:
-        return OrganizationRole.MEMBER
+        LOGGER.warning("Unknown provider organization role mapped to viewer.")
+        return OrganizationRole.VIEWER
     return OrganizationRole(candidate)
+
+
+def _membership_state_from_event(
+    *, event_type: str, provider_status: object, current_state: object
+) -> str:
+    """Return the fail-closed canonical membership state for a WorkOS event."""
+
+    current = str(current_state or "")
+    if event_type == "organization_membership.deleted":
+        return "revoked"
+    if provider_status == "inactive":
+        return "revoked" if current == "revoked" else "suspended"
+    if provider_status == "active":
+        # Reactivation is an explicit, authorized application operation.  A
+        # generic provider update (often only a role edit) cannot resurrect a
+        # locally suspended or revoked membership.
+        return current if current in {"suspended", "revoked"} else "active"
+    # Unknown provider statuses cannot grant access.
+    return current if current in {"suspended", "revoked"} else "suspended"
+
+
+def _invitation_state_from_event(event_type: str, data_state: object, current_state: object) -> str:
+    current = str(current_state or "")
+    action = event_type.rsplit(".", 1)[-1]
+    if action == "resent":
+        return current if current in {"accepted", "revoked", "expired"} else "pending"
+    candidate = str(data_state or action)
+    if candidate not in _ALLOWED_INVITATION_STATES:
+        raise ValueError("Invitation webhook state is invalid.")
+    if current in {"accepted", "revoked"} and candidate == "pending":
+        return current
+    return candidate
 
 
 def slugify(value: str, *, fallback: str) -> str:
@@ -112,6 +155,49 @@ class WebhookReceipt:
 class PageResult:
     items: list[dict[str, Any]]
     next_cursor: str | None
+
+
+@dataclass(frozen=True)
+class BulkInvitationOperationClaim:
+    """Future durable claim; unavailable until its canonical migration/RPC lands."""
+
+    operation_id: str
+    organization_id: str
+    actor_profile_id: str
+    idempotency_key: str
+    request_digest: str
+    state: str
+    lease_expires_at: str
+
+
+class AtomicBulkInvitationOperations(Protocol):
+    def claim_bulk_invitation_operation(
+        self,
+        *,
+        organization_id: str,
+        actor_profile_id: str,
+        idempotency_key: str,
+        request_digest: str,
+        normalized_entries: list[dict[str, str]],
+        lease_seconds: int,
+    ) -> BulkInvitationOperationClaim: ...
+
+    def claim_next_bulk_invitation_entry(
+        self, *, operation_id: str, lease_owner: str, lease_seconds: int
+    ) -> dict[str, Any] | None: ...
+
+    def record_bulk_invitation_entry_outcome(
+        self,
+        *,
+        operation_id: str,
+        entry_id: str,
+        provider_invitation_id: str | None,
+        error_code: str | None,
+    ) -> None: ...
+
+    def finalize_bulk_invitation_operation(
+        self, *, operation_id: str
+    ) -> dict[str, Any]: ...
 
 
 class IdentityRepository(Protocol):
@@ -297,24 +383,33 @@ class InMemoryIdentityRepository:
             )
 
         existing_membership = self.memberships.get((organization["id"], profile_id))
+        existing_state = str((existing_membership or {}).get("state") or "")
+        membership_state = (
+            existing_state if existing_state in {"suspended", "revoked"} else "active"
+        )
         membership = {
             "id": existing_membership["id"] if existing_membership else str(uuid4()),
             "organization_id": organization["id"],
             "profile_id": profile_id,
             "workos_membership_id": workos_membership_id,
             "role": role.value,
-            "state": "active",
+            "state": membership_state,
             "joined_at": existing_membership.get("joined_at") if existing_membership else _iso(),
             "created_at": existing_membership.get("created_at") if existing_membership else _iso(),
-            "revoked_at": None,
+            "revoked_at": (existing_membership or {}).get("revoked_at")
+            if membership_state == "revoked"
+            else None,
             "updated_at": _iso(),
         }
         self.memberships[(organization["id"], profile_id)] = membership
-        return self.resolve_active_identity(
+        resolved = self.resolve_active_identity(
             issuer=issuer,
             subject=subject,
             workos_organization_id=workos_organization_id,
-        )  # type: ignore[return-value]
+        )
+        if resolved is None:
+            raise PermissionError("Canonical organization membership is inactive.")
+        return resolved
 
     def resolve_active_identity(
         self, *, issuer: str, subject: str, workos_organization_id: str
@@ -659,13 +754,17 @@ class InMemoryIdentityRepository:
                 "profile_id": identity["profile_id"],
                 "created_at": data.get("created_at") or _iso(),
             }
-            inactive = event_type == "organization_membership.deleted" or data.get("status") == "inactive"
+            next_state = _membership_state_from_event(
+                event_type=event_type,
+                provider_status=data.get("status"),
+                current_state=membership.get("state"),
+            )
             membership.update(
                 {
                     "workos_membership_id": object_id,
                     "role": normalize_role(data.get("role", {}).get("slug") if isinstance(data.get("role"), dict) else data.get("role_slug")).value,
-                    "state": "revoked" if inactive else "active",
-                    "revoked_at": _iso() if inactive else None,
+                    "state": next_state,
+                    "revoked_at": _iso() if next_state == "revoked" else None,
                     "updated_at": data.get("updated_at") or _iso(),
                 }
             )
@@ -712,10 +811,13 @@ class InMemoryIdentityRepository:
                 None,
             )
             if invitation:
-                state_value = str(data.get("state") or event_type.rsplit(".", 1)[-1])
+                state_value = _invitation_state_from_event(
+                    event_type, data.get("state"), invitation.get("state")
+                )
                 invitation.update(
                     {
                         "state": state_value,
+                        "expires_at": data.get("expires_at") or invitation.get("expires_at"),
                         "accepted_at": data.get("accepted_at")
                         or (data.get("updated_at") if state_value == "accepted" else invitation.get("accepted_at")),
                         "revoked_at": data.get("revoked_at")
@@ -869,14 +971,28 @@ class SupabaseIdentityRepository:
                 raise RuntimeError("Organization creation did not return a row.")
             organization_id = str(created["id"])
 
+        existing_membership = self._one(
+            client.table("organization_memberships")
+            .select("id,state,role,joined_at,revoked_at")
+            .eq("organization_id", organization_id)
+            .eq("profile_id", profile_id)
+            .maybe_single()
+            .execute()
+        )
+        existing_state = str((existing_membership or {}).get("state") or "")
+        membership_state = (
+            existing_state if existing_state in {"suspended", "revoked"} else "active"
+        )
         membership_payload = {
             "organization_id": organization_id,
             "profile_id": profile_id,
             "workos_membership_id": workos_membership_id,
             "role": role.value,
-            "state": "active",
-            "joined_at": _iso(),
-            "revoked_at": None,
+            "state": membership_state,
+            "joined_at": (existing_membership or {}).get("joined_at") or _iso(),
+            "revoked_at": (existing_membership or {}).get("revoked_at")
+            if membership_state == "revoked"
+            else None,
             "updated_at": _iso(),
         }
         client.table("organization_memberships").upsert(
@@ -889,6 +1005,8 @@ class SupabaseIdentityRepository:
             workos_organization_id=workos_organization_id,
         )
         if not resolved:
+            if membership_state in {"suspended", "revoked"}:
+                raise PermissionError("Canonical organization membership is inactive.")
             raise RuntimeError("Canonical identity sync completed but could not be re-read.")
         return resolved
 
@@ -1453,7 +1571,7 @@ class SupabaseIdentityRepository:
                 return
             current = self._one(
                 client.table("organization_memberships")
-                .select("id,updated_at")
+                .select("id,state,role,updated_at")
                 .eq("organization_id", organization["id"])
                 .eq("profile_id", identity["profile_id"])
                 .maybe_single()
@@ -1465,16 +1583,20 @@ class SupabaseIdentityRepository:
             role_value = data.get("role_slug")
             if isinstance(data.get("role"), dict):
                 role_value = data["role"].get("slug")
-            inactive = event_type == "organization_membership.deleted" or data.get("status") == "inactive"
+            next_state = _membership_state_from_event(
+                event_type=event_type,
+                provider_status=data.get("status"),
+                current_state=(current or {}).get("state"),
+            )
             client.table("organization_memberships").upsert(
                 {
                     "organization_id": organization["id"],
                     "profile_id": identity["profile_id"],
                     "workos_membership_id": workos_membership_id,
                     "role": normalize_role(role_value).value,
-                    "state": "revoked" if inactive else "active",
+                    "state": next_state,
                     "joined_at": data.get("created_at") or incoming_updated_at,
-                    "revoked_at": incoming_updated_at if inactive else None,
+                    "revoked_at": incoming_updated_at if next_state == "revoked" else None,
                     "updated_at": incoming_updated_at,
                 },
                 on_conflict="organization_id,profile_id",
@@ -1510,7 +1632,9 @@ class SupabaseIdentityRepository:
                 incoming_updated_at
             ):
                 return
-            state_value = str(data.get("state") or event_type.rsplit(".", 1)[-1])
+            state_value = _invitation_state_from_event(
+                event_type, data.get("state"), (current or {}).get("state")
+            )
             email_value = data.get("email") or (current or {}).get("email")
             expires_at = data.get("expires_at") or (current or {}).get("expires_at")
             if not email_value or not expires_at:

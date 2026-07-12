@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "description": "Canonical five-role organization permission matrix. Backend (backend/src/authorization/policy.py) and frontend (frontend/src/features/organizations/permissions.ts) each assert equality against this fixture in their test suites so role semantics cannot drift between the two enforcement and presentation layers. The backend is the only authorization authority; the frontend uses this contract solely to decide which controls to render.",
+  "roles": {
+    "viewer": [
+      "view_organization",
+      "view_member_directory",
+      "view_shared_outputs"
+    ],
+    "member": [
+      "view_organization",
+      "view_member_directory",
+      "view_shared_outputs",
+      "execute_agent_work",
+      "collaborate"
+    ],
+    "builder": [
+      "view_organization",
+      "view_member_directory",
+      "view_shared_outputs",
+      "execute_agent_work",
+      "collaborate",
+      "build_agents",
+      "publish_agents",
+      "manage_knowledge_apps"
+    ],
+    "admin": [
+      "view_organization",
+      "view_member_directory",
+      "view_shared_outputs",
+      "execute_agent_work",
+      "collaborate",
+      "build_agents",
+      "publish_agents",
+      "manage_knowledge_apps",
+      "view_member_lifecycle",
+      "invite_members",
+      "change_member_roles",
+      "suspend_members",
+      "revoke_members",
+      "restore_members",
+      "manage_organization_settings",
+      "access_admin_surfaces"
+    ],
+    "owner": [
+      "view_organization",
+      "view_member_directory",
+      "view_shared_outputs",
+      "execute_agent_work",
+      "collaborate",
+      "build_agents",
+      "publish_agents",
+      "manage_knowledge_apps",
+      "view_member_lifecycle",
+      "invite_members",
+      "change_member_roles",
+      "suspend_members",
+      "revoke_members",
+      "restore_members",
+      "manage_organization_settings",
+      "access_admin_surfaces",
+      "manage_owner_lifecycle"
+    ]
+  },
+  "rules": {
+    "unknown_role": "no permissions (fail closed)",
+    "owner_role_assignment": "requires manage_owner_lifecycle",
+    "acting_on_owner_membership": "requires manage_owner_lifecycle",
+    "self_administration": "administrative member actions never target the actor's own membership",
+    "last_owner": "the final active owner cannot be revoked, suspended, or demoted",
+    "suspended_or_revoked_membership": "grants no permissions in any organization",
+    "cross_organization": "a role in one organization grants nothing in any other organization"
+  }
+}

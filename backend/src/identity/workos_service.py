@@ -48,6 +48,16 @@ class WorkOSProvider(Protocol):
 
     def revoke_invitation(self, invitation_id: str) -> dict[str, Any]: ...
 
+    def find_membership(self, *, user_id: str, organization_id: str) -> dict[str, Any] | None: ...
+
+    def update_membership_role(self, membership_id: str, role: str) -> dict[str, Any]: ...
+
+    def deactivate_membership(self, membership_id: str) -> dict[str, Any]: ...
+
+    def reactivate_membership(self, membership_id: str) -> dict[str, Any]: ...
+
+    def delete_membership(self, membership_id: str) -> None: ...
+
     def verify_webhook(self, payload: bytes, signature: str) -> dict[str, Any]: ...
 
 
@@ -252,13 +262,44 @@ class WorkOSService:
     def revoke_invitation(self, invitation_id: str) -> dict[str, Any]:
         return _model_dict(self._client.user_management.revoke_invitation(invitation_id))
 
+    def find_membership(self, *, user_id: str, organization_id: str) -> dict[str, Any] | None:
+        memberships = self._client.organization_membership.list_organization_memberships(
+            user_id=user_id,
+            organization_id=organization_id,
+            statuses=["active", "inactive", "pending"],
+            limit=1,
+        )
+        rows = getattr(memberships, "data", None) or []
+        return _model_dict(rows[0]) if rows else None
+
+    def update_membership_role(self, membership_id: str, role: str) -> dict[str, Any]:
+        from workos.organization_membership import RoleSingle
+
+        return _model_dict(
+            self._client.organization_membership.update_organization_membership(
+                membership_id,
+                role=RoleSingle(role_slug=role),
+            )
+        )
+
+    def deactivate_membership(self, membership_id: str) -> dict[str, Any]:
+        return _model_dict(
+            self._client.organization_membership.deactivate_organization_membership(membership_id)
+        )
+
+    def reactivate_membership(self, membership_id: str) -> dict[str, Any]:
+        return _model_dict(
+            self._client.organization_membership.reactivate_organization_membership(membership_id)
+        )
+
+    def delete_membership(self, membership_id: str) -> None:
+        self._client.organization_membership.delete_organization_membership(membership_id)
+
     def verify_webhook(self, payload: bytes, signature: str) -> dict[str, Any]:
         if not self._webhook_secret:
             raise RuntimeError("WORKOS_WEBHOOK_SECRET is not configured.")
-        from workos.webhooks import verify_event
-
         return _model_dict(
-            verify_event(
+            self._client.webhooks.verify_event(
                 event_body=payload,
                 event_signature=signature,
                 secret=self._webhook_secret,

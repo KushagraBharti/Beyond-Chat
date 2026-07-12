@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { queryDiscovery } from "@beyond/product-catalog";
-import { discoveryItems, promotionStorageKey, takePromotionDraft, workFixtures } from "../../features/workspace/adapter";
+import { discoveryItems, outputTemplates, promotionStorageKey, takePromotionDraft } from "../../features/workspace/adapter";
 import { WorkspaceLayout } from "./WorkspaceShell";
 import { AdminPage, ChatWorkspacePage, KnowledgeAppsPage, WorkDetailPage } from "../../pages/workspace";
 import { canAccessAdmin, workspaceRole } from "../../features/workspace/adapter";
@@ -43,21 +43,19 @@ describe("unified workspace shell", () => {
     expect(sessionStorage.getItem(promotionStorageKey)).toBeNull();
   });
 
-  it("keeps discovery and disconnected states truthful", () => {
-    expect(queryDiscovery(discoveryItems, "/notion")[0]).toMatchObject({ state: "disconnected" });
+  it("keeps discovery truthful: no fixture connections exist in the built-in set", () => {
+    expect(queryDiscovery(discoveryItems, "/notion")).toEqual([]);
     render(<MemoryRouter><ChatWorkspacePage /></MemoryRouter>);
     fireEvent.click(screen.getByRole("button", { name: "Show reconnect state" }));
     expect(screen.getByText("Connection paused")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Promote to Work" })).toBeDisabled();
   });
 
-  it("shows reconnect, approval, and output-tab controls without pretending they execute", () => {
+  it("never renders fixture tasks: every work id is truthfully unavailable", () => {
     render(<MemoryRouter initialEntries={["/work/work.q3-model"]}><WorkDetailPage /></MemoryRouter>);
-    expect(screen.getByText("Connection paused")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Approval unavailable" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Cancel unavailable" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("tab", { name: "Sensitivity chart" }));
-    expect(screen.getByText("Sensitivity chart", { selector: "h3" })).toBeInTheDocument();
+    expect(screen.getByText("This task is not available.")).toBeInTheDocument();
+    expect(screen.queryByText("Q3 scenario model")).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
   it("denies Admin to a member without silently redirecting", () => {
@@ -95,15 +93,6 @@ describe("unified workspace shell", () => {
     expect(screen.queryByRole("button", { name: /command: skills/i })).not.toBeInTheDocument();
   });
 
-  it("supports arrow-key selection across output tabs", () => {
-    render(<MemoryRouter initialEntries={["/work/work.q3-model"]}><WorkDetailPage /></MemoryRouter>);
-    const model = screen.getByRole("tab", { name: "Scenario model" });
-    model.focus();
-    fireEvent.keyDown(model, { key: "ArrowRight" });
-    expect(screen.getByRole("tab", { name: "Sensitivity chart" })).toHaveFocus();
-    expect(screen.getByRole("tab", { name: "Sensitivity chart" })).toHaveAttribute("aria-selected", "true");
-  });
-
   it("supports roving keyboard selection across Knowledge & Apps tabs", () => {
     render(<MemoryRouter initialEntries={["/knowledge-apps?view=apps"]}><KnowledgeAppsPage /></MemoryRouter>);
     const apps = screen.getByRole("tab", { name: "Apps" });
@@ -122,7 +111,9 @@ describe("unified workspace shell", () => {
     expect(screen.queryByText("Market entry brief")).not.toBeInTheDocument();
   });
 
-  it("retains every fixture output as a task or project output, never navigation", () => {
-    expect(workFixtures.flatMap((work) => work.outputs).map((output) => output.type)).toEqual(expect.arrayContaining(["document", "spreadsheet", "presentation", "chart", "image"]));
+  it("keeps every canonical output type available as a template, never as navigation", () => {
+    expect(outputTemplates.map((template) => template.output_type)).toEqual(
+      expect.arrayContaining(["document", "spreadsheet", "presentation", "chart", "image"]),
+    );
   });
 });

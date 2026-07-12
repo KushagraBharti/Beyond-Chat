@@ -11,6 +11,14 @@ from .contracts import (
 )
 from .in_memory import InMemoryProductRepository
 from .manifest import APPEND_ONLY_KINDS, PRODUCT_KINDS, SCHEMA_MANIFEST, schema_manifest
+from .projects import (
+    InMemoryProjectDirectory,
+    ProjectDirectory,
+    SupabaseProjectDirectory,
+    UnavailableProjectDirectory,
+    configured_project_directory,
+    validate_visibility,
+)
 from .supabase import SupabaseProductRepository
 from .unavailable import UnavailableProductRepository
 
@@ -19,6 +27,12 @@ __all__ = [
     "CapabilityRun",
     "APPEND_ONLY_KINDS",
     "InMemoryProductRepository",
+    "InMemoryProjectDirectory",
+    "ProjectDirectory",
+    "SupabaseProjectDirectory",
+    "UnavailableProjectDirectory",
+    "configured_project_directory",
+    "validate_visibility",
     "NotFoundError",
     "ProductRecord",
     "ProductPersistenceUnavailable",

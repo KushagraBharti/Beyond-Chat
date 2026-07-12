@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { AgentBuilderWorkspace } from "../../components/agent-builder";
 import { AutomationWorkspace } from "../../components/automations";
@@ -8,9 +8,18 @@ import { MemoryInspector } from "../../components/memory";
 import { OutputWorkbench } from "../../components/outputs/OutputWorkbench";
 import { PageHeader, WorkspaceState } from "../../components/workspace/WorkspacePrimitives";
 import type { AgentBuilderAdapter } from "../../features/agent-builder/adapter";
-import type { AutomationUiAdapter } from "../../features/automations/model";
+import { LiveAutomationAdapter } from "../../features/automations/liveAdapter";
+import {
+  deleteMemoryEntry,
+  exportProjectMemory,
+  loadProjectMemory,
+  resolveMemoryProposal,
+  type MemoryRecords,
+} from "../../features/memory/apiClient";
 import type { OutputView } from "../../features/outputs/model";
 import { integrationAvailability } from "../../features/integration/apiClient";
+import { useSection } from "../../features/workspace/hooks";
+import { useProjects } from "../../features/workspace/ProjectContext";
 
 const unavailable = (surface: keyof typeof integrationAvailability.deferred): never => {
   throw new Error(integrationAvailability.deferred[surface]);
@@ -22,11 +31,6 @@ const agentAdapter: AgentBuilderAdapter = {
   search: async () => unavailable("agents"), favorite: async () => unavailable("agents"),
 };
 
-const automationAdapter: AutomationUiAdapter = {
-  load: async () => unavailable("automations"), pause: async () => unavailable("automations"),
-  resume: async () => unavailable("automations"), test: async () => unavailable("automations"),
-  retry: async () => unavailable("automations"), resolveApproval: async () => unavailable("automations"),
-};
 
 export function AgentBuilderPage() {
   return <section className="workspace-page"><WorkspaceState state="disconnected">{integrationAvailability.deferred.agents} Draft controls are visible, but test and publish never report a local success.</WorkspaceState><AgentBuilderWorkspace adapter={agentAdapter} initialDirectory={[]} /></section>;
@@ -34,8 +38,81 @@ export function AgentBuilderPage() {
 
 export function MemoryWorkspacePage() {
   const [notice, setNotice] = useState("");
-  const failure = () => setNotice(`No change was saved. ${integrationAvailability.deferred.memory}`);
-  return <section className="workspace-page"><WorkspaceState state="disconnected">{integrationAvailability.deferred.memory}</WorkspaceState>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<MemoryInspector entries={[]} proposals={[]} onAcceptProposal={failure} onRejectProposal={failure} onEditEntry={failure} onDeleteEntry={failure} onSetSpaceEnabled={failure} onExport={failure} /></section>;
+  const { currentProject } = useProjects();
+  const projectId = currentProject?.id ?? null;
+  const memory = useSection<MemoryRecords>(
+    () => (projectId ? loadProjectMemory(projectId) : Promise.resolve({ entries: [], proposals: [], versions: new Map() })),
+    projectId ?? "no-project",
+  );
+
+  if (!projectId) {
+    return (
+      <section className="workspace-page">
+        <WorkspaceState state="empty">
+          Memory is project-scoped today. <NavLink to="/projects">Choose a current project</NavLink> to review its
+          memory. User and team memory spaces are not yet available and are not simulated.
+        </WorkspaceState>
+      </section>
+    );
+  }
+
+  const records = memory.data ?? { entries: [], proposals: [], versions: new Map<string, number>() };
+  const say = (text: string) => setNotice(text);
+  const act = async (action: () => Promise<unknown>, success: string) => {
+    setNotice("");
+    try {
+      await action();
+      memory.reload();
+      say(success);
+    } catch (cause) {
+      say(cause instanceof Error ? `No change was saved. ${cause.message}` : "No change was saved.");
+    }
+  };
+  const versionOf = (id: string) => records.versions.get(id);
+
+  return (
+    <section className="workspace-page">
+      {memory.status === "error" || memory.status === "forbidden" ? (
+        <WorkspaceState state="error">{memory.message ?? "Project memory could not be loaded."}</WorkspaceState>
+      ) : null}
+      {notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}
+      <MemoryInspector
+        entries={records.entries}
+        proposals={records.proposals}
+        state={memory.status === "loading" ? "loading" : memory.status === "error" ? "error" : "ready"}
+        errorMessage={memory.message ?? undefined}
+        onAcceptProposal={(proposalId) => {
+          const version = versionOf(proposalId);
+          if (version === undefined) return say("This proposal is no longer current; reload and retry.");
+          void act(() => resolveMemoryProposal(projectId, proposalId, version, "accepted"), "Proposal accepted.");
+        }}
+        onRejectProposal={(proposalId) => {
+          const version = versionOf(proposalId);
+          if (version === undefined) return say("This proposal is no longer current; reload and retry.");
+          void act(() => resolveMemoryProposal(projectId, proposalId, version, "rejected"), "Proposal rejected.");
+        }}
+        onEditEntry={() => say("Editing memory content is not yet supported by the canonical API; delete and re-add instead.")}
+        onDeleteEntry={(entryId) => {
+          const version = versionOf(entryId);
+          if (version === undefined) return say("This memory is no longer current; reload and retry.");
+          void act(() => deleteMemoryEntry(projectId, entryId, version), "Memory deleted. Derived-index cleanup follows.");
+        }}
+        onSetSpaceEnabled={() => say("Per-space recall controls are not yet supported by the canonical API.")}
+        onExport={() => {
+          void act(async () => {
+            const value = await exportProjectMemory(projectId);
+            const blob = new Blob([JSON.stringify(value, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = `beyond-memory-${projectId}.json`;
+            anchor.click();
+            URL.revokeObjectURL(url);
+          }, "Memory exported.");
+        }}
+      />
+    </section>
+  );
 }
 
 const outputFixture: OutputView = {
@@ -55,5 +132,24 @@ export function OutputWorkspacePage() {
 }
 
 export function AutomationsWorkspacePage() {
-  return <section className="workspace-page"><WorkspaceState state="disconnected">{integrationAvailability.deferred.automations} Controls fail closed.</WorkspaceState><AutomationWorkspace adapter={automationAdapter} /></section>;
+  const { currentProject } = useProjects();
+  const adapter = useMemo(
+    () => (currentProject ? new LiveAutomationAdapter(currentProject.id) : null),
+    [currentProject],
+  );
+  if (!adapter) {
+    return (
+      <section className="workspace-page">
+        <WorkspaceState state="empty">
+          Automations are project-scoped. <NavLink to="/projects">Choose a current project</NavLink> to manage its
+          automations. Nothing is simulated in the meantime.
+        </WorkspaceState>
+      </section>
+    );
+  }
+  return (
+    <section className="workspace-page">
+      <AutomationWorkspace key={currentProject!.id} adapter={adapter} />
+    </section>
+  );
 }

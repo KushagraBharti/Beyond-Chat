@@ -37,10 +37,28 @@ class InMemoryProductRepository:
                 rows = [r for r in rows if r.state in states]
             return [self._copy(r) for r in sorted(rows, key=lambda row: (row.updated_at, row.id), reverse=True)]
 
+    def list_recent(self, *, kind: str, organization_id: str,
+                    states: tuple[str, ...] = (), limit: int = 20) -> list[ProductRecord]:
+        with self._lock:
+            rows = [r for (k, _), r in self._records.items()
+                    if k == kind and r.scope.organization_id == organization_id]
+            if states:
+                rows = [r for r in rows if r.state in states]
+            rows.sort(key=lambda row: (row.updated_at, row.id), reverse=True)
+            return [self._copy(r) for r in rows[:max(1, min(limit, 100))]]
+
     def get(self, *, kind: str, record_id: str, scope: Scope) -> ProductRecord | None:
         with self._lock:
             value = self._records.get((kind, record_id))
             return self._copy(value) if value and self._in_scope(value, scope) else None
+
+    def list_global(self, *, kind: str, states: tuple[str, ...] = (), limit: int = 200) -> list[ProductRecord]:
+        with self._lock:
+            rows = [r for (k, _), r in self._records.items() if k == kind]
+            if states:
+                rows = [r for r in rows if r.state in states]
+            rows.sort(key=lambda row: (row.updated_at, row.id), reverse=True)
+            return [self._copy(r) for r in rows[:max(1, min(limit, 1000))]]
 
     def create_once(self, *, kind: str, scope: Scope, actor_id: str, idempotency_key: str,
                     request_digest: str, state: str, payload) -> ProductRecord:

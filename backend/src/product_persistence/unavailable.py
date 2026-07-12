@@ -14,6 +14,8 @@ class UnavailableProductRepository:
         )
 
     list = _raise
+    list_recent = _raise
+    list_global = _raise
     get = _raise
     create_once = _raise
     update = _raise

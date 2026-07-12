@@ -9,6 +9,8 @@ export interface WorkOSSession {
   organizationId: string;
   workosOrganizationId: string;
   role: OrganizationRole;
+  /** Server-computed permission list for the selected organization. */
+  permissions?: string[];
 }
 
 export class ApiError extends Error {

@@ -2,19 +2,27 @@ from __future__ import annotations
 
 import inspect
 import hashlib
+import os
 import secrets
 from dataclasses import dataclass
 from typing import Annotated, Any, Awaitable, Callable
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 
 from ..authorization.policy import OrganizationRole, Principal, ResourcePermission
 from ..identity.authkit import require_csrf, require_principal
-from ..product_persistence import ConflictError, ProductRepository, Scope, schema_manifest
+from ..product_persistence import (
+    ConflictError, ProductRepository, ProjectDirectory, Scope,
+    configured_project_directory, schema_manifest,
+)
 from .authorization import ScopeAuthorizer
 from .schemas import (
-    ActionRequest, AutomationCreate, CapabilityResolveRequest, CommentCreate, MemoryProposal, ModelRunRequest, QueryRequest, ResourceCreate,
+    ActionRequest, AutomationCreate, CapabilityResolveRequest, CommentCreate, MemoryProposal, ModelRunRequest, ProjectCreate, QueryRequest, ResourceCreate,
     ResourcePatch, ReviewCreate, StateTransition, VersionCreate,
+)
+from .automation_service import (
+    AutomationLifecycle, AutomationTriggerError, OwnerGuard, WebhookSignatureError,
+    automation_webhook_secret, supabase_owner_guard, verify_signed_trigger,
 )
 from .capability_gateway import CapabilityGateway
 from .service import DisabledProviderRegistry, ProductService, ProviderRegistry
@@ -33,6 +41,13 @@ class ProductApiDependencies:
     principal: PrincipalDependency = require_principal
     mutation_guard: MutationDependency = require_csrf
     providers: ProviderRegistry = DisabledProviderRegistry()
+    # Project directory defaults from the configured Supabase service so the
+    # composition root does not need to change; tests inject an in-memory one.
+    projects: ProjectDirectory | None = None
+    # Owner-offboarding guard for automation service principals; tests inject
+    # a deterministic one, production defaults to the canonical membership
+    # lookup.
+    owner_guard: OwnerGuard | None = None
 
 
 async def _maybe(value: Any) -> Any:
@@ -48,6 +63,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     router = APIRouter(prefix="/api/v2/product", tags=["product-v2"])
     service = ProductService(deps.repository, deps.providers)
     capability_gateway = CapabilityGateway(deps.repository)
+    automation_lifecycle = AutomationLifecycle(service, deps.owner_guard or supabase_owner_guard())
 
     async def scope(principal: Principal, project_id: str | None, team_id: str | None,
                     permission: ResourcePermission) -> Scope:
@@ -66,6 +82,11 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Resource not found.") from exc
         except ConflictError as exc:
             raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        except AutomationTriggerError as exc:
+            if exc.code == "signing_unconfigured":
+                raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
+            raise HTTPException(status.HTTP_409_CONFLICT,
+                                {"code": exc.code, "message": str(exc)}) from exc
         except RuntimeError as exc:
             if str(exc).startswith("provider_unavailable:"):
                 raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(exc)) from exc
@@ -106,6 +127,82 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
             raise HTTPException(status.HTTP_404_NOT_FOUND, "Run not found.")
         await scope(principal, capability_run.project_id, None, ResourcePermission.USE)
         return run(lambda: capability_gateway.resolve(run_id=run_id, principal=principal, body=body))
+
+    project_directory = deps.projects or configured_project_directory()
+
+    @router.get("/projects")
+    async def list_projects(principal: Principal = Depends(deps.principal)):
+        await scope(principal, None, None, ResourcePermission.VIEW)
+        return {"items": run(lambda: project_directory.list_projects(
+            organization_id=principal.organization_id,
+            profile_id=principal.profile_id, role=principal.role))}
+
+    @router.post("/projects", status_code=status.HTTP_201_CREATED)
+    async def create_project(body: ProjectCreate,
+                             principal: Principal = Depends(deps.principal),
+                             _guard: None = Depends(mutation)):
+        await scope(principal, None, None, ResourcePermission.VIEW)
+
+        def call():
+            service.require_role(principal, OrganizationRole.MEMBER)
+            return project_directory.create_project(
+                organization_id=principal.organization_id, profile_id=principal.profile_id,
+                name=body.name, description=body.description, visibility=body.visibility)
+
+        return run(call)
+
+    @router.get("/projects/{project_id}")
+    async def get_project(project_id: str, principal: Principal = Depends(deps.principal)):
+        await scope(principal, project_id, None, ResourcePermission.VIEW)
+        project = run(lambda: project_directory.get_project(
+            organization_id=principal.organization_id, project_id=project_id,
+            profile_id=principal.profile_id, role=principal.role))
+        if project is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Resource not found.")
+        return project
+
+    _ORGANIZATION_RECENT_KINDS = {
+        "outputs": ("output", ()),
+        "approvals": ("capability_approval", ("pending",)),
+        "automations": ("automation", ()),
+        "agents": ("agent_version", ("published",)),
+    }
+
+    @router.get("/organization/recent/{surface}")
+    async def organization_recent(surface: str,
+                                  limit: int = Query(default=20, ge=1, le=100),
+                                  principal: Principal = Depends(deps.principal)):
+        selected = _ORGANIZATION_RECENT_KINDS.get(surface)
+        if selected is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Resource not found.")
+        await scope(principal, None, None, ResourcePermission.VIEW)
+        kind, states = selected
+        return {"items": run(lambda: service.list_recent(
+            kind, principal.organization_id, states=states, limit=limit))}
+
+    @router.get("/workspace/capabilities")
+    async def workspace_capabilities(principal: Principal = Depends(deps.principal)):
+        """Truthful server-computed readiness for workspace surfaces.
+
+        The UI must never imply live execution or connected providers from
+        catalog records alone; it renders availability from this response.
+        """
+        await scope(principal, None, None, ResourcePermission.VIEW)
+
+        def provider_state(capability: str) -> dict[str, Any]:
+            try:
+                value = dict(deps.providers.status(capability, organization_id=principal.organization_id))
+            except Exception:
+                return {"state": "unavailable", "externally_verified": False}
+            return {"state": str(value.get("state", "unavailable")),
+                    "externally_verified": value.get("externally_verified") is True}
+
+        return {
+            "runtime_execution": os.getenv(
+                "BEYOND_RUNTIME_CONTROL_PLANE_ENABLED", "false").strip().lower() == "true",
+            "providers": {capability: provider_state(capability)
+                          for capability in ("models", "retrieval", "actions", "billing")},
+        }
 
     @router.get("/catalog")
     async def catalog(principal: Principal = Depends(deps.principal)):
@@ -347,6 +444,14 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return run(lambda: service.create(kind="memory", scope=target, principal=principal,
             idempotency_key=idempotency_key, payload=body.model_dump(), state="active"))
 
+    @router.get("/projects/{project_id}/memory/proposals")
+    async def memory_proposals(project_id: str,
+                               states: Annotated[list[str] | None, Query(alias="state")] = None,
+                               principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": run(lambda: service.list(
+            "memory_proposal", target, states=tuple(states or ())))}
+
     @router.post("/projects/{project_id}/memory/proposals", status_code=201)
     async def propose_memory(project_id: str, body: MemoryProposal, idempotency_key: IdempotencyKey,
                              principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
@@ -529,19 +634,134 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                                  principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.USE)
         run(lambda: service.require_provider("automations", principal))
-        return run(lambda: service.append(kind="automation_execution", parent_kind="automation", parent_id=automation_id,
-            scope=target, principal=principal, idempotency_key=idempotency_key,
-            payload={"trigger": "manual"}, state="queued"))
+        return run(lambda: automation_lifecycle.enqueue(
+            scope=target, automation_id=automation_id, trigger_source="manual",
+            trigger_key=f"manual:{automation_id}:{idempotency_key}", principal=principal))
 
     @router.post("/projects/{project_id}/automations/{automation_id}/test", status_code=202)
     async def test_automation(project_id: str, automation_id: str, idempotency_key: IdempotencyKey,
                               principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
-        run(lambda: service.require_provider("automations", principal))
-        return run(lambda: service.append(kind="automation_execution", parent_kind="automation", parent_id=automation_id,
-            scope=target, principal=principal, idempotency_key=idempotency_key,
-            payload={"trigger": "manual", "test": True}, state="queued",
-            minimum=OrganizationRole.BUILDER))
+        run(lambda: service.require_role(principal, OrganizationRole.BUILDER))
+        return run(lambda: automation_lifecycle.enqueue(
+            scope=target, automation_id=automation_id, trigger_source="test",
+            trigger_key=f"test:{automation_id}:{idempotency_key}", principal=principal, test=True))
+
+    @router.post("/projects/{project_id}/automations/{automation_id}/versions", status_code=201)
+    async def publish_automation_version(project_id: str, automation_id: str, idempotency_key: IdempotencyKey,
+                                         principal: Principal = Depends(deps.principal),
+                                         _guard: None = Depends(mutation)):
+        target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
+        return run(lambda: automation_lifecycle.publish_version(
+            scope=target, principal=principal, automation_id=automation_id,
+            idempotency_key=idempotency_key))
+
+    @router.get("/projects/{project_id}/automations/{automation_id}/versions")
+    async def automation_versions(project_id: str, automation_id: str,
+                                  principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": run(lambda: [
+            item for item in service.list("automation_version", target)
+            if item["payload"].get("parent_id") == automation_id])}
+
+    @router.get("/projects/{project_id}/automations/{automation_id}/executions")
+    async def automation_executions(project_id: str, automation_id: str,
+                                    principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": run(lambda: [
+            item for item in service.list("automation_execution", target)
+            if item["payload"].get("parent_id") == automation_id])}
+
+    @router.post("/projects/{project_id}/automations/{automation_id}/executions/{execution_id}/retry",
+                 status_code=202)
+    async def retry_automation_execution(project_id: str, automation_id: str, execution_id: str,
+                                         principal: Principal = Depends(deps.principal),
+                                         _guard: None = Depends(mutation)):
+        target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
+        run(lambda: service.require_role(principal, OrganizationRole.BUILDER))
+        return run(lambda: automation_lifecycle.retry(
+            scope=target, principal=principal, automation_id=automation_id,
+            execution_id=execution_id))
+
+    @router.get("/projects/{project_id}/automations/{automation_id}/webhook-secret")
+    async def automation_webhook_signing(project_id: str, automation_id: str,
+                                         principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.MANAGE)
+        run(lambda: service.require_role(principal, OrganizationRole.BUILDER))
+        run(lambda: service.get("automation", automation_id, target))
+        return {"scheme": "t=<unix>,v1=hmac_sha256(secret, t + '.' + body)",
+                "secret": run(lambda: automation_webhook_secret(automation_id))}
+
+    @router.get("/organization/automation-failures")
+    async def automation_failures(limit: int = Query(default=50, ge=1, le=100),
+                                  principal: Principal = Depends(deps.principal)):
+        await scope(principal, None, None, ResourcePermission.VIEW)
+        return {"items": run(lambda: service.list_recent(
+            "automation_execution", principal.organization_id,
+            states=("failed", "dead_letter"), limit=limit))}
+
+    async def _ingest_signed_trigger(organization_id: str, automation_id: str, request: Request,
+                                     source: str, secret: str, event_id_field: str):
+        payload = await request.body()
+        try:
+            parsed = verify_signed_trigger(
+                payload, request.headers.get("beyond-trigger-signature", ""), secret)
+        except WebhookSignatureError as exc:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+        event_id = parsed.get(event_id_field)
+        if not isinstance(event_id, str) or not event_id:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST,
+                                f"The trigger payload requires a string '{event_id_field}'.")
+        # Automations are project-scoped records; resolve the project from the
+        # record itself rather than trusting the caller with a project ID.
+        found = next((candidate for candidate in deps.repository.list_recent(
+            kind="automation", organization_id=organization_id, limit=100)
+            if candidate.id == automation_id), None)
+        if found is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Resource not found.")
+        record_scope = Scope(found.scope.organization_id, found.scope.project_id, found.scope.team_id)
+        try:
+            execution = automation_lifecycle.enqueue(
+                scope=record_scope, automation_id=automation_id, trigger_source=source,
+                trigger_key=f"{source}:{automation_id}:{event_id}", trigger_payload=parsed)
+        except AutomationTriggerError as exc:
+            # Deliberate non-run outcomes acknowledge with 200 so the sender
+            # does not retry-storm; nothing external happened.
+            return {"result": f"ignored_{exc.code}"}
+        return {"result": "enqueued", "execution_id": execution["id"]}
+
+    @router.post("/webhooks/automations/{organization_id}/{automation_id}", include_in_schema=False)
+    async def automation_webhook(organization_id: str, automation_id: str, request: Request):
+        secret = run(lambda: automation_webhook_secret(automation_id))
+        return await _ingest_signed_trigger(organization_id, automation_id, request,
+                                            "webhook", secret, "event_id")
+
+    @router.post("/webhooks/composio-triggers/{organization_id}/{automation_id}", include_in_schema=False)
+    async def composio_trigger_webhook(organization_id: str, automation_id: str, request: Request):
+        secret = os.getenv("COMPOSIO_TRIGGER_SECRET", "")
+        if not secret:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
+                                "COMPOSIO_TRIGGER_SECRET is not configured.")
+        return await _ingest_signed_trigger(organization_id, automation_id, request,
+                                            "composio", secret, "id")
+
+    @router.post("/automations/scheduler/tick", include_in_schema=False)
+    async def scheduler_tick(request: Request):
+        expected = os.getenv("AUTOMATION_SCHEDULER_SECRET", "")
+        provided = request.headers.get("x-scheduler-secret", "")
+        if not expected:
+            raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
+                                "AUTOMATION_SCHEDULER_SECRET is not configured.")
+        if not secrets.compare_digest(expected, provided):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Scheduler authentication failed.")
+        import time as _time
+
+        from .service import record_dict as _record_dict
+
+        automations = [_record_dict(item) for item in deps.repository.list_global(
+            kind="automation", states=("active",), limit=500)]
+        return run(lambda: automation_lifecycle.scheduler_tick(
+            automations, now_epoch=int(_time.time())))
 
     @router.get("/billing/status")
     async def billing_status(principal: Principal = Depends(deps.principal)):

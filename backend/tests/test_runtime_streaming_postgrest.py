@@ -20,26 +20,6 @@ class Query:
         self.data = data
         self.calls = calls
 
-    def select(self, columns: str):
-        self.calls.append(("select", columns))
-        return self
-
-    def eq(self, column: str, value: Any):
-        self.calls.append(("eq", column, value))
-        return self
-
-    def gt(self, column: str, value: Any):
-        self.calls.append(("gt", column, value))
-        return self
-
-    def order(self, column: str, desc: bool = False):
-        self.calls.append(("order", column, desc))
-        return self
-
-    def limit(self, value: int):
-        self.calls.append(("limit", value))
-        return self
-
     def execute(self):
         self.calls.append(("execute",))
         return Response(self.data)
@@ -53,11 +33,8 @@ class Client:
 
     def rpc(self, name: str, params: dict[str, Any]):
         self.calls.append(("rpc", name, params))
-        return Query(self.snapshot, self.calls)
-
-    def table(self, name: str):
-        self.calls.append(("table", name))
-        return Query(self.events, self.calls)
+        data = self.snapshot if name == "runtime_stream_snapshot" else self.events
+        return Query(data, self.calls)
 
 
 def snapshot_row(**overrides: Any) -> dict[str, Any]:
@@ -99,13 +76,20 @@ async def test_snapshot_rpc_is_fully_scoped_and_projection_is_exact() -> None:
     assert client.calls[0] == (
         "rpc",
         "runtime_stream_snapshot",
-        {"p_organization_id": "org-a", "p_project_id": "project-a", "p_run_id": "run-a"},
+        {
+            "p_organization_id": "org-a",
+            "p_project_id": "project-a",
+            "p_run_id": "run-a",
+        },
     )
 
 
 @pytest.mark.asyncio
 async def test_absent_or_inaccessible_snapshot_has_identical_none_shape() -> None:
-    assert await SupabaseRuntimeEventRepository(Client(snapshot=[])).get_snapshot(SCOPE) is None
+    assert (
+        await SupabaseRuntimeEventRepository(Client(snapshot=[])).get_snapshot(SCOPE)
+        is None
+    )
 
 
 @pytest.mark.asyncio
@@ -115,12 +99,32 @@ async def test_event_read_has_all_scope_predicates_order_and_bound() -> None:
         SCOPE, after_sequence=1, limit=2
     )
     assert [event.sequence for event in events] == [2, 3]
-    assert [("eq", "organization_id", "org-a"), ("eq", "project_id", "project-a"), ("eq", "run_id", "run-a")] == [
-        call for call in client.calls if call[0] == "eq"
-    ]
-    assert ("gt", "sequence", 1) in client.calls
-    assert ("order", "sequence", False) in client.calls
-    assert ("limit", 2) in client.calls
+    assert client.calls[0] == (
+        "rpc",
+        "runtime_stream_events_after",
+        {
+            "p_organization_id": "org-a",
+            "p_project_id": "project-a",
+            "p_run_id": "run-a",
+            "p_after_sequence": 1,
+            "p_limit": 2,
+        },
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "after_sequence,limit", [(-1, 1), (0, 0), (0, 1001), (True, 1), (0, True)]
+)
+async def test_event_read_rejects_invalid_bounds_before_rpc(
+    after_sequence: Any, limit: Any
+) -> None:
+    client = Client(snapshot=[])
+    with pytest.raises(ValueError):
+        await SupabaseRuntimeEventRepository(client).read_events_after(
+            SCOPE, after_sequence=after_sequence, limit=limit
+        )
+    assert client.calls == []
 
 
 @pytest.mark.asyncio
@@ -132,7 +136,9 @@ async def test_event_read_has_all_scope_predicates_order_and_bound() -> None:
         (snapshot_row(organization_id="org-b"), "outside"),
     ],
 )
-async def test_malformed_snapshot_rows_fail_closed(row: dict[str, Any], match: str) -> None:
+async def test_malformed_snapshot_rows_fail_closed(
+    row: dict[str, Any], match: str
+) -> None:
     with pytest.raises(RuntimeError, match=match):
         await SupabaseRuntimeEventRepository(Client(snapshot=[row])).get_snapshot(SCOPE)
 
@@ -146,7 +152,9 @@ async def test_malformed_snapshot_rows_fail_closed(row: dict[str, Any], match: s
         (event_row(1, project_id="project-b"), "outside"),
     ],
 )
-async def test_malformed_event_rows_fail_closed(row: dict[str, Any], match: str) -> None:
+async def test_malformed_event_rows_fail_closed(
+    row: dict[str, Any], match: str
+) -> None:
     repository = SupabaseRuntimeEventRepository(Client(snapshot=[], events=[row]))
     with pytest.raises(RuntimeError, match=match):
         await repository.read_events_after(SCOPE, after_sequence=0, limit=10)

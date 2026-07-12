@@ -52,6 +52,23 @@ class SupabaseProductRepository:
         rows = query.order("updated_at", desc=True).limit(200).execute().data or []
         return [self._record(kind, dict(row)) for row in rows]
 
+    def list_recent(self, *, kind: str, organization_id: str,
+                    states: tuple[str, ...] = (), limit: int = 20) -> list[ProductRecord]:
+        query = (self.client.table(self._table(kind)).select("*")
+                 .eq("kind", kind).eq("organization_id", organization_id))
+        if states:
+            query = query.in_("state", list(states))
+        bounded = max(1, min(limit, 100))
+        rows = query.order("updated_at", desc=True).limit(bounded).execute().data or []
+        return [self._record(kind, dict(row)) for row in rows]
+
+    def list_global(self, *, kind: str, states: tuple[str, ...] = (), limit: int = 200) -> list[ProductRecord]:
+        query = self.client.table(self._table(kind)).select("*").eq("kind", kind)
+        if states:
+            query = query.in_("state", list(states))
+        rows = query.order("updated_at", desc=True).limit(max(1, min(limit, 1000))).execute().data or []
+        return [self._record(kind, dict(row)) for row in rows]
+
     def get(self, *, kind: str, record_id: str, scope: Scope) -> ProductRecord | None:
         query = (self.client.table(self._table(kind)).select("*").eq("kind", kind)
                  .eq("id", record_id).eq("organization_id", scope.organization_id))

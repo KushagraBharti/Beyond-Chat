@@ -10,16 +10,16 @@ The repository adapter is security-critical. Both `get_snapshot` and every `read
 
 ## Required database read contract
 
-Before mounting the router, add a PostgREST-exposed `runtime_stream_snapshot(p_organization_id uuid, p_project_id uuid, p_run_id text)` function. It must be a read-only, security-invoker function (or an equivalently protected private-schema function exposed only through an authenticated backend role), apply all three arguments in the `runtime_runs` predicate, and return zero or one row with exactly:
+Migration `20260712013400_runtime_stream_read_model.sql` adds PostgREST-exposed `runtime_stream_snapshot(...)` and `runtime_stream_events_after(...)` functions. Both are read-only security-invoker functions, apply all three scope arguments in their table predicates, and are the only database reads used by `SupabaseRuntimeEventRepository`. The snapshot function returns zero or one row with exactly:
 
 - `organization_id text`, `project_id text`, `run_id text`, and `state text`;
 - `latest_sequence bigint = runtime_runs.next_event_sequence - 1`;
 - `minimum_available_sequence bigint = coalesce(min(runtime_events.sequence), latest_sequence + 1)` using the same organization/project/run predicates;
 - `projection jsonb`, an object containing the authoritative current run projection selected by the function.
 
-The projection object is passed through exactly: the adapter does not infer state by replaying events, merge client state, add omitted keys, or copy arbitrary columns outside the function's explicit projection. The initial function should explicitly construct the supported projection fields (`attempt`, `version`, `cancel_requested_at`, `terminal_reason`, `created_at`, `updated_at`, and `terminal_at`) with stable JSON names. SQL permissions must deny `anon`, grant only the backend authenticated/read role that mounts this adapter, and retain RLS/current-membership checks as defense in depth. Returning no row for both missing and inaccessible scopes is required. No schema migration or remote mutation was made as part of this adapter work.
+The projection object is passed through exactly: the adapter does not infer state by replaying events, merge client state, add omitted keys, or copy arbitrary columns outside the function's explicit projection. The function explicitly constructs the supported projection fields (`attempt`, `version`, `cancel_requested_at`, `terminal_reason`, `created_at`, `updated_at`, and `terminal_at`) with stable JSON names. SQL permissions deny `public`, `anon`, and `authenticated`, grant only `service_role`, and retain table RLS as defense in depth. Returning no row for both missing and inaccessible scopes is required. The migration is canonical but is not remotely applied by this workstream.
 
-`runtime_events` must be exposed to that same backend role for `SELECT`, with RLS enforcing current organization/project access. For the bounded read shape, retain or add a composite index beginning with `(organization_id, project_id, run_id, sequence)`; the current `(organization_id, run_id, sequence)` index does not cover the complete authoritative predicate as directly.
+The event RPC validates `after_sequence >= 0` and `1 <= limit <= 1000`, returns an explicit projection, and executes `sequence > after_sequence ORDER BY sequence ASC LIMIT limit`. The adapter requires no direct table `SELECT`. The composite `(organization_id, project_id, run_id, sequence)` index covers the complete authoritative predicate and ordered cursor read.
 
 Repository rows are treated as untrusted input. The service rejects oversized batches, negative or unordered sequences, inconsistent snapshot bounds, unsafe state/event tokens, malformed event IDs/schema versions, and timezone-naive timestamps before SSE serialization. Adapters must return canonical event names such as `run.completed`, opaque ASCII event IDs, `major.minor` schema versions, and timezone-aware datetimes.
 

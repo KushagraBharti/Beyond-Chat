@@ -4,6 +4,7 @@ import GlobalCursor from "../components/GlobalCursor";
 import ProtectedRoute from "../components/ProtectedRoute";
 import { AuthProvider } from "../context/AuthContext";
 import { ComparePanelProvider } from "../features/compare/ComparePanelProvider";
+import { ProjectProvider } from "../features/workspace/ProjectContext";
 import { WorkspaceLayout } from "../components/workspace/WorkspaceShell";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
 
@@ -15,6 +16,7 @@ const ChatWorkspacePage = lazy(() => import("../pages/workspace/ChatWorkspacePag
 const WorkListPage = lazy(() => import("../pages/workspace/WorkWorkspacePages").then((module) => ({ default: module.WorkListPage })));
 const WorkDetailPage = lazy(() => import("../pages/workspace/WorkWorkspacePages").then((module) => ({ default: module.WorkDetailPage })));
 const BrowsePages = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.ProjectsPage })));
+const ProjectDetailPage = lazy(() => import("../pages/workspace/ProjectDetailPage").then((module) => ({ default: module.ProjectDetailPage })));
 const AgentsPage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.AgentsPage })));
 const KnowledgeAppsPage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.KnowledgeAppsPage })));
 const SettingsWorkspacePage = lazy(() => import("../pages/workspace/WorkspaceBrowsePages").then((module) => ({ default: module.SettingsWorkspacePage })));
@@ -107,7 +109,9 @@ export default function AppShell() {
               <Route
                 element={
                   <ProtectedRoute>
-                    <WorkspaceLayout />
+                    <ProjectProvider>
+                      <WorkspaceLayout />
+                    </ProjectProvider>
                   </ProtectedRoute>
                 }
               >
@@ -118,6 +122,7 @@ export default function AppShell() {
                 <Route path="/work/new" element={<WorkDetailPage />} />
                 <Route path="/work/:workId" element={<WorkDetailPage />} />
                 <Route path="/projects" element={<BrowsePages />} />
+                <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
                 <Route path="/agents" element={<AgentsPage />} />
                 <Route path="/agents/new" element={<FeaturePages.agentBuilder />} />
                 <Route path="/agents/general" element={<GeneralAgentPage />} />

@@ -26,6 +26,50 @@ class ObservabilitySettings:
         )
 
 
+def init_observability(app: object | None = None) -> dict[str, bool]:
+    """Initialize Sentry and OpenTelemetry when configured AND installed.
+
+    Import-guarded so neither SDK is a hard dependency; disabled silently when
+    unconfigured, loudly logged when configured but not installed. Returns a
+    truthful activation report for health/evidence surfaces.
+    """
+
+    settings = ObservabilitySettings.from_env()
+    logger = logging.getLogger("beyond.observability")
+    report = {"sentry": False, "otel": False}
+    if settings.sentry_enabled and settings.sentry_dsn:
+        try:
+            import sentry_sdk
+
+            sentry_sdk.init(dsn=settings.sentry_dsn, send_default_pii=False,
+                            environment=settings.service_name)
+            report["sentry"] = True
+        except ImportError:
+            logger.error("SENTRY_ENABLED is set but sentry-sdk is not installed.")
+    if settings.otel_enabled and settings.otel_exporter_endpoint:
+        try:
+            from opentelemetry import trace
+            from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+            from opentelemetry.sdk.resources import Resource
+            from opentelemetry.sdk.trace import TracerProvider
+            from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+            provider = TracerProvider(resource=Resource.create({"service.name": settings.service_name}))
+            provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=settings.otel_exporter_endpoint)))
+            trace.set_tracer_provider(provider)
+            if app is not None:
+                try:
+                    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+                    FastAPIInstrumentor.instrument_app(app)
+                except ImportError:
+                    logger.warning("FastAPI OTel instrumentation is not installed; traces are manual only.")
+            report["otel"] = True
+        except ImportError:
+            logger.error("OTEL_ENABLED is set but the OpenTelemetry SDK is not installed.")
+    return report
+
+
 class StructuredLogTelemetry:
     """Sentry/OTel-ready port that emits redacted structured attributes only."""
 

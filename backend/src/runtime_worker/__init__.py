@@ -8,6 +8,9 @@ from .models import (
 )
 from .reconciler import RuntimeReconciler
 from .worker import DurableWorker, PiAdapterCommandFactory, classify_failure
+from .invocation_broker import BrokerCapabilityIssuer, InvocationBrokerClient
+from .modal_sandbox import ModalClient, ModalProcess, ModalSandboxLifecycle, parse_adapter_event
+from .supabase_persistence import AsyncSupabaseClient, SupabaseWorkerPersistence
 
 __all__ = [
     "AdapterEvent", "AdapterProtocolError", "CommitOutcomeUnknown",
@@ -15,5 +18,7 @@ __all__ = [
     "PiAdapterCommandFactory", "ProviderTimeout", "ProviderUnavailable",
     "InvocationBrokerSession", "InvocationRequest", "RuntimeReconciler", "SandboxHandle",
     "SingleUseInvocationToken", "StaleLease", "WorkerResult",
-    "classify_failure",
+    "AsyncSupabaseClient", "BrokerCapabilityIssuer", "InvocationBrokerClient",
+    "ModalClient", "ModalProcess", "ModalSandboxLifecycle", "SupabaseWorkerPersistence",
+    "classify_failure", "parse_adapter_event",
 ]

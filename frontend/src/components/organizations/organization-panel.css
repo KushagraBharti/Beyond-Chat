@@ -17,3 +17,27 @@
 .organization-admin-grid small { color:#706c67; line-height:1.5; }
 @media (max-width:900px) { .organization-admin-grid { grid-template-columns:1fr; } }
 @media (max-width:600px) { .organization-panel-head,.organization-list article,.organization-invitations article { align-items:flex-start; flex-direction:column; } }
+
+/* Phase 2 member management additions */
+.organization-members { border-top: 1px solid #e2e2e0; padding-top: 1rem; }
+.organization-members h3 { margin: 0 0 .6rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; }
+.organization-members ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.organization-members li { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; border: 1px solid #e2e2e0; border-radius: .8rem; padding: .55rem .75rem; background: #fff; }
+.organization-member-identity { display: flex; flex-direction: column; min-width: 0; flex: 1 1 12rem; }
+.organization-member-identity strong { font-size: .82rem; }
+.organization-member-identity span { font-size: .7rem; color: #6b6b70; overflow-wrap: anywhere; }
+.organization-member-role select { font-size: .74rem; padding: .3rem .45rem; border: 1px solid #e2e2e0; border-radius: .5rem; background: #faf9f6; }
+.organization-member-rolelabel { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: #6b6b70; }
+.organization-state { font-size: .66rem; text-transform: uppercase; letter-spacing: .1em; padding: .18rem .5rem; border-radius: 99px; border: 1px solid #e2e2e0; }
+.organization-state[data-state="active"] { background: #e7f2e7; border-color: #b9d7ba; }
+.organization-state[data-state="suspended"] { background: #fdf3df; border-color: #ecd9a8; }
+.organization-state[data-state="revoked"], .organization-state[data-state="invited"] { background: #f4f3f0; color: #6b6b70; }
+.organization-member-actions { display: flex; gap: .4rem; margin-left: auto; }
+.organization-member-actions button, .organization-confirm button { font-size: .7rem; padding: .35rem .65rem; border-radius: .5rem; border: 1px solid #e2e2e0; background: #fff; cursor: pointer; }
+.organization-member-actions button:disabled, .organization-confirm button:disabled { opacity: .5; cursor: not-allowed; }
+.organization-member-actions button:focus-visible, .organization-confirm button:focus-visible, .organization-member-role select:focus-visible { outline: 3px solid #a6c2a4; outline-offset: 2px; }
+.organization-confirm { display: inline-flex; gap: .4rem; }
+.organization-confirm .is-danger { background: #8c2f22; border-color: #8c2f22; color: #fff; }
+.organization-message[data-tone="error"] { background: #fbeceb; border: 1px solid #e5b8b2; }
+.organization-message[data-tone="success"] { background: #e7f2e7; border: 1px solid #b9d7ba; }
+@media (max-width: 600px) { .organization-members li { flex-direction: column; align-items: flex-start; } .organization-member-actions { margin-left: 0; } }

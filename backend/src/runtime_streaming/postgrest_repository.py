@@ -15,17 +15,12 @@ class _Response(Protocol):
 class _PostgrestClient(Protocol):
     def rpc(self, name: str, params: Mapping[str, Any]) -> Any: ...
 
-    def table(self, name: str) -> Any: ...
-
 
 class SupabaseRuntimeEventRepository:
     """PostgREST adapter for the authoritative runtime stream read model."""
 
     SNAPSHOT_RPC = "runtime_stream_snapshot"
-    EVENT_COLUMNS = (
-        "id,organization_id,project_id,run_id,sequence,event_type,"
-        "schema_version,payload,occurred_at"
-    )
+    EVENTS_RPC = "runtime_stream_events_after"
 
     def __init__(self, client: _PostgrestClient) -> None:
         self._client = client
@@ -62,21 +57,32 @@ class SupabaseRuntimeEventRepository:
     async def read_events_after(
         self, scope: RunScope, *, after_sequence: int, limit: int
     ) -> Sequence[RunEvent]:
-        if isinstance(after_sequence, bool) or not isinstance(after_sequence, int) or after_sequence < 0:
+        if (
+            isinstance(after_sequence, bool)
+            or not isinstance(after_sequence, int)
+            or after_sequence < 0
+        ):
             raise ValueError("after_sequence must be a non-negative integer")
-        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= 1000:
+        if (
+            isinstance(limit, bool)
+            or not isinstance(limit, int)
+            or not 1 <= limit <= 1000
+        ):
             raise ValueError("limit must be between 1 and 1000")
 
-        def execute() -> _Response:
-            query = self._client.table("runtime_events").select(self.EVENT_COLUMNS)
-            query = query.eq("organization_id", scope.organization_id)
-            query = query.eq("project_id", scope.project_id)
-            query = query.eq("run_id", scope.run_id)
-            query = query.gt("sequence", after_sequence)
-            query = query.order("sequence", desc=False).limit(limit)
-            return query.execute()
-
-        rows = _rows(await asyncio.to_thread(execute))
+        response = await asyncio.to_thread(
+            lambda: self._client.rpc(
+                self.EVENTS_RPC,
+                {
+                    "p_organization_id": scope.organization_id,
+                    "p_project_id": scope.project_id,
+                    "p_run_id": scope.run_id,
+                    "p_after_sequence": after_sequence,
+                    "p_limit": limit,
+                },
+            ).execute()
+        )
+        rows = _rows(response)
         events: list[RunEvent] = []
         for value in rows:
             row = _mapping(value, "event")
@@ -117,9 +123,7 @@ def _string(row: Mapping[str, Any], key: str, label: str) -> str:
     return value
 
 
-def _integer(
-    row: Mapping[str, Any], key: str, label: str, *, minimum: int
-) -> int:
+def _integer(row: Mapping[str, Any], key: str, label: str, *, minimum: int) -> int:
     value = row.get(key)
     if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
         raise RuntimeError(f"{label} {key} must be an integer >= {minimum}")

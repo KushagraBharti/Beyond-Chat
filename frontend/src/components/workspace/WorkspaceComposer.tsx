@@ -2,7 +2,7 @@ import { forwardRef, useId, useImperativeHandle, useRef, useState, type Keyboard
 import { queryDiscovery, type DiscoveryResult } from "@beyond/product-catalog";
 import { discoveryBrowsePath, discoveryItems, type PromotionDraft, type ReferenceChip } from "../../features/workspace/adapter";
 
-export const WorkspaceComposer = forwardRef<HTMLTextAreaElement, { disabled: boolean; onPromote: (draft: PromotionDraft) => void; onBrowse: (path: string) => void }>(({ disabled, onPromote, onBrowse }, forwardedRef) => {
+export const WorkspaceComposer = forwardRef<HTMLTextAreaElement, { disabled: boolean; onPromote: (draft: PromotionDraft) => void; onBrowse: (path: string) => void; items?: readonly (typeof discoveryItems)[number][] }>(({ disabled, onPromote, onBrowse, items = discoveryItems }, forwardedRef) => {
   const textarea = useRef<HTMLTextAreaElement>(null);
   useImperativeHandle(forwardedRef, () => textarea.current as HTMLTextAreaElement);
   const listboxId = useId();
@@ -12,7 +12,7 @@ export const WorkspaceComposer = forwardRef<HTMLTextAreaElement, { disabled: boo
   const [highlighted, setHighlighted] = useState(0);
   const updateDiscovery = (value: string) => {
     const token = value.split(/\s/).at(-1) ?? "";
-    if (token.startsWith("/") || token.startsWith("@")) { setResults(queryDiscovery(discoveryItems, token)); setHighlighted(0); } else setResults([]);
+    if (token.startsWith("/") || token.startsWith("@")) { setResults(queryDiscovery(items, token)); setHighlighted(0); } else setResults([]);
   };
   const select = (item: DiscoveryResult) => {
     if (!item.keyboard.is_selectable) return;

@@ -75,6 +75,15 @@ app.include_router(billing_router)
 app.include_router(identity_router)
 app.include_router(runtime_router)
 
+# Phase 12 billing_v2: every route fails closed on activation flags, and the
+# composition root refuses BILLING_V2_ENABLED outside dev/test until durable
+# billing persistence exists (activation runbook gate M1).
+from .billing_v2.composition import create_configured_billing_router  # noqa: E402
+from .billing_v2.observability import init_observability  # noqa: E402
+
+app.include_router(create_configured_billing_router())
+init_observability(app)
+
 # The aggregate product plane always mounts behind the canonical WorkOS
 # principal. Durable Supabase persistence wins whenever configured. The memory
 # adapter is deliberately reachable only through an explicit local test/dev

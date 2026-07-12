@@ -52,6 +52,11 @@ class ProductService:
     def list(self, kind: str, scope: Scope, states: tuple[str, ...] = ()) -> list[dict[str, Any]]:
         return [record_dict(item) for item in self.repository.list(kind=kind, scope=scope, states=states)]
 
+    def list_recent(self, kind: str, organization_id: str,
+                    states: tuple[str, ...] = (), limit: int = 20) -> list[dict[str, Any]]:
+        return [record_dict(item) for item in self.repository.list_recent(
+            kind=kind, organization_id=organization_id, states=states, limit=limit)]
+
     def get(self, kind: str, record_id: str, scope: Scope) -> dict[str, Any]:
         item = self.repository.get(kind=kind, record_id=record_id, scope=scope)
         if item is None:

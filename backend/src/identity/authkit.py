@@ -10,8 +10,20 @@ from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Query, Re
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from ..authorization.policy import OrganizationRole, Principal, require_organization_role
+from ..authorization.policy import (
+    OrganizationPermission,
+    OrganizationRole,
+    Principal,
+    organization_permissions,
+    require_organization_permission,
+    require_role_assignable,
+)
 from ..config import settings
+from .membership_admin import (
+    MembershipAdminRepository,
+    MembershipAdminService,
+    SupabaseMembershipAdminRepository,
+)
 from .repository import (
     IdentityRepository,
     IdentitySnapshot,
@@ -25,13 +37,18 @@ from .workos_service import WorkOSProvider, WorkOSSession, configured_workos_ser
 router = APIRouter(prefix="/api", tags=["identity"])
 LOGGER = logging.getLogger("beyond_chat.identity")
 
+# Exactly the lifecycle event names the installed WorkOS SDK emits for the
+# resources Phase 2 reconciles (workos.types.events literals). WorkOS does not
+# emit "invitation.expired" — expiry is derived locally from expires_at. The
+# ``invitation.resent`` is normalized to pending without regressing terminal
+# invitation states.
 _WORKOS_EVENT_TYPES = frozenset(
     f"{resource}.{action}"
     for resource, actions in {
         "organization": ("created", "updated", "deleted"),
         "organization_membership": ("created", "updated", "deleted"),
         "user": ("created", "updated", "deleted"),
-        "invitation": ("created", "accepted", "revoked", "expired"),
+        "invitation": ("created", "accepted", "revoked", "resent"),
     }.items()
     for action in actions
 )
@@ -64,6 +81,12 @@ class BulkInvitationRequest(BaseModel):
     invitations: list[InvitationRequest] = Field(min_length=1, max_length=50)
 
 
+class MemberRoleChangeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    role: OrganizationRole
+
+
 def get_workos_provider() -> WorkOSProvider:
     try:
         return configured_workos_service()
@@ -76,6 +99,10 @@ def get_workos_provider() -> WorkOSProvider:
 
 def get_identity_repository() -> IdentityRepository:
     return SupabaseIdentityRepository()
+
+
+def get_membership_admin_repository() -> MembershipAdminRepository:
+    return SupabaseMembershipAdminRepository()
 
 
 def _is_secure_cookie(request: Request) -> bool:
@@ -169,12 +196,11 @@ def _principal(snapshot: IdentitySnapshot, session: WorkOSSession) -> Principal:
     )
 
 
-def _require_role_assignment(principal: Principal, role: OrganizationRole) -> None:
-    if role is OrganizationRole.OWNER and principal.role is not OrganizationRole.OWNER:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only an organization owner can assign the owner role.",
-        )
+def get_membership_admin_service(
+    provider: WorkOSProvider = Depends(get_workos_provider),
+    repository: MembershipAdminRepository = Depends(get_membership_admin_repository),
+) -> MembershipAdminService:
+    return MembershipAdminService(repository, provider)
 
 
 def require_csrf(
@@ -338,6 +364,9 @@ def session_info(principal: Principal = Depends(require_principal)) -> dict[str,
         "organizationId": principal.organization_id,
         "workosOrganizationId": principal.workos_organization_id,
         "role": principal.role.value,
+        "permissions": sorted(
+            permission.value for permission in organization_permissions(principal.role)
+        ),
     }
 
 
@@ -366,18 +395,45 @@ def organization_members(
     principal: Principal = Depends(require_principal),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> dict[str, Any]:
-    require_organization_role(principal, OrganizationRole.ADMIN)
+    require_organization_permission(principal, OrganizationPermission.VIEW_MEMBER_DIRECTORY)
     _require_selected_organization(principal, organization_id)
+    lifecycle_visible = OrganizationPermission.VIEW_MEMBER_LIFECYCLE in organization_permissions(
+        principal.role
+    )
+    if lifecycle_visible:
+        states = frozenset(status_filter or ("invited", "active", "suspended", "revoked"))
+    else:
+        # The plain directory never exposes lifecycle states beyond active
+        # membership, so a non-admin cannot enumerate suspended or revoked
+        # colleagues or their timestamps.
+        if status_filter and set(status_filter) != {"active"}:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Member lifecycle visibility requires an administrative role.",
+            )
+        states = frozenset({"active"})
     try:
         page = repository.list_members(
             principal=_snapshot_from_principal(principal),
-            states=frozenset(status_filter or ("invited", "active", "suspended", "revoked")),
+            states=states,
             cursor=cursor,
             limit=limit,
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return {"items": page.items, "nextCursor": page.next_cursor}
+    items = page.items
+    if not lifecycle_visible:
+        items = [
+            {
+                "id": item.get("id"),
+                "displayName": item.get("displayName"),
+                "email": item.get("email"),
+                "avatarUrl": item.get("avatarUrl"),
+                "role": item.get("role"),
+            }
+            for item in items
+        ]
+    return {"items": items, "nextCursor": page.next_cursor}
 
 
 @router.get("/organizations/{organization_id}/invitations")
@@ -392,7 +448,7 @@ def organization_invitations(
     principal: Principal = Depends(require_principal),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> dict[str, Any]:
-    require_organization_role(principal, OrganizationRole.ADMIN)
+    require_organization_permission(principal, OrganizationPermission.VIEW_MEMBER_LIFECYCLE)
     _require_selected_organization(principal, organization_id)
     try:
         page = repository.list_invitations(
@@ -442,6 +498,55 @@ def switch_organization(
     }
 
 
+@router.patch("/organizations/{organization_id}/members/{member_id}")
+def change_member_role(
+    organization_id: str,
+    member_id: str,
+    payload: MemberRoleChangeRequest,
+    principal: Principal = Depends(require_principal),
+    _csrf: None = Depends(require_csrf),
+    service: MembershipAdminService = Depends(get_membership_admin_service),
+) -> dict[str, Any]:
+    _require_selected_organization(principal, organization_id)
+    return service.change_role(principal, member_id, payload.role).as_response()
+
+
+@router.post("/organizations/{organization_id}/members/{member_id}/suspend")
+def suspend_member(
+    organization_id: str,
+    member_id: str,
+    principal: Principal = Depends(require_principal),
+    _csrf: None = Depends(require_csrf),
+    service: MembershipAdminService = Depends(get_membership_admin_service),
+) -> dict[str, Any]:
+    _require_selected_organization(principal, organization_id)
+    return service.suspend(principal, member_id).as_response()
+
+
+@router.post("/organizations/{organization_id}/members/{member_id}/restore")
+def restore_member(
+    organization_id: str,
+    member_id: str,
+    principal: Principal = Depends(require_principal),
+    _csrf: None = Depends(require_csrf),
+    service: MembershipAdminService = Depends(get_membership_admin_service),
+) -> dict[str, Any]:
+    _require_selected_organization(principal, organization_id)
+    return service.restore(principal, member_id).as_response()
+
+
+@router.delete("/organizations/{organization_id}/members/{member_id}")
+def revoke_member(
+    organization_id: str,
+    member_id: str,
+    principal: Principal = Depends(require_principal),
+    _csrf: None = Depends(require_csrf),
+    service: MembershipAdminService = Depends(get_membership_admin_service),
+) -> dict[str, Any]:
+    _require_selected_organization(principal, organization_id)
+    return service.revoke(principal, member_id).as_response()
+
+
 @router.post("/invitations", status_code=status.HTTP_201_CREATED)
 def invite(
     payload: InvitationRequest,
@@ -450,8 +555,8 @@ def invite(
     provider: WorkOSProvider = Depends(get_workos_provider),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> dict[str, Any]:
-    require_organization_role(principal, OrganizationRole.ADMIN)
-    _require_role_assignment(principal, payload.role)
+    require_organization_permission(principal, OrganizationPermission.INVITE_MEMBERS)
+    require_role_assignable(principal, payload.role)
     result = provider.send_invitation(
         email=payload.email,
         organization_id=principal.workos_organization_id,
@@ -475,9 +580,9 @@ def bulk_invite(
     provider: WorkOSProvider = Depends(get_workos_provider),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> dict[str, Any]:
-    require_organization_role(principal, OrganizationRole.ADMIN)
+    require_organization_permission(principal, OrganizationPermission.INVITE_MEMBERS)
     for item in payload.invitations:
-        _require_role_assignment(principal, item.role)
+        require_role_assignable(principal, item.role)
     snapshot = _snapshot_from_principal(principal)
     existing = repository.get_bulk_invite(principal=snapshot, idempotency_key=idempotency_key)
     if existing is not None:
@@ -534,7 +639,7 @@ def revoke_invitation(
     provider: WorkOSProvider = Depends(get_workos_provider),
     repository: IdentityRepository = Depends(get_identity_repository),
 ) -> Response:
-    require_organization_role(principal, OrganizationRole.ADMIN)
+    require_organization_permission(principal, OrganizationPermission.INVITE_MEMBERS)
     snapshot = _snapshot_from_principal(principal)
     invitation = repository.get_invitation(principal=snapshot, invitation_id=invitation_id)
     if invitation is None:

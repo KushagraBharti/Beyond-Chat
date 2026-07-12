@@ -55,7 +55,25 @@ class ProductRepository(Protocol):
 
     def list(self, *, kind: str, scope: Scope, states: tuple[str, ...] = ()) -> list[ProductRecord]: ...
 
+    def list_recent(
+        self, *, kind: str, organization_id: str, states: tuple[str, ...] = (), limit: int = 20
+    ) -> list[ProductRecord]:
+        """Newest records of one kind across every project in one organization.
+
+        Unlike ``list``, the project component of the scope is intentionally not
+        matched: this powers organization-level surfaces such as Home. The
+        organization boundary remains strict.
+        """
+        ...
+
     def get(self, *, kind: str, record_id: str, scope: Scope) -> ProductRecord | None: ...
+
+    def list_global(
+        self, *, kind: str, states: tuple[str, ...] = (), limit: int = 200
+    ) -> list[ProductRecord]:
+        """Service-role listing across organizations for internal loops only
+        (scheduler tick). Never expose through a principal-scoped route."""
+        ...
 
     def create_once(
         self,
