@@ -122,7 +122,13 @@ export function listProjectRecords(projectId: string, surface: "outputs" | "auto
 export function recordTitle(record: ProductRecordSummary): string {
   const payload = record.payload ?? {};
   const name = payload["name"];
-  return typeof name === "string" && name.trim() ? name : `${record.kind} ${record.id.slice(0, 8)}`;
+  if (typeof name === "string" && name.trim()) return name;
+  const manifest = payload["manifest"];
+  if (manifest && typeof manifest === "object" && !Array.isArray(manifest)) {
+    const publishedName = (manifest as Record<string, unknown>)["name"];
+    if (typeof publishedName === "string" && publishedName.trim()) return publishedName;
+  }
+  return `${record.kind} ${record.id.slice(0, 8)}`;
 }
 
 export type SectionStatus = "loading" | "ready" | "empty" | "error" | "forbidden";
