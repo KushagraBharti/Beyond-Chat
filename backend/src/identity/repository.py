@@ -1556,7 +1556,7 @@ class SupabaseIdentityRepository:
                 client.table("organizations")
                 .select("id")
                 .eq("workos_organization_id", workos_org_id)
-                .maybe_single()
+                .limit(1)
                 .execute()
                 .data
             )
@@ -1624,7 +1624,7 @@ class SupabaseIdentityRepository:
                     "id,organization_id,email,role,state,expires_at,accepted_at,revoked_at,updated_at"
                 )
                 .eq("workos_invitation_id", workos_invitation_id)
-                .maybe_single()
+                .limit(1)
                 .execute()
                 .data
             )
