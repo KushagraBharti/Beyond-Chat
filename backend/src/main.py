@@ -34,7 +34,8 @@ from .artifact_drafts import build_run_artifact_payload
 from .billing import record_usage_event, router as billing_router
 from .config import settings
 from .identity.authkit import router as identity_router
-from .identity.authkit import get_identity_repository
+from .identity.authkit import get_identity_repository, require_principal
+from .authorization.policy import Principal, ResourcePermission
 from .product_api import ProductApiDependencies, create_product_router
 from .product_api.authorization import WorkOSScopeAuthorizer
 from .product_api.provider_factory import create_live_provider_registry
@@ -55,6 +56,10 @@ from .providers import (
 )
 from .runtime_store import RuntimeStoreError, get_runtime_store
 from .runtime.integration import router as runtime_router
+from .runtime_streaming.models import RunScope
+from .runtime_streaming.postgrest_repository import SupabaseRuntimeEventRepository
+from .runtime_streaming.router import create_runtime_streaming_router
+from .runtime_streaming.service import RuntimeStreamingService
 from .supabase_service import supabase_service
 from .workflows import run_studio_workflow
 
@@ -99,11 +104,29 @@ _product_repository = (
     else InMemoryProductRepository() if _allow_product_memory else UnavailableProductRepository()
 )
 _product_identity_repository = get_identity_repository()
+_product_authorizer = WorkOSScopeAuthorizer(_product_identity_repository, _product_client)
 app.include_router(create_product_router(ProductApiDependencies(
     repository=_product_repository,
-    authorize_scope=WorkOSScopeAuthorizer(_product_identity_repository, _product_client),
+    authorize_scope=_product_authorizer,
     providers=create_live_provider_registry(),
 )))
+
+if _product_client is not None:
+    async def authorize_runtime_stream(
+        organization_id: str,
+        project_id: str,
+        run_id: str,
+        principal: Principal = Depends(require_principal),
+    ) -> RunScope:
+        if principal.organization_id != organization_id:
+            raise HTTPException(status_code=404, detail="run not found")
+        _product_authorizer(principal, project_id, None, ResourcePermission.VIEW)
+        return RunScope(organization_id=organization_id, project_id=project_id, run_id=run_id)
+
+    app.include_router(create_runtime_streaming_router(
+        RuntimeStreamingService(SupabaseRuntimeEventRepository(_product_client)),
+        authorize_runtime_stream,
+    ))
 
 
 @app.exception_handler(ProductPersistenceUnavailable)
