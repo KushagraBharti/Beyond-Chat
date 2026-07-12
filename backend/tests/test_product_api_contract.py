@@ -84,6 +84,9 @@ def test_output_version_and_comment_contract() -> None:
         headers={"Idempotency-Key": "output-version-001"},
         json={"content": {"blocks": []}, "change_summary": "Initial"})
     assert version.status_code == 201
+    versions = api.get(f"/api/v2/product/projects/project-a/outputs/{output_id}/versions")
+    assert versions.status_code == 200
+    assert [item["id"] for item in versions.json()["items"]] == [version.json()["id"]]
     comment = api.post(f"/api/v2/product/projects/project-a/outputs/{output_id}/comments",
         headers={"Idempotency-Key": "output-comment-001"}, json={"body": "Please verify source 3."})
     assert comment.status_code == 201

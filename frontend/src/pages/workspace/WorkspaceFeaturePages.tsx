@@ -18,7 +18,6 @@ import {
   type MemoryRecords,
 } from "../../features/memory/apiClient";
 import type { OutputView } from "../../features/outputs/model";
-import { integrationAvailability } from "../../features/integration/apiClient";
 import { useSection } from "../../features/workspace/hooks";
 import { useProjects } from "../../features/workspace/ProjectContext";
 import { sessionRequest } from "../../lib/sessionClient";
@@ -136,6 +135,7 @@ export function OutputWorkspacePage() {
   const [notice, setNotice] = useState("");
   const [commentReload, setCommentReload] = useState(0);
   const [reviewReload, setReviewReload] = useState(0);
+  const [versionReload, setVersionReload] = useState(0);
   const output = useSection(
     () => currentProject && outputId ? sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}`) : Promise.reject(new Error("Choose the output's project first.")),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}`,
@@ -148,14 +148,38 @@ export function OutputWorkspacePage() {
     () => currentProject && outputId ? sessionRequest<{ items: ProductRecordSummary[] }>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`) : Promise.resolve({ items: [] }),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}:reviews:${reviewReload}`,
   );
-  const notSent = (action: string) => setNotice(`${action} was not sent. ${integrationAvailability.deferred.collaboration}`);
-  const actions = { onSelectVersion: () => undefined, onCheckpoint: () => notSent("Checkpoint"), onRestore: () => notSent("Restore"), onCompare: () => notSent("Compare"), onBranch: () => notSent("Branch"), onPromote: () => notSent("Promote") };
+  const versions = useSection(
+    () => currentProject && outputId ? sessionRequest<{ items: ProductRecordSummary[] }>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/versions`) : Promise.resolve({ items: [] }),
+    `${currentProject?.id ?? "none"}:${outputId ?? "none"}:versions:${versionReload}`,
+  );
   if (output.status === "loading") return <section className="workspace-page"><WorkspaceState state="loading">Loading output…</WorkspaceState></section>;
   if (output.status !== "ready" || !output.data) return <section className="workspace-page"><WorkspaceState state="error">{output.message ?? "Output not found."}</WorkspaceState></section>;
   const record = output.data;
   const title = typeof record.payload["name"] === "string" ? record.payload["name"] : `Output ${record.id.slice(0, 8)}`;
   const body = typeof record.payload["description"] === "string" ? record.payload["description"] : "";
-  const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId: `v${record.version}`, versions: [{ id: `v${record.version}`, ordinal: record.version, label: `Version ${record.version}`, author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }], preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] } };
+  const versionRecords = [...(versions.data?.items ?? [])].reverse();
+  const outputVersions = versionRecords.length ? versionRecords.map((item, index) => ({ id: item.id, ordinal: index + 1, label: String(item.payload["change_summary"] ?? `Version ${index + 1}`), author: item.created_by ?? "Organization member", createdAt: item.created_at, branchId: String(item.payload["branch_id"] ?? "main") })) : [{ id: `base:${record.id}`, ordinal: 1, label: "Version 1", author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }];
+  const activeVersionId = outputVersions.at(-1)!.id;
+  const contentFor = (versionId: string): Record<string, unknown> => {
+    const selected = versionRecords.find((item) => item.id === versionId);
+    const content = selected?.payload["content"];
+    return content && typeof content === "object" && !Array.isArray(content) ? content as Record<string, unknown> : { name: title, description: body };
+  };
+  const appendVersion = async (content: Record<string, unknown>, parentVersionId: string | null, changeSummary: string) => {
+    if (!currentProject || !outputId) return;
+    await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/versions`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ content, parent_version_id: parentVersionId, change_summary: changeSummary }) });
+    setVersionReload((value) => value + 1);
+    setNotice(`${changeSummary} saved.`);
+  };
+  const actions = {
+    onSelectVersion: () => undefined,
+    onCheckpoint: () => appendVersion(contentFor(activeVersionId), activeVersionId.startsWith("base:") ? null : activeVersionId, "Checkpoint"),
+    onRestore: (versionId: string) => appendVersion(contentFor(versionId), versionId.startsWith("base:") ? null : versionId, "Restored version"),
+    onCompare: (beforeVersionId: string, afterVersionId: string) => { setNotice(JSON.stringify(contentFor(beforeVersionId)) === JSON.stringify(contentFor(afterVersionId)) ? "The selected versions are identical." : "The selected versions contain different content."); },
+    onBranch: (versionId: string) => appendVersion({ ...contentFor(versionId), branch_id: crypto.randomUUID() }, versionId.startsWith("base:") ? null : versionId, "Branched version"),
+    onPromote: (versionId: string) => appendVersion(contentFor(versionId), versionId.startsWith("base:") ? null : versionId, "Promoted to main"),
+  };
+  const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId, versions: outputVersions, preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] }, validation: [{ code: "persistence", status: "passed", message: "Output and version history are persisted in canonical project records." }] };
   const commentViews = (comments.data?.items ?? []).map((item) => ({ id: item.id, author: item.created_by ?? "Organization member", body: String(item.payload["body"] ?? ""), createdAt: item.created_at, anchorLabel: "Output", resolved: item.state === "resolved", replies: [] }));
   const reviewViews = (reviews.data?.items ?? []).map((item) => ({ id: item.id, reviewer: String(item.payload["reviewer_ids"] instanceof Array ? item.payload["reviewer_ids"][0] : "Organization reviewer"), status: item.state as "pending" | "approved" | "changes_requested", note: typeof item.payload["instructions"] === "string" ? item.payload["instructions"] : null }));
   return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={reviewViews} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: async (commentId) => { if (!currentProject) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/comments/${encodeURIComponent(commentId)}/resolve`, { method: "POST" }); setCommentReload((value) => value + 1); }, onRequestReview: async () => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ reviewer_ids: [user?.email ?? user?.id ?? "organization-reviewer"], instructions: "Review this output and leave specific feedback." }) }); setReviewReload((value) => value + 1); } }} /></div></section>;

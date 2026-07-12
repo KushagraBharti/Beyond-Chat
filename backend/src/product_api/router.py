@@ -616,6 +616,13 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         return run(lambda: service.append(kind="output_version", parent_kind="output", parent_id=output_id,
             scope=target, principal=principal, idempotency_key=idempotency_key, payload=body.model_dump(), state="committed"))
 
+    @router.get("/projects/{project_id}/outputs/{output_id}/versions")
+    async def list_output_versions(project_id: str, output_id: str,
+                                   principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        return {"items": [item for item in service.list("output_version", target)
+                          if item["payload"].get("parent_id") == output_id]}
+
     @router.post("/projects/{project_id}/outputs/{output_id}/comments", status_code=201)
     async def create_comment(project_id: str, output_id: str, body: CommentCreate,
                              idempotency_key: IdempotencyKey, principal: Principal = Depends(deps.principal),
