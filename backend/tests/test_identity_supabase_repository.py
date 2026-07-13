@@ -7,6 +7,8 @@ import pytest
 from src.authorization.policy import OrganizationRole
 from src.identity.repository import SupabaseIdentityRepository
 
+RAW_NONE = object()
+
 
 class Query:
     def __init__(self, client: "Client", table: str) -> None:
@@ -31,8 +33,9 @@ class Query:
         self.operation = "upsert"
         return self
 
-    def execute(self) -> SimpleNamespace:
-        return SimpleNamespace(data=self.client.response(self.table, self.operation))
+    def execute(self) -> SimpleNamespace | None:
+        result = self.client.response(self.table, self.operation)
+        return None if result is RAW_NONE else SimpleNamespace(data=result)
 
 
 class Client:
@@ -84,6 +87,35 @@ def test_first_user_sync_treats_maybe_single_none_as_absent() -> None:
 
     assert snapshot.profile_id == "profile-first"
     assert snapshot.organization_id == "org-first"
+
+
+def test_project_access_treats_missing_direct_membership_as_inherited_access() -> None:
+    repository = Repository(
+        Client(
+            {
+                (
+                    "projects",
+                    "select",
+                ): {
+                    "id": "proj-1",
+                    "organization_id": "org-first",
+                    "visibility": "organization",
+                    "state": "active",
+                },
+                ("project_memberships", "select"): RAW_NONE,
+                ("resource_grants", "select"): [],
+            }
+        )
+    )
+
+    access = repository.get_project_access(
+        principal=SimpleNamespace(profile_id="profile-first"),  # type: ignore[arg-type]
+        project_id="proj-1",
+    )
+
+    assert access is not None
+    assert access.project_id == "proj-1"
+    assert access.direct_role is None
 
 
 @pytest.mark.parametrize("unexpected", ["opaque", ["not-a-row"], [{"id": "one"}, {"id": "two"}]])

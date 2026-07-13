@@ -851,6 +851,11 @@ class SupabaseIdentityRepository:
             f"Supabase returned an unexpected single-row response shape: {type(data).__name__}."
         )
 
+    @staticmethod
+    def _response_data(response: object) -> object:
+        """Normalize PostgREST maybe_single(), which returns None for no row."""
+        return getattr(response, "data", None) if response is not None else None
+
     def sync_authenticated_identity(
         self,
         *,
@@ -1219,23 +1224,25 @@ class SupabaseIdentityRepository:
     ) -> ProjectAccessSnapshot | None:
         client = self._client()
         project = self._one(
-            client.table("projects")
-            .select("id,organization_id,visibility,state")
-            .eq("id", project_id)
-            .maybe_single()
-            .execute()
-            .data
+            self._response_data(
+                client.table("projects")
+                .select("id,organization_id,visibility,state")
+                .eq("id", project_id)
+                .maybe_single()
+                .execute()
+            )
         )
         if not project or project.get("state") != "active":
             return None
         direct = self._one(
-            client.table("project_memberships")
-            .select("role")
-            .eq("project_id", project_id)
-            .eq("profile_id", principal.profile_id)
-            .maybe_single()
-            .execute()
-            .data
+            self._response_data(
+                client.table("project_memberships")
+                .select("role")
+                .eq("project_id", project_id)
+                .eq("profile_id", principal.profile_id)
+                .maybe_single()
+                .execute()
+            )
         )
         rows = (
             client.table("resource_grants")
