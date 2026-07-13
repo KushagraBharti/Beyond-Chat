@@ -5,6 +5,7 @@ import hashlib
 import os
 import re
 import secrets
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 from dataclasses import dataclass
 from typing import Annotated, Any, Awaitable, Callable
@@ -496,6 +497,15 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         else:
             candidates = available
 
+        if not candidates:
+            method = getattr(service.providers, "retrieve", None)
+            if method is None:
+                raise HTTPException(503, "provider_unavailable:retrieval")
+            result = await provider_call(lambda: method(query=body.query, limit=body.limit))
+            return run(lambda: service.create(kind="retrieval", scope=target, principal=principal,
+                idempotency_key=idempotency_key,
+                payload={**body.model_dump(), "provider_result": result}, state="completed"))
+
         terms = {term for term in re.findall(r"[a-z0-9]+", body.query.lower()) if len(term) > 2}
         ranked: list[tuple[int, dict[str, Any]]] = []
         for source in candidates:
@@ -736,8 +746,22 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     @router.get("/projects/{project_id}/outputs/{output_id}/reviews")
     async def list_reviews(project_id: str, output_id: str, principal: Principal = Depends(deps.principal)):
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
-        return {"items": [item for item in service.list("review", target)
-                          if item["payload"].get("output_id") == output_id]}
+        reviews = [item for item in service.list("review", target)
+                   if item["payload"].get("output_id") == output_id]
+        latest_decision: dict[str, dict[str, Any]] = {}
+        for decision in service.list("review_decision", target):
+            review_id = str(decision["payload"].get("parent_id") or "")
+            if review_id and review_id not in latest_decision:
+                latest_decision[review_id] = decision
+        for review in reviews:
+            decision = latest_decision.get(review["id"])
+            if decision:
+                review["state"] = decision["state"]
+                review["payload"] = {**review["payload"],
+                    "decision_reason": decision["payload"].get("reason"),
+                    "decided_by": decision.get("created_by"),
+                    "decided_at": decision.get("created_at")}
+        return {"items": reviews}
 
     @router.post("/projects/{project_id}/reviews/{review_id}/decisions", status_code=201)
     async def review_decision(project_id: str, review_id: str, body: StateTransition,
@@ -746,6 +770,13 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         if body.state not in {"approved", "changes_requested", "rejected"}:
             raise HTTPException(422, "Invalid review decision.")
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        review = run(lambda: service.get("review", review_id, target))
+        assigned = {str(value).lower() for value in review["payload"].get("reviewer_ids", [])}
+        identities = {principal.profile_id.lower(), principal.subject.lower()}
+        if principal.email:
+            identities.add(principal.email.lower())
+        if assigned.isdisjoint(identities):
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Only an assigned reviewer can decide this review.")
         return run(lambda: service.append(kind="review_decision", parent_kind="review", parent_id=review_id,
             scope=target, principal=principal, idempotency_key=idempotency_key,
             payload=body.model_dump(), state=body.state))
@@ -757,7 +788,26 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
         return run(lambda: service.append(kind="realtime_hint", parent_kind="output", parent_id=output_id,
             scope=target, principal=principal, idempotency_key=idempotency_key,
-            payload=body.model_dump(), state="hint"))
+            payload={**body.model_dump(), "output_id": output_id,
+                     "actor_id": principal.profile_id,
+                     "actor_name": principal.email or principal.subject}, state="hint"))
+
+    @router.get("/projects/{project_id}/outputs/{output_id}/realtime-hints")
+    async def list_realtime_hints(project_id: str, output_id: str,
+                                  principal: Principal = Depends(deps.principal)):
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=45)
+        active: dict[str, dict[str, Any]] = {}
+        for item in service.list("realtime_hint", target):
+            if item["payload"].get("output_id") != output_id:
+                continue
+            created_at = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
+            if created_at < cutoff:
+                continue
+            actor_id = str(item["payload"].get("actor_id") or item.get("created_by") or "")
+            if actor_id and actor_id not in active:
+                active[actor_id] = item
+        return {"items": list(active.values())}
 
     @router.post("/projects/{project_id}/automations", status_code=201)
     async def create_automation(project_id: str, body: AutomationCreate, idempotency_key: IdempotencyKey,

@@ -209,6 +209,80 @@ def test_project_source_retrieval_is_scoped_and_creates_resolvable_citations() -
     assert denied.status_code == 404
 
 
+def test_assigned_reviewer_can_decide_and_review_projection_updates() -> None:
+    repository = InMemoryProductRepository()
+    directory = InMemoryProjectDirectory()
+    project = directory.create_project(
+        organization_id="org-a", profile_id="profile-a",
+        name="Review project", description=None, visibility="organization")
+    reviewer, _, _ = build_client(
+        role=OrganizationRole.MEMBER, repository=repository, directory=directory,
+        profile_id="profile-a")
+    output = reviewer.post(
+        f"/api/v2/product/projects/{project['id']}/outputs",
+        headers={"Idempotency-Key": "review-output"},
+        json={"name": "Launch brief", "description": "Ready for review"},
+    )
+    review = reviewer.post(
+        f"/api/v2/product/projects/{project['id']}/outputs/{output.json()['id']}/reviews",
+        headers={"Idempotency-Key": "review-request"},
+        json={"reviewer_ids": ["profile-a"], "instructions": "Check the recommendation."},
+    )
+    assert output.status_code == review.status_code == 201
+
+    unassigned, _, _ = build_client(
+        role=OrganizationRole.MEMBER, repository=repository, directory=directory,
+        profile_id="profile-b")
+    denied = unassigned.post(
+        f"/api/v2/product/projects/{project['id']}/reviews/{review.json()['id']}/decisions",
+        headers={"Idempotency-Key": "review-denied"},
+        json={"state": "approved", "reason": "Should not work"},
+    )
+    assert denied.status_code == 403
+
+    decided = reviewer.post(
+        f"/api/v2/product/projects/{project['id']}/reviews/{review.json()['id']}/decisions",
+        headers={"Idempotency-Key": "review-approved"},
+        json={"state": "approved", "reason": "Approved for use."},
+    )
+    assert decided.status_code == 201
+    listed = reviewer.get(
+        f"/api/v2/product/projects/{project['id']}/outputs/{output.json()['id']}/reviews")
+    assert listed.status_code == 200
+    projected = listed.json()["items"][0]
+    assert projected["state"] == "approved"
+    assert projected["payload"]["decision_reason"] == "Approved for use."
+    assert projected["payload"]["decided_by"] == "profile-a"
+
+
+def test_output_presence_is_scoped_and_reports_active_collaborators() -> None:
+    repository = InMemoryProductRepository()
+    directory = InMemoryProjectDirectory()
+    project = directory.create_project(
+        organization_id="org-a", profile_id="profile-a",
+        name="Collaborative project", description=None, visibility="organization")
+    first, _, _ = build_client(
+        role=OrganizationRole.MEMBER, repository=repository, directory=directory,
+        profile_id="profile-a")
+    second, _, _ = build_client(
+        role=OrganizationRole.MEMBER, repository=repository, directory=directory,
+        profile_id="profile-b")
+    output = first.post(
+        f"/api/v2/product/projects/{project['id']}/outputs",
+        headers={"Idempotency-Key": "presence-output"},
+        json={"name": "Shared brief", "description": "Review together"},
+    ).json()
+    path = f"/api/v2/product/projects/{project['id']}/outputs/{output['id']}/realtime-hints"
+    for api, key in ((first, "presence-a"), (second, "presence-b")):
+        response = api.post(path, headers={"Idempotency-Key": key},
+                            json={"state": "active", "reason": "Reviewing output"})
+        assert response.status_code == 202
+    active = first.get(path)
+    assert active.status_code == 200
+    assert {item["payload"]["actor_id"] for item in active.json()["items"]} == {
+        "profile-a", "profile-b"}
+
+
 def test_personal_memory_is_visible_only_to_its_owner() -> None:
     repository = InMemoryProductRepository()
     directory = InMemoryProjectDirectory()
