@@ -4,7 +4,7 @@ import hmac
 import logging
 import secrets
 from typing import Annotated, Any, Literal
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlparse
 
 from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Query, Request, Response, status
 from fastapi.responses import RedirectResponse
@@ -36,6 +36,10 @@ from .workos_service import WorkOSProvider, WorkOSSession, configured_workos_ser
 
 router = APIRouter(prefix="/api", tags=["identity"])
 LOGGER = logging.getLogger("beyond_chat.identity")
+
+
+def _callback_cookie_path() -> str:
+    return urlparse(settings.workos_redirect_uri).path or "/api/auth/callback"
 
 # Exactly the lifecycle event names the installed WorkOS SDK emits for the
 # resources Phase 2 reconciles (workos.types.events literals). WorkOS does not
@@ -281,6 +285,7 @@ async def require_principal(
 
 
 @router.get("/auth/login")
+@router.get("/session/start")
 def login(
     request: Request,
     return_to: str | None = Query(default=None, alias="returnTo", max_length=2048),
@@ -305,12 +310,14 @@ def login(
         secure=_is_secure_cookie(request),
         samesite="lax",
         max_age=600,
-        path="/api/auth/callback",
+        path=_callback_cookie_path(),
     )
     return response
 
 
 @router.get("/auth/callback")
+@router.get("/workos/complete")
+@router.get("/session/complete")
 def callback(
     request: Request,
     code: str = Query(min_length=1, max_length=2048),
@@ -326,6 +333,7 @@ def callback(
     try:
         session = provider.exchange_code(code, invitation_token)
     except Exception as exc:
+        LOGGER.exception("Auth callback failed during WorkOS code exchange.")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed.") from exc
     if not session.organization_id:
         try:
@@ -362,7 +370,7 @@ def callback(
         LOGGER.exception("Auth callback failed during canonical identity sync.")
         raise
     response = RedirectResponse(packed[1], status_code=status.HTTP_303_SEE_OTHER)
-    response.delete_cookie(settings.workos_state_cookie_name, path="/api/auth/callback")
+    response.delete_cookie(settings.workos_state_cookie_name, path=_callback_cookie_path())
     _set_session_cookie(response, request, session.sealed_session)
     return response
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass
 from typing import Any, Mapping
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import httpx
 
@@ -23,9 +23,13 @@ class ComposioConfig:
 
     @property
     def ready(self) -> bool:
+        callback = urlparse(self.callback_base_url)
+        callback_is_safe = callback.scheme == "https" or (
+            callback.scheme == "http" and callback.hostname in {"localhost", "127.0.0.1"}
+        )
         return bool(
             self.api_key and self.auth_configs and (self.read_tools or self.write_tools)
-            and self.callback_base_url.startswith("https://") and 0 < self.timeout_seconds <= 120
+            and callback_is_safe and 0 < self.timeout_seconds <= 120
         )
 
 
@@ -134,13 +138,22 @@ class ComposioAdapter:
         }
 
     async def revoke(self, *, scope: ProviderScope, connected_account_id: str) -> dict[str, Any]:
-        await self.connection_status(scope=scope, connected_account_id=connected_account_id)
-        await request_json(
-            self._client, "composio", "POST",
-            f"{self.config.base_url.rstrip('/')}/api/v3.1/connected_accounts/"
-            f"{quote(connected_account_id, safe='')}/revoke",
-            headers=self._headers(), expected=(200, 201, 204),
-        )
+        before = await self.connection_status(scope=scope, connected_account_id=connected_account_id)
+        try:
+            await request_json(
+                self._client, "composio", "POST",
+                f"{self.config.base_url.rstrip('/')}/api/v3.1/connected_accounts/"
+                f"{quote(connected_account_id, safe='')}/revoke",
+                headers=self._headers(), expected=(200, 201, 204),
+            )
+        except ProviderCallError as exc:
+            # Composio returns 409 when an OAuth attempt was abandoned before
+            # credentials were granted. There is nothing active to revoke, so
+            # allow the local connection record to leave `authorizing`.
+            if exc.code != "http_409" or before["status"] == "active":
+                raise
+            return {"connected_account_id": connected_account_id,
+                    "revocation_propagated": True, "provider_version": self.provider_version}
         try:
             current = await self.connection_status(scope=scope, connected_account_id=connected_account_id)
             propagated = current["status"] in {"inactive", "revoked", "disabled"}

@@ -56,7 +56,12 @@ export async function protectedFetch(path: string, init: RequestInit = {}): Prom
     if (csrf) headers.set("X-CSRF-Token", csrf);
   }
 
-  const response = await fetch(path, { ...init, headers, credentials: "same-origin" });
+  const response = await fetch(path, {
+    ...init,
+    headers,
+    credentials: "same-origin",
+    cache: init.cache ?? "no-store",
+  });
   if (response.status === 401 && path !== "/api/auth/session") {
     window.dispatchEvent(new CustomEvent(sessionInvalidEvent));
   }
@@ -86,7 +91,7 @@ export function workOSLoginUrl(options: {
   if (options.invitationToken) params.set("invitationToken", options.invitationToken);
   if (options.organizationId) params.set("organizationId", options.organizationId);
   const query = params.toString();
-  return `/api/auth/login${query ? `?${query}` : ""}`;
+  return `/api/session/start${query ? `?${query}` : ""}`;
 }
 
 export async function logoutSession(): Promise<void> {

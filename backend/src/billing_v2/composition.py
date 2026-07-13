@@ -20,14 +20,17 @@ from .adapters import (
 )
 from .config import BillingV2Settings
 from .observability import StructuredLogTelemetry
+from .ports import BillingRepository
 from .router import BillingDependencies, create_billing_router
 from ..supabase_service import supabase_service
 
 
-def create_configured_billing_router() -> APIRouter:
+def create_configured_billing_router(*, repository: BillingRepository | None = None) -> APIRouter:
     settings = BillingV2Settings.from_env()
     client = supabase_service.client()
-    repository = SupabaseBillingRepository(client) if client is not None else InMemoryBillingRepository()
+    repository = repository or (
+        SupabaseBillingRepository(client) if client is not None else InMemoryBillingRepository()
+    )
     return create_billing_router(
         BillingDependencies(
             settings=settings,

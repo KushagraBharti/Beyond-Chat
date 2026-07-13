@@ -105,6 +105,21 @@ def test_explicit_project_role_and_grant_are_intersected_after_tenant_check() ->
     assert edit_decision.reason == "insufficient_permission"
 
 
+def test_organization_member_can_do_work_in_organization_visible_project() -> None:
+    decision = evaluate_project_access(
+        principal=principal(OrganizationRole.MEMBER),
+        project_organization_id="org-internal-a",
+        visibility="organization",
+        direct_role=None,
+        grants=frozenset(),
+        required=ResourcePermission.EDIT,
+    )
+
+    assert decision.allowed is True
+    assert ResourcePermission.USE in decision.effective_permissions
+    assert ResourcePermission.EDIT in decision.effective_permissions
+
+
 def test_role_permission_matrix_matches_shared_fixture() -> None:
     fixture = json.loads(ROLE_PERMISSIONS_FIXTURE.read_text(encoding="utf-8"))
     fixture_roles = {

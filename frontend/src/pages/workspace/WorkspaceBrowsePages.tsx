@@ -206,7 +206,10 @@ function AppConnections() {
             {connection.state === "active" ? <>
               <button type="button" className="workspace-button is-quiet" disabled={busy !== null} onClick={() => void checkConnection(connection)}>Check health</button>
               <button type="button" className="workspace-button is-quiet" disabled={busy !== null} onClick={() => void disconnectConnection(connection)}>Disconnect</button>
-            </> : null}
+            </> : <>
+              <button type="button" className="workspace-button" disabled={busy !== null} onClick={() => void connectApp(app)}>{busy === app.toolkit ? app.action : `Continue ${app.name} authorization`}</button>
+              <button type="button" className="workspace-button is-quiet" disabled={busy !== null} onClick={() => void disconnectConnection(connection)}>Cancel connection</button>
+            </>}
           </div>
         </article>
       ) : (

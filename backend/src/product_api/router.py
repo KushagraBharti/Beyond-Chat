@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import hashlib
 import os
+import re
 import secrets
 from uuid import uuid4
 from dataclasses import dataclass
@@ -114,6 +115,15 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
 
     def provider_scope(principal: Principal, project_id: str) -> ProviderScope:
         return ProviderScope(principal.organization_id, project_id, principal.profile_id)
+
+    def connection_provider_scope(principal: Principal, project_id: str,
+                                  record: dict[str, Any]) -> ProviderScope:
+        owner_profile_id = record.get("created_by")
+        return ProviderScope(
+            principal.organization_id,
+            project_id,
+            owner_profile_id if isinstance(owner_profile_id, str) and owner_profile_id else principal.profile_id,
+        )
 
     @router.get("/schema-manifest")
     async def manifest(principal: Principal = Depends(deps.principal)):
@@ -348,7 +358,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         method = getattr(service.providers, "connection_status", None)
         if method is None or not isinstance(provider_account_id, str):
             raise HTTPException(503, "provider_unavailable:connections")
-        remote = await provider_call(lambda: method(scope=provider_scope(principal, project_id),
+        remote = await provider_call(lambda: method(scope=connection_provider_scope(principal, project_id, record),
             connected_account_id=provider_account_id))
         if remote.get("status") != "active":
             raise HTTPException(409, "Provider connection is not active.")
@@ -378,7 +388,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         method = getattr(service.providers, "connection_status", None)
         if not isinstance(connected_account_id, str) or method is None:
             raise HTTPException(503, "provider_unavailable:connections")
-        return await provider_call(lambda: method(scope=provider_scope(principal, project_id),
+        return await provider_call(lambda: method(scope=connection_provider_scope(principal, project_id, record),
             connected_account_id=connected_account_id))
 
     @router.post("/projects/{project_id}/connections/{connection_id}/actions")
@@ -399,7 +409,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         method = getattr(service.providers, "execute_action", None)
         if method is None:
             raise HTTPException(503, "provider_unavailable:composio_actions")
-        return await provider_call(lambda: method(scope=provider_scope(principal, project_id),
+        return await provider_call(lambda: method(scope=connection_provider_scope(principal, project_id, record),
             connected_account_id=connected_account_id, tool_slug=body.tool_slug,
             arguments=body.arguments, version=body.version, approved=approved))
 
@@ -414,7 +424,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         method = getattr(service.providers, "revoke_connection", None)
         if not isinstance(connected_account_id, str) or method is None:
             raise HTTPException(503, "provider_unavailable:connections")
-        result = await provider_call(lambda: method(scope=provider_scope(principal, project_id),
+        result = await provider_call(lambda: method(scope=connection_provider_scope(principal, project_id, record),
             connected_account_id=connected_account_id))
         if result.get("revocation_propagated") is not True:
             raise HTTPException(503, "Provider revocation has not propagated.")
@@ -472,15 +482,53 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
     async def retrieve(project_id: str, body: QueryRequest, idempotency_key: IdempotencyKey,
                        principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.USE)
+        # Manual/project sources already live in the canonical, authorization-
+        # scoped product store. Retrieve them directly so grounded agent runs
+        # work even before an external connector is configured. Connector-backed
+        # sources enter this same store after their ACL-filtered sync.
+        available = run(lambda: service.list("source", target, states=("ready",)))
+        by_id = {item["id"]: item for item in available}
         if body.source_ids:
-            raise HTTPException(503, "Governed source retrieval requires an ACL-aware knowledge adapter.")
-        method = getattr(service.providers, "retrieve", None)
-        if method is None:
-            raise HTTPException(503, "provider_unavailable:retrieval")
-        result = await provider_call(lambda: method(query=body.query, limit=body.limit))
-        return run(lambda: service.create(kind="retrieval", scope=target, principal=principal,
-            idempotency_key=idempotency_key, payload={**body.model_dump(), "provider_result": result},
+            missing = [source_id for source_id in body.source_ids if source_id not in by_id]
+            if missing:
+                raise HTTPException(status.HTTP_404_NOT_FOUND, "One or more sources are not accessible.")
+            candidates = [by_id[source_id] for source_id in body.source_ids]
+        else:
+            candidates = available
+
+        terms = {term for term in re.findall(r"[a-z0-9]+", body.query.lower()) if len(term) > 2}
+        ranked: list[tuple[int, dict[str, Any]]] = []
+        for source in candidates:
+            payload = source.get("payload") or {}
+            name = str(payload.get("name") or "Untitled source")
+            content = str(payload.get("description") or "").strip()
+            if not content:
+                continue
+            haystack = f"{name} {content}".lower()
+            score = sum(haystack.count(term) for term in terms)
+            ranked.append((score, source))
+        ranked.sort(key=lambda pair: (pair[0], pair[1]["updated_at"]), reverse=True)
+
+        items: list[dict[str, Any]] = []
+        for _score, source in ranked[:body.limit]:
+            payload = source.get("payload") or {}
+            item = {
+                "source_id": source["id"],
+                "source_version": source["version"],
+                "name": str(payload.get("name") or "Untitled source"),
+                "excerpt": str(payload.get("description") or "")[:4_000],
+            }
+            items.append(item)
+
+        retrieval = run(lambda: service.create(kind="retrieval", scope=target, principal=principal,
+            idempotency_key=idempotency_key, payload={**body.model_dump(), "provider_result": {"items": items}},
             state="completed"))
+        for item in items:
+            run(lambda item=item: service.create(kind="citation", scope=target, principal=principal,
+                idempotency_key=f"{idempotency_key}:citation:{item['source_id']}", payload={
+                    **item, "retrieval_id": retrieval["id"],
+                }, state="ready"))
+        return retrieval
 
     @router.get("/projects/{project_id}/knowledge/citations")
     async def citations(project_id: str, principal: Principal = Depends(deps.principal)):
@@ -488,14 +536,20 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
 
     @router.get("/projects/{project_id}/memory")
     async def memories(project_id: str, principal: Principal = Depends(deps.principal)):
-        return await list_kind("memory", project_id, principal)
+        target = await scope(principal, project_id, None, ResourcePermission.VIEW)
+        items = run(lambda: service.list("memory", target))
+        return {"items": [item for item in items if
+            item["payload"].get("memory_scope", "project") != "user"
+            or item.get("created_by") == principal.profile_id]}
 
     @router.post("/projects/{project_id}/memory", status_code=201)
     async def remember(project_id: str, body: MemoryProposal, idempotency_key: IdempotencyKey,
                        principal: Principal = Depends(deps.principal), _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.EDIT)
+        payload = body.model_dump(exclude_none=True)
+        payload.setdefault("memory_scope", "project")
         return run(lambda: service.create(kind="memory", scope=target, principal=principal,
-            idempotency_key=idempotency_key, payload=body.model_dump(), state="active"))
+            idempotency_key=idempotency_key, payload=payload, state="active"))
 
     @router.get("/projects/{project_id}/memory/proposals")
     async def memory_proposals(project_id: str,
@@ -527,6 +581,10 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                             expected_version: ExpectedVersion, principal: Principal = Depends(deps.principal),
                             _guard: None = Depends(mutation)):
         target = await scope(principal, project_id, None, ResourcePermission.EDIT)
+        current = run(lambda: service.get("memory", memory_id, target))
+        if (current["payload"].get("memory_scope") == "user"
+                and current.get("created_by") != principal.profile_id):
+            raise HTTPException(404, "Memory not found.")
         return run(lambda: service.update(kind="memory", record_id=memory_id, scope=target, principal=principal,
             expected_version=expected_version, payload=body.model_dump(exclude_none=True)))
 
@@ -537,13 +595,20 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         if operation not in states:
             raise HTTPException(404, "Unknown memory operation.")
         target = await scope(principal, project_id, None, ResourcePermission.EDIT)
+        current = run(lambda: service.get("memory", memory_id, target))
+        if (current["payload"].get("memory_scope") == "user"
+                and current.get("created_by") != principal.profile_id):
+            raise HTTPException(404, "Memory not found.")
         return run(lambda: service.update(kind="memory", record_id=memory_id, scope=target, principal=principal,
             expected_version=expected_version, state=states[operation]))
 
     @router.get("/projects/{project_id}/memory/export")
     async def export_memory(project_id: str, principal: Principal = Depends(deps.principal)):
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
-        return {"format": "application/json", "items": service.list("memory", target)}
+        items = service.list("memory", target)
+        return {"format": "application/json", "items": [item for item in items if
+            item["payload"].get("memory_scope", "project") != "user"
+            or item.get("created_by") == principal.profile_id]}
 
     @router.post("/projects/{project_id}/agents/drafts", status_code=201)
     async def create_agent_draft(project_id: str, body: ResourceCreate, idempotency_key: IdempotencyKey,
@@ -633,7 +698,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
                                    principal: Principal = Depends(deps.principal)):
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
         return {"items": [item for item in service.list("output_version", target)
-                          if item["payload"].get("parent_id") == output_id]}
+                          if (item.get("parent_id") or item["payload"].get("parent_id")) == output_id]}
 
     @router.post("/projects/{project_id}/outputs/{output_id}/comments", status_code=201)
     async def create_comment(project_id: str, output_id: str, body: CommentCreate,
@@ -810,7 +875,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
         return {"items": run(lambda: [
             item for item in service.list("automation_version", target)
-            if item["payload"].get("parent_id") == automation_id])}
+            if (item.get("parent_id") or item["payload"].get("parent_id")) == automation_id])}
 
     @router.get("/projects/{project_id}/automations/{automation_id}/executions")
     async def automation_executions(project_id: str, automation_id: str,
@@ -818,7 +883,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         target = await scope(principal, project_id, None, ResourcePermission.VIEW)
         return {"items": run(lambda: [
             item for item in service.list("automation_execution", target)
-            if item["payload"].get("parent_id") == automation_id])}
+            if (item.get("parent_id") or item["payload"].get("parent_id")) == automation_id])}
 
     @router.post("/projects/{project_id}/automations/{automation_id}/executions/{execution_id}/retry",
                  status_code=202)
@@ -920,7 +985,7 @@ def create_product_router(deps: ProductApiDependencies) -> APIRouter:
         for execution in queued:
             if execution.get("payload", {}).get("trigger") != "schedule":
                 continue
-            automation_id = str(execution.get("payload", {}).get("parent_id") or "")
+            automation_id = str(execution.get("parent_id") or execution.get("payload", {}).get("parent_id") or "")
             if not automation_id:
                 continue
             execution_scope = Scope(

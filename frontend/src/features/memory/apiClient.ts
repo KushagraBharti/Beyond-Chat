@@ -34,10 +34,11 @@ function sensitivity(value: unknown): MemorySensitivity {
 
 function entryView(record: ProductRecordSummary): MemoryEntryView {
   const content = text(record.payload["content"]);
+  const scope = record.payload["memory_scope"] === "user" ? "user" : "project";
   return {
     id: record.id,
-    spaceId: record.scope.project_id ?? "project",
-    scope: "project",
+    spaceId: scope === "user" ? `user:${record.created_by ?? "current"}` : record.scope.project_id ?? "project",
+    scope,
     type: "semantic_fact",
     key: content.split(/\s+/).slice(0, 6).join(" ") || record.id.slice(0, 8),
     content,
@@ -85,11 +86,11 @@ export function resolveMemoryProposal(projectId: string, proposalId: string, ver
   });
 }
 
-export function rememberInProject(projectId: string, content: string, sensitivityValue: MemorySensitivity = "normal") {
+export function rememberInProject(projectId: string, content: string, sensitivityValue: MemorySensitivity = "normal", memoryScope: "user" | "project" = "project") {
   return sessionRequest<ProductRecordSummary>(path(projectId, "/memory"), {
     method: "POST",
     headers: { "Idempotency-Key": crypto.randomUUID() },
-    body: JSON.stringify({ content, sensitivity: sensitivityValue === "restricted" ? "sensitive" : sensitivityValue }),
+    body: JSON.stringify({ content, sensitivity: sensitivityValue === "restricted" ? "sensitive" : sensitivityValue, memory_scope: memoryScope }),
   });
 }
 

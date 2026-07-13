@@ -36,6 +36,7 @@ export function AgentBuilderPage() {
 export function MemoryWorkspacePage() {
   const [notice, setNotice] = useState("");
   const [memoryDraft, setMemoryDraft] = useState("");
+  const [memoryScope, setMemoryScope] = useState<"user" | "project">("project");
   const { currentProject } = useProjects();
   const projectId = currentProject?.id ?? null;
   const memory = useSection<MemoryRecords>(
@@ -62,8 +63,10 @@ export function MemoryWorkspacePage() {
       await action();
       memory.reload();
       say(success);
+      return true;
     } catch (cause) {
       say(cause instanceof Error ? `No change was saved. ${cause.message}` : "No change was saved.");
+      return false;
     }
   };
   const versionOf = (id: string) => records.versions.get(id);
@@ -73,14 +76,15 @@ export function MemoryWorkspacePage() {
       {memory.status === "error" || memory.status === "forbidden" ? (
         <WorkspaceState state="error">{memory.message ?? "Project memory could not be loaded."}</WorkspaceState>
       ) : null}
-      {notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}
+      {notice ? <div className={`workspace-notice ${notice.startsWith("No change") ? "is-error" : "is-neutral"}`} role="status"><strong>{notice.startsWith("No change") ? "Memory unchanged" : "Saved"}</strong><span>{notice}</span></div> : null}
       <form className="workspace-form" onSubmit={(event) => {
         event.preventDefault();
         const content = memoryDraft.trim();
         if (!content) return;
-        void act(() => rememberInProject(projectId, content), "Memory saved.").then(() => setMemoryDraft(""));
+        void act(() => rememberInProject(projectId, content, "normal", memoryScope), `${memoryScope === "user" ? "Personal" : "Project"} memory saved.`).then((saved) => { if (saved) setMemoryDraft(""); });
       }}>
         <label><span>Remember for {currentProject?.name}</span><textarea rows={3} value={memoryDraft} onChange={(event) => setMemoryDraft(event.target.value)} placeholder="A durable preference, fact, or instruction" /></label>
+        <label><span>Who can use it</span><select value={memoryScope} onChange={(event) => setMemoryScope(event.target.value as "user" | "project")}><option value="project">This project</option><option value="user">Only me</option></select></label>
         <button className="workspace-button" disabled={!memoryDraft.trim()}>Remember</button>
       </form>
       <MemoryInspector
@@ -147,6 +151,7 @@ export function OutputWorkspacePage() {
   const [commentReload, setCommentReload] = useState(0);
   const [reviewReload, setReviewReload] = useState(0);
   const [versionReload, setVersionReload] = useState(0);
+  const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   const output = useSection(
     () => currentProject && outputId ? sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}`) : Promise.reject(new Error("Choose the output's project first.")),
     `${currentProject?.id ?? "none"}:${outputId ?? "none"}`,
@@ -169,8 +174,18 @@ export function OutputWorkspacePage() {
   const title = typeof record.payload["name"] === "string" ? record.payload["name"] : `Output ${record.id.slice(0, 8)}`;
   const body = typeof record.payload["description"] === "string" ? record.payload["description"] : "";
   const versionRecords = [...(versions.data?.items ?? [])].reverse();
-  const outputVersions = versionRecords.length ? versionRecords.map((item, index) => ({ id: item.id, ordinal: index + 1, label: String(item.payload["change_summary"] ?? `Version ${index + 1}`), author: item.created_by ?? "Organization member", createdAt: item.created_at, branchId: String(item.payload["branch_id"] ?? "main") })) : [{ id: `base:${record.id}`, ordinal: 1, label: "Version 1", author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" }];
-  const activeVersionId = outputVersions.at(-1)!.id;
+  const baseVersion = { id: `base:${record.id}`, ordinal: 1, label: "Version 1", author: record.created_by ?? "Organization member", createdAt: record.created_at, branchId: "main" };
+  const outputVersions = [baseVersion, ...versionRecords.map((item, index) => {
+    const versionContent = item.payload["content"];
+    const branchId = versionContent && typeof versionContent === "object" && !Array.isArray(versionContent)
+      ? String((versionContent as Record<string, unknown>)["branch_id"] ?? "main")
+      : "main";
+    return { id: item.id, ordinal: index + 2, label: String(item.payload["change_summary"] ?? `Version ${index + 2}`), author: item.created_by ?? "Organization member", createdAt: item.created_at, branchId };
+  })];
+  const latestVersionId = outputVersions.at(-1)!.id;
+  const activeVersionId = selectedVersionId && outputVersions.some((item) => item.id === selectedVersionId)
+    ? selectedVersionId
+    : latestVersionId;
   const contentFor = (versionId: string): Record<string, unknown> => {
     const selected = versionRecords.find((item) => item.id === versionId);
     const content = selected?.payload["content"];
@@ -179,21 +194,25 @@ export function OutputWorkspacePage() {
   const appendVersion = async (content: Record<string, unknown>, parentVersionId: string | null, changeSummary: string) => {
     if (!currentProject || !outputId) return;
     await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/versions`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ content, parent_version_id: parentVersionId, change_summary: changeSummary }) });
+    setSelectedVersionId(null);
     setVersionReload((value) => value + 1);
     setNotice(`${changeSummary} saved.`);
   };
   const actions = {
-    onSelectVersion: () => undefined,
+    onSelectVersion: setSelectedVersionId,
     onCheckpoint: () => appendVersion(contentFor(activeVersionId), activeVersionId.startsWith("base:") ? null : activeVersionId, "Checkpoint"),
     onRestore: (versionId: string) => appendVersion(contentFor(versionId), versionId.startsWith("base:") ? null : versionId, "Restored version"),
     onCompare: (beforeVersionId: string, afterVersionId: string) => { setNotice(JSON.stringify(contentFor(beforeVersionId)) === JSON.stringify(contentFor(afterVersionId)) ? "The selected versions are identical." : "The selected versions contain different content."); },
     onBranch: (versionId: string) => appendVersion({ ...contentFor(versionId), branch_id: crypto.randomUUID() }, versionId.startsWith("base:") ? null : versionId, "Branched version"),
-    onPromote: (versionId: string) => appendVersion(contentFor(versionId), versionId.startsWith("base:") ? null : versionId, "Promoted to main"),
+    onPromote: (versionId: string) => appendVersion({ ...contentFor(versionId), branch_id: "main" }, versionId.startsWith("base:") ? null : versionId, "Promoted to main"),
   };
-  const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId, versions: outputVersions, preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: title }, { id: "body", type: "paragraph", text: body }] }, validation: [{ code: "persistence", status: "passed", message: "Output and version history are persisted in canonical project records." }] };
+  const activeContent = contentFor(activeVersionId);
+  const previewTitle = typeof activeContent["name"] === "string" ? activeContent["name"] : title;
+  const previewBody = typeof activeContent["description"] === "string" ? activeContent["description"] : body;
+  const liveOutput: OutputView = { ...outputFixture, id: record.id, title, lifecycle: record.state === "draft" ? "working" : "ready_for_review", capability: "supported", capabilityMessage: "Persisted in the project output store.", activeVersionId, versions: outputVersions, preview: { kind: "document", blocks: [{ id: "heading", type: "heading", text: previewTitle }, { id: "body", type: "paragraph", text: previewBody }] }, validation: [{ code: "persistence", status: "passed", message: "Output and version history are persisted in canonical project records." }] };
   const commentViews = (comments.data?.items ?? []).map((item) => ({ id: item.id, author: item.created_by ?? "Organization member", body: String(item.payload["body"] ?? ""), createdAt: item.created_at, anchorLabel: "Output", resolved: item.state === "resolved", replies: [] }));
   const reviewViews = (reviews.data?.items ?? []).map((item) => ({ id: item.id, reviewer: String(item.payload["reviewer_ids"] instanceof Array ? item.payload["reviewer_ids"][0] : "Organization reviewer"), status: item.state as "pending" | "approved" | "changes_requested", note: typeof item.payload["instructions"] === "string" ? item.payload["instructions"] : null }));
-  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <WorkspaceState state="error">{notice}</WorkspaceState> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={reviewViews} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: async (commentId) => { if (!currentProject) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/comments/${encodeURIComponent(commentId)}/resolve`, { method: "POST" }); setCommentReload((value) => value + 1); }, onRequestReview: async () => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ reviewer_ids: [user?.email ?? user?.id ?? "organization-reviewer"], instructions: "Review this output and leave specific feedback." }) }); setReviewReload((value) => value + 1); } }} /></div></section>;
+  return <section className="workspace-page"><PageHeader eyebrow="Outputs" title={title}><NavLink className="workspace-button is-quiet" to="/work">Back to work</NavLink></PageHeader>{notice ? <div className="workspace-notice is-neutral" role="status"><strong>Saved</strong><span>{notice}</span></div> : null}<PresenceStrip collaborators={[]} progress={null} /><div className="workspace-task-grid"><OutputWorkbench output={liveOutput} actions={actions} /><CollaborationRail comments={commentViews} reviews={reviewViews} canComment actions={{ onAddComment: async (body) => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/comments`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ body }) }); setCommentReload((value) => value + 1); }, onMention: () => undefined, onResolve: async (commentId) => { if (!currentProject) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/comments/${encodeURIComponent(commentId)}/resolve`, { method: "POST" }); setCommentReload((value) => value + 1); }, onRequestReview: async () => { if (!currentProject || !outputId) return; await sessionRequest(`/api/v2/product/projects/${encodeURIComponent(currentProject.id)}/outputs/${encodeURIComponent(outputId)}/reviews`, { method: "POST", headers: { "Idempotency-Key": crypto.randomUUID() }, body: JSON.stringify({ reviewer_ids: [user?.email ?? user?.id ?? "organization-reviewer"], instructions: "Review this output and leave specific feedback." }) }); setReviewReload((value) => value + 1); } }} /></div></section>;
 }
 
 export function AutomationsWorkspacePage() {
@@ -201,6 +220,7 @@ export function AutomationsWorkspacePage() {
   const [automationName, setAutomationName] = useState("");
   const [automationReload, setAutomationReload] = useState(0);
   const [automationNotice, setAutomationNotice] = useState("");
+  const [automationError, setAutomationError] = useState(false);
   const adapter = useMemo(
     () => (currentProject ? new LiveAutomationAdapter(currentProject.id) : null),
     [currentProject],
@@ -220,6 +240,7 @@ export function AutomationsWorkspacePage() {
       <form className="workspace-form" onSubmit={(event) => {
         event.preventDefault();
         setAutomationNotice("");
+        setAutomationError(false);
         void sessionRequest<ProductRecordSummary>(`/api/v2/product/projects/${encodeURIComponent(currentProject!.id)}/automations`, {
           method: "POST",
           headers: { "Idempotency-Key": crypto.randomUUID() },
@@ -232,12 +253,15 @@ export function AutomationsWorkspacePage() {
             method: "POST", headers: { "If-Match": String(created.version) },
           });
           setAutomationName(""); setAutomationNotice("Automation published and scheduled."); setAutomationReload((value) => value + 1);
-        }).catch((error) => setAutomationNotice(error instanceof Error ? error.message : "Automation could not be created."));
+        }).catch((error) => { setAutomationError(true); setAutomationNotice(error instanceof Error ? error.message : "Automation could not be created."); });
       }}>
         <label><span>New daily automation</span><input value={automationName} onChange={(event) => setAutomationName(event.target.value)} placeholder="Daily market brief" required /></label>
         <button className="workspace-button" disabled={!automationName.trim()}>Create automation</button>
       </form>
-      {automationNotice ? <WorkspaceState state="error">{automationNotice}</WorkspaceState> : null}
+      {automationNotice ? automationError
+        ? <WorkspaceState state="error">{automationNotice}</WorkspaceState>
+        : <div className="workspace-notice" role="status"><strong>Automation ready</strong><span>{automationNotice}</span></div>
+        : null}
       <AutomationWorkspace key={`${currentProject!.id}:${automationReload}`} adapter={adapter} />
     </section>
   );

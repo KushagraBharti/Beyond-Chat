@@ -143,7 +143,7 @@ class AutomationLifecycle:
 
     def latest_published_version(self, *, scope: Scope, automation_id: str) -> dict[str, Any] | None:
         versions = [item for item in self.service.list("automation_version", scope, states=("published",))
-                    if item["payload"].get("parent_id") == automation_id]
+                    if (item.get("parent_id") or item["payload"].get("parent_id")) == automation_id]
         return versions[0] if versions else None
 
     # -- enqueue --
@@ -157,7 +157,8 @@ class AutomationLifecycle:
 
     def _open_executions(self, scope: Scope, automation_id: str) -> list[dict[str, Any]]:
         rows = self.service.list("automation_execution", scope, states=("queued", "running"))
-        return [row for row in rows if row["payload"].get("parent_id") == automation_id]
+        return [row for row in rows
+                if (row.get("parent_id") or row["payload"].get("parent_id")) == automation_id]
 
     def enqueue(self, *, scope: Scope, automation_id: str, trigger_source: str,
                 trigger_key: str, trigger_payload: Mapping[str, Any] | None = None,
@@ -221,7 +222,7 @@ class AutomationLifecycle:
     def retry(self, *, scope: Scope, principal: Principal, automation_id: str,
               execution_id: str) -> dict[str, Any]:
         execution = self.service.get("automation_execution", execution_id, scope)
-        if execution["payload"].get("parent_id") != automation_id:
+        if (execution.get("parent_id") or execution["payload"].get("parent_id")) != automation_id:
             raise KeyError("not_found")
         if execution["state"] != "failed":
             raise AutomationTriggerError("not_retryable", "Only failed executions can be retried.")

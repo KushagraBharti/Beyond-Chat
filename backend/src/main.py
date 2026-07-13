@@ -84,9 +84,16 @@ app.include_router(runtime_router)
 # composition root refuses BILLING_V2_ENABLED outside dev/test until durable
 # billing persistence exists (activation runbook gate M1).
 from .billing_v2.composition import create_configured_billing_router  # noqa: E402
+from .billing_v2.adapters import InMemoryBillingRepository, SupabaseBillingRepository  # noqa: E402
 from .billing_v2.observability import init_observability  # noqa: E402
 
-app.include_router(create_configured_billing_router())
+_billing_client = supabase_service.client()
+_billing_repository = (
+    SupabaseBillingRepository(_billing_client)
+    if _billing_client is not None
+    else InMemoryBillingRepository()
+)
+app.include_router(create_configured_billing_router(repository=_billing_repository))
 init_observability(app)
 
 # The aggregate product plane always mounts behind the canonical WorkOS
@@ -109,7 +116,7 @@ app.include_router(create_product_router(ProductApiDependencies(
     repository=_product_repository,
     authorize_scope=_product_authorizer,
     mutation_guard=lambda: None,
-    providers=create_live_provider_registry(),
+    providers=create_live_provider_registry(billing_repository=_billing_repository),
 )))
 
 if _product_client is not None:

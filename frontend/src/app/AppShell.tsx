@@ -8,9 +8,9 @@ import { ProjectProvider } from "../features/workspace/ProjectContext";
 import { WorkspaceLayout } from "../components/workspace/WorkspaceShell";
 import { RouteErrorBoundary } from "./RouteErrorBoundary";
 
-const GeneralAgentPage = lazy(() => import("../pages/protected/ChatPage"));
-const ResearchAgentPage = lazy(() => import("../pages/protected/ResearchPage"));
-const FinanceAgentPage = lazy(() => import("../pages/protected/FinancePage"));
+const GeneralAgentPage = lazy(() => import("../pages/workspace/ChatWorkspacePage").then((module) => ({ default: module.GeneralAgentWorkspacePage })));
+const ResearchAgentPage = lazy(() => import("../pages/workspace/ChatWorkspacePage").then((module) => ({ default: module.ResearchAgentWorkspacePage })));
+const FinanceAgentPage = lazy(() => import("../pages/workspace/ChatWorkspacePage").then((module) => ({ default: module.FinanceAgentWorkspacePage })));
 const HomeWorkspacePage = lazy(() => import("../pages/workspace/HomeWorkspacePage").then((module) => ({ default: module.HomeWorkspacePage })));
 const ChatWorkspacePage = lazy(() => import("../pages/workspace/ChatWorkspacePage").then((module) => ({ default: module.ChatWorkspacePage })));
 const WorkListPage = lazy(() => import("../pages/workspace/WorkWorkspacePages").then((module) => ({ default: module.WorkListPage })));

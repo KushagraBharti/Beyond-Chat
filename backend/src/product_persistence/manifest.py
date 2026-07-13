@@ -19,7 +19,7 @@ KIND_TABLES: dict[str, str] = {kind: "product_records" for kind in PRODUCT_KINDS
 
 APPEND_ONLY_KINDS = frozenset({
     "agent_version", "output_version", "citation", "retrieval", "review_decision",
-    "automation_version", "automation_execution", "realtime_hint",
+    "automation_version", "realtime_hint",
 })
 
 

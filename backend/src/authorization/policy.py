@@ -236,6 +236,13 @@ def evaluate_project_access(
         effective.update(PROJECT_ROLE_PERMISSIONS[direct_role])
     if visibility == "organization":
         effective.add(ResourcePermission.VIEW)
+        if principal.role in {
+            OrganizationRole.MEMBER,
+            OrganizationRole.BUILDER,
+            OrganizationRole.ADMIN,
+            OrganizationRole.OWNER,
+        }:
+            effective.update({ResourcePermission.USE, ResourcePermission.EDIT})
     if principal.role in {OrganizationRole.OWNER, OrganizationRole.ADMIN}:
         effective.update(ResourcePermission)
     elif principal.role is OrganizationRole.BUILDER:

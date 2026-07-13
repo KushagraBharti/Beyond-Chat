@@ -162,3 +162,79 @@ def test_workspace_capabilities_are_truthful_by_default(monkeypatch: pytest.Monk
     monkeypatch.setenv("BEYOND_RUNTIME_CONTROL_PLANE_ENABLED", "true")
     enabled = api.get("/api/v2/product/workspace/capabilities").json()
     assert enabled["runtime_execution"] is True
+
+
+def test_project_source_retrieval_is_scoped_and_creates_resolvable_citations() -> None:
+    api, _repository, directory = build_client(role=OrganizationRole.MEMBER)
+    project = directory.create_project(
+        organization_id="org-a", profile_id="profile-a",
+        name="Launch research", description=None, visibility="organization")
+    other_project = directory.create_project(
+        organization_id="org-a", profile_id="profile-a",
+        name="Private research", description=None, visibility="organization")
+    source = api.post(
+        f"/api/v2/product/projects/{project['id']}/knowledge/sources",
+        headers={"Idempotency-Key": "source-orion"},
+        json={"name": "Launch brief", "description": "The project codename is ORION-742.",
+              "configuration": {"type": "manual"}},
+    )
+    foreign = api.post(
+        f"/api/v2/product/projects/{other_project['id']}/knowledge/sources",
+        headers={"Idempotency-Key": "source-foreign"},
+        json={"name": "Other brief", "description": "The other codename is SECRET-999.",
+              "configuration": {"type": "manual"}},
+    )
+    assert source.status_code == foreign.status_code == 201
+
+    retrieval = api.post(
+        f"/api/v2/product/projects/{project['id']}/knowledge/retrieval",
+        headers={"Idempotency-Key": "retrieval-orion"},
+        json={"query": "What is the project codename?", "source_ids": [], "limit": 10},
+    )
+    assert retrieval.status_code == 201
+    items = retrieval.json()["payload"]["provider_result"]["items"]
+    assert [item["source_id"] for item in items] == [source.json()["id"]]
+    assert items[0]["source_version"] == 1
+    assert "ORION-742" in items[0]["excerpt"]
+
+    citations = api.get(f"/api/v2/product/projects/{project['id']}/knowledge/citations")
+    assert citations.status_code == 200
+    assert citations.json()["items"][0]["payload"]["retrieval_id"] == retrieval.json()["id"]
+
+    denied = api.post(
+        f"/api/v2/product/projects/{project['id']}/knowledge/retrieval",
+        headers={"Idempotency-Key": "retrieval-foreign"},
+        json={"query": "secret", "source_ids": [foreign.json()["id"]], "limit": 10},
+    )
+    assert denied.status_code == 404
+
+
+def test_personal_memory_is_visible_only_to_its_owner() -> None:
+    repository = InMemoryProductRepository()
+    directory = InMemoryProjectDirectory()
+    project = directory.create_project(
+        organization_id="org-a", profile_id="profile-a",
+        name="Shared launch", description=None, visibility="organization")
+    owner, _, _ = build_client(
+        repository=repository, directory=directory, profile_id="profile-a")
+    shared = owner.post(
+        f"/api/v2/product/projects/{project['id']}/memory",
+        headers={"Idempotency-Key": "shared-memory"},
+        json={"content": "The launch is Friday", "memory_scope": "project"},
+    )
+    personal = owner.post(
+        f"/api/v2/product/projects/{project['id']}/memory",
+        headers={"Idempotency-Key": "personal-memory"},
+        json={"content": "Use concise replies", "memory_scope": "user"},
+    )
+    assert shared.status_code == personal.status_code == 201
+
+    colleague, _, _ = build_client(
+        repository=repository, directory=directory, profile_id="profile-b")
+    listed = colleague.get(f"/api/v2/product/projects/{project['id']}/memory")
+    assert [item["payload"]["content"] for item in listed.json()["items"]] == ["The launch is Friday"]
+    denied = colleague.post(
+        f"/api/v2/product/projects/{project['id']}/memory/{personal.json()['id']}/delete",
+        headers={"If-Match": "1"},
+    )
+    assert denied.status_code == 404

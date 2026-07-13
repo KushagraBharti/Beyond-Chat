@@ -33,6 +33,6 @@ describe("WorkOS session client", () => {
 
   it("preserves hosted sign-up, invitation, and safe return parameters", () => {
     expect(workOSLoginUrl({ returnTo: "/admin", screenHint: "sign-up", invitationToken: "invite_1" }))
-      .toBe("/api/auth/login?returnTo=%2Fadmin&screenHint=sign-up&invitationToken=invite_1");
+      .toBe("/api/session/start?returnTo=%2Fadmin&screenHint=sign-up&invitationToken=invite_1");
   });
 });

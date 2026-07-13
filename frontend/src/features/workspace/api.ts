@@ -84,19 +84,31 @@ export function getOrganizationCatalog() {
 }
 
 export async function executeGeneralAgent(input: { prompt: string; projectId: string; runId?: string; agentVersionId?: string; instructions?: string }) {
-  const [knowledge, memory] = await Promise.all([
-    sessionRequest<{ items: ProductRecordSummary[] }>(
-      `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/sources`,
-    ).catch(() => ({ items: [] })),
+  const [retrieval, memory] = await Promise.all([
+    sessionRequest<ProductRecordSummary>(
+      `${BASE}/projects/${encodeURIComponent(input.projectId)}/knowledge/retrieval`,
+      {
+        method: "POST",
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({ query: input.prompt, source_ids: [], limit: 8 }),
+      },
+    ).catch(() => null),
     sessionRequest<{ items: ProductRecordSummary[] }>(
       `${BASE}/projects/${encodeURIComponent(input.projectId)}/memory`,
     ).catch(() => ({ items: [] })),
   ]);
-  const sources = knowledge.items.slice(0, 8).map((record) => ({
-    id: record.id,
-    name: recordTitle(record),
-    content: String(record.payload["description"] ?? "").slice(0, 2_000),
-  })).filter((source) => source.content.trim());
+  const providerResult = retrieval?.payload["provider_result"];
+  const retrievedItems = providerResult && typeof providerResult === "object" && !Array.isArray(providerResult)
+    ? (providerResult as { items?: unknown }).items
+    : [];
+  const sources = (Array.isArray(retrievedItems) ? retrievedItems : []).slice(0, 8).map((value) => {
+    const item = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+    return {
+      id: String(item["source_id"] ?? ""),
+      name: String(item["name"] ?? "Untitled source"),
+      content: String(item["excerpt"] ?? "").slice(0, 4_000),
+    };
+  }).filter((source) => source.id && source.content.trim());
   const memories = memory.items.filter((record) => record.state === "active" && record.payload["sensitivity"] !== "sensitive")
     .slice(0, 8).map((record) => String(record.payload["content"] ?? "").slice(0, 1_000)).filter(Boolean);
   const knowledgeContext = sources.length ? `\n\nApproved project knowledge:\n${sources

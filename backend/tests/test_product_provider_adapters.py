@@ -117,6 +117,28 @@ async def test_composio_scopes_connect_execute_and_revocation_with_pinned_versio
     assert calls[-1] == ("GET", "/api/v3.1/connected_accounts")
 
 
+@pytest.mark.asyncio
+async def test_composio_cancels_an_abandoned_oauth_attempt() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/connected_accounts"):
+            return httpx.Response(200, json={"items": [
+                {"id": "ca_pending", "status": "INITIATED", "toolkit": {"slug": "gmail"}}
+            ]})
+        if request.url.path.endswith("/ca_pending/revoke"):
+            return httpx.Response(409, json={"message": "account is not active"})
+        raise AssertionError(request.url)
+
+    config = ComposioConfig("composio-secret", {"gmail": "ac_gmail"},
+        {"GMAIL_FETCH_EMAILS": "20260701_00"}, {},
+        "https://api.example.com/api/v2/product")
+    adapter = ComposioAdapter(config, async_client(handler))
+    result = await adapter.revoke(
+        scope=ProviderScope("org-a", "project-a", "profile-a"),
+        connected_account_id="ca_pending",
+    )
+    assert result["revocation_propagated"] is True
+
+
 class BillingRepositoryStub:
     async def get_status(self, organization_id: str) -> BillingStatus:
         return BillingStatus(organization_id, "active", "enabled", 3, 3, True, True, True)

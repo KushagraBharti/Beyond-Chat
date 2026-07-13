@@ -25,10 +25,15 @@ class SupabaseProductRepository:
 
     @staticmethod
     def _record(kind: str, row: dict[str, Any]) -> ProductRecord:
+        payload = dict(row.get("payload") or {})
+        if row.get("parent_kind") is not None:
+            payload["parent_kind"] = row["parent_kind"]
+        if row.get("parent_id") is not None:
+            payload["parent_id"] = row["parent_id"]
         return ProductRecord(
             id=str(row["id"]), kind=kind,
             scope=Scope(str(row["organization_id"]), row.get("project_id"), row.get("team_id")),
-            state=str(row["state"]), version=int(row["version"]), payload=dict(row.get("payload") or {}),
+            state=str(row["state"]), version=int(row["version"]), payload=payload,
             created_by=str(row["created_by"]), created_at=str(row["created_at"]), updated_at=str(row["updated_at"]),
         )
 

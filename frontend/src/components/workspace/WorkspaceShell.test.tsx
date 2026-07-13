@@ -54,8 +54,8 @@ describe("unified workspace shell", () => {
   it("keeps discovery truthful: no fixture connections exist in the built-in set", () => {
     expect(queryDiscovery(discoveryItems, "/notion")).toEqual([]);
     render(<MemoryRouter><ChatWorkspacePage /></MemoryRouter>);
-    fireEvent.click(screen.getByRole("button", { name: "Show reconnect state" }));
-    expect(screen.getByText("Connection paused")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reconnect last run" })).toBeInTheDocument();
+    expect(screen.queryByText("Connection paused")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Promote to Work" })).toBeDisabled();
   });
 

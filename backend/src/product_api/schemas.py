@@ -63,6 +63,7 @@ class MemoryProposal(StrictModel):
     content: str = Field(min_length=1, max_length=32000)
     sensitivity: Literal["normal", "sensitive"] = "normal"
     expires_at: str | None = None
+    memory_scope: Literal["user", "project"] | None = None
 
 
 class VersionCreate(StrictModel):

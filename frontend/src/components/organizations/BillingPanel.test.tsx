@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { authState, billing } = vi.hoisted(() => ({
@@ -43,24 +43,19 @@ beforeEach(() => {
 });
 
 describe("BillingPanel", () => {
-  it("shows the truthful disabled state with an inert checkout control", async () => {
+  it("shows the truthful disabled state with an inert coming-soon control", async () => {
     render(<BillingPanel />);
-    expect(await screen.findByText(/No verified subscription exists/i)).toBeInTheDocument();
-    const checkout = screen.getByRole("button", { name: /checkout unavailable/i });
+    expect(await screen.findByText(/Paid subscriptions are coming soon/i)).toBeInTheDocument();
+    const checkout = screen.getByRole("button", { name: /payments coming soon/i });
     expect(checkout).toBeDisabled();
     expect(screen.queryByRole("button", { name: /billing portal/i })).not.toBeInTheDocument();
   });
 
-  it("starts checkout only when the server enables it", async () => {
+  it("does not expose checkout even when the server adapter is ready", async () => {
     billing.getBillingStatus.mockResolvedValue(status({ checkout_enabled: true }));
-    billing.startCheckout.mockResolvedValue({ url: "https://checkout.stripe.example/s" });
-    const assign = vi.fn();
-    vi.stubGlobal("location", { ...window.location, assign });
     render(<BillingPanel />);
-    fireEvent.click(await screen.findByRole("button", { name: /start subscription checkout/i }));
-    await waitFor(() => expect(billing.startCheckout).toHaveBeenCalled());
-    await waitFor(() => expect(assign).toHaveBeenCalledWith("https://checkout.stripe.example/s"));
-    vi.unstubAllGlobals();
+    expect(await screen.findByRole("button", { name: /payments coming soon/i })).toBeDisabled();
+    expect(billing.startCheckout).not.toHaveBeenCalled();
   });
 
   it("shows verified paid state with seats and a portal control", async () => {
@@ -71,7 +66,8 @@ describe("BillingPanel", () => {
     render(<BillingPanel />);
     expect(await screen.findByText(/subscription is active and server-verified/i)).toBeInTheDocument();
     expect(screen.getByText(/12 paid seats/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open billing portal/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /payments coming soon/i })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: /open billing portal/i })).not.toBeInTheDocument();
   });
 
   it("denies management controls without the settings permission", async () => {
@@ -80,14 +76,5 @@ describe("BillingPanel", () => {
     render(<BillingPanel />);
     expect(await screen.findByText(/requires an administrative role/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /checkout/i })).not.toBeInTheDocument();
-  });
-
-  it("surfaces a not-activated message when the backend fails closed", async () => {
-    const { ApiError } = await import("../../lib/sessionClient");
-    billing.getBillingStatus.mockResolvedValue(status({ checkout_enabled: true }));
-    billing.startCheckout.mockRejectedValue(new ApiError("Paid checkout is not enabled.", 503));
-    render(<BillingPanel />);
-    fireEvent.click(await screen.findByRole("button", { name: /start subscription checkout/i }));
-    expect(await screen.findByText(/not activated for this deployment/i)).toBeInTheDocument();
   });
 });
