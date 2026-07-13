@@ -5,8 +5,8 @@ import { listProjects, type ProjectSummary } from "./api";
 /**
  * Organization-scoped project selection. The selected project is remembered
  * per organization (sessionStorage) and is always re-validated against the
- * server-returned project list: a stale or cross-organization selection fails
- * closed by resetting to "no project selected". Switching organization
+ * server-returned project list: a stale or cross-organization selection falls
+ * back to the first accessible project. Switching organization
  * invalidates everything automatically because the storage key and reload key
  * both derive from the server session's organization ID.
  */
@@ -60,8 +60,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         const remembered = sessionStorage.getItem(storageKey(organizationId));
         if (remembered && items.some((project) => project.id === remembered)) {
           setSelectedId(remembered);
+        } else if (items.length > 0) {
+          const fallbackId = items[0].id;
+          sessionStorage.setItem(storageKey(organizationId), fallbackId);
+          setSelectedId(fallbackId);
         } else {
-          // Stale selection fails closed: forget it rather than trusting it.
           sessionStorage.removeItem(storageKey(organizationId));
           setSelectedId(null);
         }

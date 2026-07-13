@@ -48,20 +48,22 @@ describe("ProjectContext", () => {
     render(<ProjectProvider><Probe /></ProjectProvider>);
     await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("ready"));
     expect(screen.getByTestId("count")).toHaveTextContent("2");
+    expect(screen.getByTestId("current")).toHaveTextContent("proj-1");
+    expect(sessionStorage.getItem("beyond.project-selection.org-a")).toBe("proj-1");
     act(() => screen.getByRole("button", { name: "pick" }).click());
     expect(screen.getByTestId("current")).toHaveTextContent("proj-2");
     expect(sessionStorage.getItem("beyond.project-selection.org-a")).toBe("proj-2");
   });
 
-  it("fails closed on a stale or foreign remembered selection", async () => {
+  it("replaces a stale remembered selection with the first accessible project", async () => {
     sessionStorage.setItem("beyond.project-selection.org-a", "proj-deleted");
     render(<ProjectProvider><Probe /></ProjectProvider>);
     await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("ready"));
-    expect(screen.getByTestId("current")).toHaveTextContent("none");
-    expect(sessionStorage.getItem("beyond.project-selection.org-a")).toBeNull();
+    expect(screen.getByTestId("current")).toHaveTextContent("proj-1");
+    expect(sessionStorage.getItem("beyond.project-selection.org-a")).toBe("proj-1");
     // Selecting an ID that is not in the server list is ignored entirely.
     act(() => screen.getByRole("button", { name: "pick-foreign" }).click());
-    expect(screen.getByTestId("current")).toHaveTextContent("none");
+    expect(screen.getByTestId("current")).toHaveTextContent("proj-1");
   });
 
   it("invalidates selection and reloads when the organization changes", async () => {
