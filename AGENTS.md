@@ -1,158 +1,98 @@
-# AGENTS.md
+# Beyond Chat Agent Guide
 
-This file defines the operating contract for **all coding agents** working in this repository.
+## Product
 
-If you are an automated coding agent, read this file fully before making any change.
+Beyond Chat is an organization-first, general-purpose AI workspace: a ChatGPT Work-style product where users sign in, join organizations, select projects, run reusable agents, connect enterprise knowledge and apps, generate durable collaborative outputs, and configure automations.
 
-## 1) Mission Context
+The primary experience includes Home, Chat, Work, Projects, Agents, Knowledge & Apps, Automations, Settings/Admin, and Memory. Users can invoke slash commands, skills, tools, apps, MCPs, projects, sources, and named agents. Built-in General, Research, and Finance agents can create documents and other reviewable work. Organizations can create, publish, and deploy their own agents with scoped skills, tools, knowledge, and memory.
 
-Beyond Chat is a modular AI workspace. The product is organized into dedicated studios (writing, research, image, data, finance) and artifact-centric workflows rather than long chat threads.
+Billing targets $30/user/month, but live customer payments are deferred. Billing UI must truthfully show **Coming soon** until Stripe activation is explicitly authorized.
 
-Your role as an agent is to make safe, minimal, correct changes that move the repository toward production readiness.
+`plan.md` is the canonical product and execution plan. Reuse existing working features rather than rebuilding them.
 
-## 2) Hard Rules (Non-Negotiable)
+## Architecture
 
-### Package/runtime policy
+- Frontend: React, TypeScript, Vite, React Router; hosted on Vercel.
+- Backend: FastAPI/Python; hosted on Vercel and managed exclusively with `uv`.
+- Data: Supabase Postgres, Storage, and Realtime with organization-scoped RLS.
+- Identity: WorkOS AuthKit, organizations, invitations, memberships, and RBAC.
+- Agent core: Pi wrapped by Beyond's runtime and app-server protocol.
+- Execution: isolated Modal Sandboxes with durable runs, recovery, and generated files.
+- Models: OpenRouter.
+- Apps/connectors: Composio plus native knowledge integrations where needed.
+- Billing: Stripe code exists, but live checkout and charging remain disabled.
 
-- Frontend and JS agent surfaces may use **npm or bun**.
-- Prefer **npm** for cloud/sandbox scripts and on Windows when Bun has compatibility issues.
-- Backend must use **uv only**.
-- Never use `yarn` or `pnpm` for frontend or agent dependency management.
-- Never use `pip` for backend dependency management.
+The runtime supports durable run records, ordered events, leases, checkpoints, budgets, approvals, cancellation, suspension, recovery, reconciliation, SSE streaming/replay, internal gateway authentication, Modal worker execution, generated outputs, knowledge retrieval with citations, and scoped memory.
 
-### Scope discipline
+Production journey: WorkOS login → organization/project → agent invocation → Modal/Pi execution → durable streamed result → saved/versioned collaborative output.
 
-- Do only what the current task asks.
-- Do not refactor unrelated code.
-- Do not add extra features not requested.
-- Do not rename files/symbols unless required for the task.
+## Repository
 
-### Quality discipline
+- `frontend/` — production React/Vite application.
+- `backend/` — FastAPI API, runtime, persistence, provider adapters, and migrations.
+- `backend/dexter/` — finance-agent implementation and tooling.
+- `backend/sandbox-runner/` — hosted runner surface.
+- `supabase/migrations/` — canonical database migrations.
+- `frontend-mock/` — visual reference only unless explicitly requested.
 
-- Prefer root-cause fixes over surface patches.
-- Keep implementations simple and explicit.
-- Preserve existing code style and conventions.
-- Update docs when behavior/setup changes.
+## Tooling
 
-## 3) Mandatory Startup Checklist (Run Before Work)
+- Use `npm` for frontend and JavaScript packages. Bun is allowed only where already supported.
+- Use `uv` for all backend Python commands.
+- Never use `yarn`, `pnpm`, or `pip`.
+- Never hardcode, print, or commit credentials. Use environment variables.
+- Use Chrome for authenticated browser work when requested; never use Computer.
+- Composio is browser-managed on Windows because its CLI is unsupported there.
+- Verify provider account, team, project, environment, and immutable resource IDs before mutation. Operate only on Beyond resources.
 
-Every agent session must begin with this sequence:
-
-1. Read `README.md` and this file.
-2. Import/load **ALL available agent skills** before planning or coding.
-3. Inspect repository state and active files related to the request.
-4. Confirm toolchain compliance (npm frontend, uv backend) for any command you run.
-
-### Skill-loading requirement
-
-Agents must actively load all discoverable skills from the local agent skill registry so they operate with the latest instructions, templates, and safeguards.
-
-- If a skill system supports commands, run the equivalent of `import all skills` / `load all skills` at session start.
-- If auto-discovery is unavailable, manually read each available skill instruction source before coding.
-- If no skills are available, continue and note that skill import was not possible.
-
-## 4) Repository Map
-
-- `frontend/` → production frontend (React + TypeScript + Vite, managed with npm or Bun)
-- `backend/dexter/` → Dexter finance agent runtime
-- `backend/sandbox-runner/` → Vercel Sandbox runner for Dexter Finance Studio
-- `frontend-mock/` → visual mock variants / design sandbox
-- `backend/` → FastAPI backend (managed with uv)
-- `backend/sql-related-files/` → SQL and schema-related assets
-
-## 5) Current Stack and Tools
-
-- Frontend: React, TypeScript, Vite
-- Backend: FastAPI, Uvicorn
-- JS tooling: npm by default; Bun is allowed where it works locally
-- Python tooling: uv
-- Planned platform integrations: Supabase, OpenRouter, Vercel
-
-## 6) Standard Local Commands
-
-Use only these toolchain-compliant commands.
-
-### Backend
+## Local Development
 
 ```powershell
+# Backend
 cd backend
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
-```
 
-### Frontend
-
-```powershell
+# Frontend
 cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+The frontend proxies `/api/*` to `127.0.0.1:8000`. Preserve `GET /api/health` locally and in production.
+
+Useful validation:
+
+```powershell
+cd frontend
 npm run build
-```
+npm run test
 
-### Dexter
+cd backend
+uv run pytest
 
-```powershell
-cd backend/dexter
-npm install
-npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai/gpt-5.4-nano --json
-```
-
-### Sandbox Runner
-
-```powershell
 cd backend/sandbox-runner
-npm install
 npm run typecheck
 ```
 
-## 7) API/Connectivity Baseline
+Run targeted checks for changed behavior first; broaden only when warranted.
 
-At minimum, preserve the local integration path:
+## Deployment
 
-- Backend health endpoint: `GET /api/health`
-- Frontend dev server proxies `/api/*` to backend (`127.0.0.1:8000`)
+GitHub `main` is connected to three Vercel projects and automatically deploys them after a push. Do not create manual Vercel deployments unless explicitly requested.
 
-After backend/frontend edits, validate this path still works.
+- Frontend: https://beyond-chat-production.vercel.app
+- Backend: https://beyond-chat-backend.vercel.app
+- Runner: https://beyond-chat-sandbox-runner.vercel.app
 
-## 8) Execution Protocol for Agents
+## Engineering Preferences
 
-When implementing a task:
-
-1. Gather context (relevant files only).
-2. Plan minimal edit set.
-3. Apply focused changes.
-4. Run targeted validation first (build/lint/endpoint checks near changed code).
-5. Summarize exactly what changed and any follow-up actions.
-
-## 9) Validation Requirements
-
-After changes, run what is relevant:
-
-- Frontend code changed → `npm run build` in `frontend/`
-- Backend code changed → start/verify backend endpoint(s) using `uv run ...`
-- Cross-stack changes → verify `/api/health` through frontend and backend URLs
-
-Do not attempt to fix unrelated failing tests/issues unless explicitly asked.
-
-## 10) Security and Data Handling
-
-- Do not hardcode secrets or tokens.
-- Use environment variables for credentials/config.
-- Do not expose private data in logs or docs.
-- Keep dependencies minimal and justified.
-
-## 11) Commit/PR Hygiene (If Asked)
-
-- Keep commits small and scoped.
-- Use clear messages describing behavior changes.
-- Include README/doc updates for setup/workflow changes.
-
-## 12) Definition of Done
-
-A task is done when:
-
-- Requested behavior is implemented correctly.
-- Toolchain policy (npm/uv) is fully respected.
-- Relevant validation checks pass.
-- Documentation is updated when needed.
-- No unrelated code was modified.
+- Make the smallest direct change that completes the requested user journey.
+- Prefer working product behavior over speculative abstractions or scaffolding.
+- Fix root causes, preserve existing conventions, and avoid unrelated refactors.
+- Reuse existing contracts and implementations; do not duplicate working systems.
+- Preserve unrelated user changes and keep secrets out of diffs and logs.
+- Validate proportionally: targeted tests, required build, then the real local or production journey.
+- Do not repeatedly retest unchanged behavior or fix unrelated issues.
+- Commit and push only when requested or when the task explicitly includes deployment.
+- Never claim a feature works without verification when verification is available.
