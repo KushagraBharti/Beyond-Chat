@@ -1,87 +1,166 @@
 # Beyond Chat
 
-Beyond Chat is a transitional AI workspace prototype that turns conversations into durable artifacts. The current checkout still contains studio-oriented routes and legacy integrations, but the product is being rebuilt toward an organization-ready workspace centered on projects, agents, durable work, sources, approvals, and outputs.
+A project-centered agentic hub where teams run reusable agents against company knowledge and turn their work into durable, reviewable outputs through shared memory, approvals, and automation.
 
-The current prototype includes Dexter-derived finance workflows with live tool traces and final memo output. Dexter streams NDJSON from the runner into persisted `run_steps`, so the UI can show tool starts, progress, completions, errors, sources, and the final answer as the agent works. These are useful internal/demo behaviors, not claims about the final architecture or generally available capabilities.
+Beyond Chat is designed as the central AI operating layer for a company. Instead of scattering work across isolated conversations, teams organize agents, knowledge, tools, applications, outputs, and automations around persistent projects.
 
-`plan.md` is the canonical product, architecture, and execution plan. The legacy schema, Supabase-centric auth, studio navigation, OpenRouter/provider wiring, and Vercel Sandbox assumptions described below are transitional prototype infrastructure and must not be read as the locked target architecture.
+## Product and highlights
 
-Project inventory:
+Beyond Chat gives organizations one place to:
 
-- 14 transitional Supabase/Postgres tables in the legacy SQL files.
-- 39 API paths across the backend product surface.
-- 14 core backend request/response models.
-- 42 curated tests across backend, frontend, Dexter, and sandbox-runner surfaces.
-- Three current Vercel deployment roots: frontend, backend, and Dexter sandbox runner.
+- Create projects with shared context and company knowledge.
+- Run reusable General, Research, Finance, and organization-defined agents.
+- Connect agents to files, databases, applications, tools, skills, and MCP servers.
+- Save agent work as durable documents and structured outputs.
+- Review, edit, version, approve, and reuse generated work.
+- Preserve project and organization memory across runs.
+- Configure repeatable automations around proven agent workflows.
+- Inspect live tool calls, sources, execution progress, failures, and final outputs.
+- Govern models, data access, tools, budgets, and approvals at the organization level.
 
-## Technical Architecture
+The product surface includes Home, Chat, Work, Projects, Agents, Knowledge & Apps, Automations, Memory, and Settings/Admin. The goal is to make agents part of the company’s operating system rather than disposable chat sessions.
 
-The current prototype is a full-stack React/FastAPI product with Supabase as its hosted system of record. This is a transitional baseline; the locked first-generation architecture is defined in `plan.md`.
+## How Beyond Chat works
 
-Core stack:
+### Primary user journey
 
-- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router.
-- Backend: FastAPI on Python `3.11+`, run with `uv`.
-- Auth: Supabase Auth in the current prototype; WorkOS AuthKit is the locked target.
-- Persistence: Supabase Postgres.
-- Storage: Supabase Storage for uploaded artifacts and data files.
-- Model access: OpenRouter in the current prototype; public model availability is not guaranteed.
-- Research search: Exa.
-- Billing: Stripe scaffolding and status endpoints in the current prototype; no live Beyond product, price, or paid checkout is enabled.
-- Deployment: current Vercel projects and legacy runner paths; Modal is the locked target execution provider.
+```text
+sign in
+  ↓
+select organization and project
+  ↓
+invoke a reusable agent
+  ↓
+load project knowledge, tools, memory, and policy
+  ↓
+execute inside an isolated sandbox
+  ↓
+stream steps, sources, and generated files
+  ↓
+save a durable collaborative output
+  ↓
+review, approve, reuse, or automate
+```
 
-The current product surface is split into public routes and authenticated legacy studio routes. Public routes cover landing, pricing, login, signup, auth callback, password reset, billing result pages, and clearly labeled draft Terms and Privacy pages. Protected routes include Dashboard, Chat, Writing, Research, Image, Data, Finance, Artifacts, and Settings. The canonical target navigation is documented in `plan.md` and replaces studio-centric product framing over time.
+### Agent resolution
 
-### Runtime Flow
+When a user invokes an agent, the runtime resolves:
 
-The frontend sends authenticated API requests with the Supabase access token and an internal workspace header. FastAPI validates the request, writes runs/artifacts through Supabase-aware stores, and calls provider adapters for model, search, billing, data, and Dexter workflows. Profile-scoped ownership is the product-facing model; workspace IDs remain internal routing/bootstrap plumbing where the schema still requires them.
+- The active organization and project
+- The agent definition and version
+- Allowed models
+- Assigned skills and tools
+- Connected applications
+- Project and organization knowledge
+- Scoped memory
+- Budget and execution policy
+- Human-approval requirements
 
-The prototype finance flow uses Dexter through two execution paths:
+This creates a reproducible execution contract rather than a loose prompt assembled in the browser.
 
-- Local development: backend launches the local Dexter TypeScript runtime and parses JSONL output.
-- Hosted execution: backend calls the sandbox runner, which streams NDJSON from Dexter and returns the same event shape.
+### Durable execution
 
-Both paths persist live events into `run_steps`, giving the UI a durable audit trail instead of only a final blob of text.
+FastAPI creates a durable run record before execution begins. Runs support:
 
-### Transitional Data Model
+- Ordered events
+- Leases and worker ownership
+- Budgets
+- Checkpoints
+- Cancellation
+- Suspension
+- Recovery
+- Reconciliation
+- Generated files
+- Human approvals
+- SSE streaming and replay
 
-The legacy schema inventory in `backend/sql-related-files/` covers:
+The agent runtime is built around Pi, wrapped by Beyond Chat’s own application-server protocol. Production work executes inside isolated Modal sandboxes so agents can use tools, create files, and run code without sharing a mutable host environment.
 
-- profiles, workspaces, and membership
-- chat collections, threads, and messages
-- integration connections and sync logs
-- artifacts, runs, and run steps
-- reminders, billing plans, and usage events
-- storage setup and row-level security policies
+### Knowledge, applications, and tools
 
-`backend/sql-related-files/` describes the current transitional Supabase schema. `plan.md` is the source of truth for the target product and architecture; the legacy schema and migration chain are explicitly non-authoritative and are planned for replacement before customer data.
+Agents can work against:
 
-### Repository Map
+- Uploaded project files
+- Organization knowledge sources
+- Connected external applications
+- Native research and finance tools
+- Composio integrations
+- MCP servers
+- Organization-authored skills
+- Agent-scoped and project-scoped memory
+
+Knowledge retrieval preserves citations so outputs remain reviewable. Tool and application access is filtered through organization policy rather than exposed globally.
+
+### Durable outputs
+
+A completed run is not reduced to one final chat message. Beyond Chat promotes useful work into saved outputs with:
+
+- Source-run provenance
+- Generated files
+- Version history
+- Review state
+- Collaboration
+- Approval status
+- Project association
+- Reuse as future context
+
+This allows research, analysis, documents, and operational work to survive beyond the conversation that produced them.
+
+### Identity, authorization, and data
+
+- **WorkOS AuthKit** provides identity, organizations, invitations, memberships, and RBAC.
+- **Supabase Postgres** stores organizations, projects, agents, runs, events, outputs, policies, and memory.
+- **Supabase Storage** stores uploaded and generated files.
+- **Supabase Realtime** supports organization-scoped updates where appropriate.
+- Organization-scoped row-level security prevents cross-tenant access.
+
+### Technologies and external dependencies
+
+- **Frontend:** React, TypeScript, Vite, React Router, Tailwind CSS, TipTap
+- **Backend:** Python, FastAPI, Pydantic, uv
+- **Agent runtime:** Pi with Beyond Chat runtime adapters
+- **Execution:** Modal sandboxes
+- **Models:** OpenRouter
+- **Identity:** WorkOS AuthKit
+- **Data:** Supabase Postgres, Storage, and Realtime
+- **Applications and tools:** Composio and MCP
+- **Research:** Exa and connected knowledge sources
+- **Deployment:** Vercel
+- **Billing infrastructure:** Stripe
+
+### Repository structure
 
 ```text
 Beyond-Chat/
-├── frontend/                 # production React/Vite frontend
-├── backend/                  # FastAPI API, Supabase stores, provider adapters
-├── backend/dexter/           # Dexter finance agent runtime
-├── backend/sandbox-runner/   # Vercel Sandbox runner for cloud Dexter execution
-├── backend/sql-related-files/# canonical Supabase/Postgres schema
-├── supabase/migrations/      # Supabase migration history
-├── demo-data/                # demo workspace content
-├── final-submission/         # final report materials
-└── frontend-mock/            # archived visual reference only
+├── frontend/                    # Production React/Vite application
+├── backend/                     # FastAPI API, persistence, providers, migrations
+├── agents/                      # Built-in and organization-facing agent definitions
+├── connectors/                  # Knowledge and application connectors
+├── packages/
+│   ├── contracts/               # Shared product contracts
+│   ├── runtime-contracts/       # Agent-runtime protocol
+│   ├── agent-registry/          # Agent definitions and versions
+│   ├── skill-registry/          # Skill resolution
+│   ├── app-registry/            # Connected application definitions
+│   ├── knowledge-plane/         # Retrieval and citation contracts
+│   ├── memory-plane/            # Scoped memory
+│   ├── automation-engine/       # Scheduled and event-driven workflows
+│   └── output-collaboration/    # Durable collaborative outputs
+├── services/
+│   ├── modal-runtime/           # Sandboxed agent execution
+│   ├── modal-control-plane/     # Modal orchestration
+│   └── local-app-server/        # Local runtime surface
+├── supabase/migrations/         # Canonical database migrations
+├── infra/                       # Deployment and infrastructure configuration
+└── docs/                        # Architecture and operations references
 ```
 
-## Setup And Run
-
-Create env files first:
-
-- `backend/.env` from `backend/env.example`
-- `frontend/.env.local` from `frontend/env.example`
+## Quick start
 
 Backend:
 
 ```powershell
-cd Beyond-Chat\backend
+cd backend
 uv sync
 uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 ```
@@ -89,87 +168,22 @@ uv run uvicorn src.main:app --reload --host 127.0.0.1 --port 8000
 Frontend:
 
 ```powershell
-cd Beyond-Chat\frontend
+cd frontend
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Dexter finance agent:
+Create `backend/.env` and `frontend/.env.local` from their example files.
+
+Open `http://127.0.0.1:5173`. The frontend proxies `/api/*` to the backend at `127.0.0.1:8000`.
+
+Validate:
 
 ```powershell
-cd Beyond-Chat\backend\dexter
-npm install
-npm run dexter:run -- --prompt "Analyze AAPL revenue and margins" --model openai/gpt-5.4-nano --json
-```
+cd backend
+uv run pytest
 
-Sandbox runner:
-
-```powershell
-cd Beyond-Chat\backend\sandbox-runner
-npm install
-npm run typecheck
-```
-
-Local integration baseline:
-
-- Frontend: `http://127.0.0.1:5173`
-- Backend: `http://127.0.0.1:8000`
-- Health check: `GET /api/health`
-- Frontend dev proxy forwards `/api/*` to the backend.
-- Protected API calls require a Supabase access token except `GET /api/health` and provider status.
-
-Validation:
-
-```powershell
-cd Beyond-Chat\frontend
+cd ../frontend
 npm run build
 npm run test
 ```
-
-```powershell
-cd Beyond-Chat\backend
-uv run pytest
-```
-
-```powershell
-cd Beyond-Chat\backend\sandbox-runner
-npm run typecheck
-```
-
-Use npm for frontend, Dexter, and sandbox-runner commands. Use `uv` for the backend. Do not use `pip`, `yarn`, or `pnpm` for the active product surfaces.
-
-## Deploy
-
-Deploy from the same repository as three Vercel projects:
-
-1. Backend
-   - Root Directory: `backend`
-   - Framework Preset: `Other`
-   - Uses `backend/vercel.json` and `backend/api/index.py`
-   - Required credentials include Supabase vars, `OPENROUTER_API_KEY`, `EXASEARCH_API_KEY`, `FINANCIAL_DATASETS_API_KEY`, `DEXTER_RUNNER_SHARED_SECRET`, and Stripe keys.
-
-2. Sandbox runner
-   - Root Directory: `backend/sandbox-runner`
-   - Framework Preset: `Other`
-   - Required credentials include `DEXTER_RUNNER_SHARED_SECRET`, `OPENROUTER_API_KEY`, and `FINANCIAL_DATASETS_API_KEY`.
-
-3. Frontend
-   - Root Directory: `frontend`
-   - Framework Preset: `Vite`
-   - Uses `frontend/vercel.json` for SPA routing
-   - Required credentials: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-
-Verify deployment with:
-
-- `https://<backend-domain>.vercel.app/api/health`
-- `https://<sandbox-runner-domain>.vercel.app/api/run` returning `405` for non-POST requests
-- frontend auth and API-backed pages loading without CORS errors
-
-## Status Notes
-
-- Hosted prototype runtime is Supabase-based for auth, database, and storage; this is transitional and not the locked identity architecture.
-- SQLite and local auth bypass are legacy/testing concerns, not product architecture.
-- `backend/src/store.py` remains only as a legacy local test store.
-- `frontend-mock/` is archived reference material, not an active product surface.
-- Usage tracking and billing state support prototype plan-aware limits; no public page should claim unlimited usage or a live paid entitlement.
-- The public pricing target is $30 per user per month, but paid checkout is not enabled and billing status must be server-verified before access changes.
